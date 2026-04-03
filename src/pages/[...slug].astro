@@ -1,0 +1,417 @@
+---
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TagBadge from '../components/TagBadge.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+// Reading time: word count / 400, round up
+const body = post.body ?? '';
+const wordCount = body.length;
+const readingTime = Math.max(1, Math.ceil(wordCount / 400));
+
+// Date formatting
+const formattedDate = post.data.date.toISOString().slice(0, 10);
+
+// Prev / Next navigation
+const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const currentIndex = allPosts.findIndex((p) => p.id === post.id);
+const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;
+const nextPost = currentIndex > 0 ? allPosts[currentIndex - 1] : null;
+
+// Related posts: same category, exclude current, max 3
+const relatedPosts = allPosts
+  .filter((p) => p.data.category === post.data.category && p.id !== post.id)
+  .slice(0, 3);
+
+// Category display name mapping
+const categoryNames: Record<string, string> = {
+  'n8n': 'n8n',
+  'flutter': 'Flutter',
+  'devops': 'DevOps',
+  'raspberry-pi': 'Raspberry Pi',
+  'tools': '工具',
+};
+const categoryLabel = categoryNames[post.data.category] ?? post.data.category;
+---
+
+<BaseLayout title={post.data.title} description={post.data.description}>
+  <main>
+    <!-- Article Header -->
+    <div class="article-header">
+      <div class="article-header-meta">
+        <TagBadge text={categoryLabel} href={`/category/${post.data.category}/`} />
+        <span class="article-header-date">{formattedDate}</span>
+      </div>
+      <h1>{post.data.title}</h1>
+      <div class="article-header-info">{readingTime} min read</div>
+    </div>
+
+    <!-- Article Cover -->
+    <div class="article-header" style="padding-top:0;">
+      {post.data.cover ? (
+        <Image src={post.data.cover} alt={post.data.title} class="article-cover-img" />
+      ) : (
+        <div class="article-cover">▨ COVER</div>
+      )}
+    </div>
+
+    <!-- Two-column layout -->
+    <div class="layout-with-aside">
+      <div class="layout-main">
+        <div class="prose">
+          <Content />
+        </div>
+
+        <!-- Article Nav (prev / next) -->
+        <nav class="article-nav">
+          {prevPost ? (
+            <a href={`/${prevPost.id}/`} class="article-nav-item">
+              <div class="article-nav-label">← 上一篇</div>
+              <div class="article-nav-title">{prevPost.data.title}</div>
+            </a>
+          ) : <div />}
+          {nextPost ? (
+            <a href={`/${nextPost.id}/`} class="article-nav-item article-nav-item--next">
+              <div class="article-nav-label">下一篇 →</div>
+              <div class="article-nav-title">{nextPost.data.title}</div>
+            </a>
+          ) : <div />}
+        </nav>
+
+        <!-- Giscus placeholder -->
+        <section class="article-comments">
+          <h2 class="article-comments-title">留言討論</h2>
+          <div class="article-comments-placeholder">giscus 留言區將在此載入</div>
+        </section>
+      </div>
+
+      <!-- Aside -->
+      <aside class="layout-aside">
+        <!-- Author widget -->
+        <div class="aside-widget">
+          <div class="aside-widget-title">作者</div>
+          <div class="aside-author">
+            <div class="aside-author-avatar">F</div>
+            <div>
+              <div class="aside-author-name">Frank</div>
+              <div class="aside-author-role">系統整合工程師</div>
+            </div>
+          </div>
+          <div class="aside-author-bio">從只會寫程式，到跨領域學習電路、製程、架站。分享實戰經驗與踩坑紀錄。</div>
+        </div>
+
+        <!-- Related posts widget -->
+        {relatedPosts.length > 0 && (
+          <div class="aside-widget">
+            <div class="aside-widget-title">相關文章</div>
+            {relatedPosts.map((rp) => (
+              <a href={`/${rp.id}/`} class="aside-related-item">
+                <div class="aside-related-title">{rp.data.title}</div>
+                <div class="aside-related-date">{rp.data.date.toISOString().slice(0, 10)}</div>
+              </a>
+            ))}
+          </div>
+        )}
+
+        <!-- TOC placeholder (Task 11) -->
+        <div class="aside-widget">
+          <div class="aside-widget-title">目錄</div>
+          <div style="font-family:var(--font-sans);font-size:13px;color:var(--color-text-muted);">
+            TableOfContents 將在 Task 11 加入
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  /* Article Header */
+  .article-header {
+    max-width: var(--width-wide);
+    margin: 0 auto;
+    padding: 48px 24px 32px;
+  }
+
+  .article-header-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+  }
+
+  .article-header-date {
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.02em;
+  }
+
+  .article-header h1 {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+
+  .article-header-info {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-bottom: 32px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Article Cover */
+  .article-cover {
+    width: 100%;
+    height: 360px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+
+  .article-cover-img {
+    width: 100%;
+    height: 360px;
+    object-fit: cover;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-bg-tertiary);
+  }
+
+  /* Two-column layout */
+  .layout-with-aside {
+    display: flex;
+    gap: 48px;
+    max-width: var(--width-max);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .layout-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .layout-aside {
+    width: 240px;
+    flex-shrink: 0;
+  }
+
+  /* Article Nav */
+  .article-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .article-nav-item {
+    flex: 1;
+    text-decoration: none;
+    color: inherit;
+    padding: 16px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    transition: border-color 500ms steps(4);
+  }
+
+  .article-nav-item:hover {
+    animation: einkRefresh 500ms steps(4) forwards;
+  }
+
+  .article-nav-item--next {
+    text-align: right;
+  }
+
+  .article-nav-label {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 4px;
+  }
+
+  .article-nav-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 22px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Article Comments */
+  .article-comments {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .article-comments-title {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  .article-comments-placeholder {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: 48px;
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+
+  /* Aside Widgets */
+  .aside-widget {
+    margin-bottom: 32px;
+  }
+
+  .aside-widget-title {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .aside-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .aside-author-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border-default);
+    background: var(--color-bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  .aside-author-name {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .aside-author-role {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--color-text-muted);
+  }
+
+  .aside-author-bio {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--color-text-secondary);
+  }
+
+  .aside-related-item {
+    display: block;
+    padding: 8px 0;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .aside-related-item:last-child {
+    border-bottom: none;
+  }
+
+  .aside-related-title {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    transition: color 300ms steps(3);
+  }
+
+  .aside-related-item:hover .aside-related-title {
+    color: var(--color-brand-orange);
+  }
+
+  .aside-related-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-muted);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .layout-aside {
+      display: none;
+    }
+
+    .layout-with-aside {
+      display: block;
+      padding: 0 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .article-header h1 {
+      font-size: 28px;
+      line-height: 38px;
+    }
+
+    .article-cover,
+    .article-cover-img {
+      height: 200px;
+    }
+
+    .article-nav {
+      flex-direction: column;
+    }
+  }
+</style>
