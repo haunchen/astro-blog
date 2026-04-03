@@ -1,15 +1,20 @@
 ---
-
+import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<html lang="zh-TW">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<BaseLayout title="Frank's Blog">
+  <main style="max-width: var(--width-content); margin: 0 auto; padding: 48px 24px;">
+    <h1 style="font-size: 36px; font-weight: 700; margin-bottom: 16px;">
+      BaseLayout 測試頁
+    </h1>
+    <p style="color: var(--color-text-secondary);">
+      如果你看到深色背景 (#0f172a)、Merriweather serif 字型、以及細微的 paper noise overlay，表示 BaseLayout 運作正常。
+    </p>
+    <p style="font-family: var(--font-sans); margin-top: 16px;">
+      這段文字使用 Inter / Noto Sans TC 無襯線字型。
+    </p>
+    <p style="font-family: var(--font-mono); margin-top: 16px;">
+      console.log('JetBrains Mono 等寬字型測試');
+    </p>
+  </main>
+</BaseLayout>

@@ -1,0 +1,73 @@
+---
+import { SEO } from 'astro-seo';
+import { ClientRouter } from 'astro:transitions';
+import '../styles/global.css';
+
+import '@fontsource/merriweather/400.css';
+import '@fontsource/merriweather/700.css';
+import '@fontsource/merriweather/400-italic.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import '@fontsource-variable/noto-serif-tc';
+import '@fontsource-variable/noto-sans-tc';
+
+interface Props {
+  title: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description = '', ogImage } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
+---
+
+<html lang="zh-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <SEO
+      title={title}
+      description={description}
+      canonical={canonicalURL.href}
+      openGraph={{
+        basic: {
+          title,
+          type: 'website',
+          image: ogImageURL ?? '',
+        },
+        optional: {
+          description,
+          locale: 'zh_TW',
+          siteName: title,
+        },
+      }}
+    />
+    <ClientRouter />
+  </head>
+  <body
+    style={`
+      font-family: var(--font-serif);
+      background-color: var(--color-bg-primary);
+      color: var(--color-text-primary);
+      line-height: 1.75;
+    `}
+    transition:animate={{
+      forwards: {
+        old: [{ name: 'einkExit', duration: '400ms', easing: 'ease-in-out', fillMode: 'forwards' }],
+        new: [{ name: 'einkEnter', duration: '400ms', easing: 'ease-in-out', fillMode: 'backwards' }],
+      },
+      backwards: {
+        old: [{ name: 'einkExit', duration: '400ms', easing: 'ease-in-out', fillMode: 'forwards' }],
+        new: [{ name: 'einkEnter', duration: '400ms', easing: 'ease-in-out', fillMode: 'backwards' }],
+      },
+    }}
+  >
+    <slot />
+  </body>
+</html>
