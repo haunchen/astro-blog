@@ -34,7 +34,7 @@ Astro v5 blog with Tailwind CSS v4, TypeScript strict mode, deployed to Cloudfla
 
 ## Design System
 
-Dark e-ink aesthetic defined in `src/styles/global.css` via CSS custom properties (not tailwind.config).
+Dark e-ink aesthetic defined in `src/styles/global.css` via CSS custom properties (not tailwind.config). 完整視覺預覽見 `style-preview.html`（可直接在瀏覽器開啟，包含所有 design tokens、元件樣式與動畫效果）。
 
 - **Fonts:** Merriweather + Noto Serif TC (body), Inter + Noto Sans TC (UI), JetBrains Mono (code)
 - **Colors:** Dark navy background (#0f172a), slate text (#E2E8F0), brand blue (#0084ff) + orange (#fb923c)
