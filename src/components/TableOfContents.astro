@@ -23,7 +23,14 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 )}
 
 <script>
+  let tocObserver: IntersectionObserver | null = null;
+
   function initToc() {
+    if (tocObserver) {
+      tocObserver.disconnect();
+      tocObserver = null;
+    }
+
     const tocLinks = document.querySelectorAll('.toc-list a');
     if (tocLinks.length === 0) return;
 
@@ -43,6 +50,7 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
 
     const headings = document.querySelectorAll('.prose h2, .prose h3');
     headings.forEach((heading) => observer.observe(heading));
+    tocObserver = observer;
   }
 
   // Initial load
