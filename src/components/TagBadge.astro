@@ -1,0 +1,41 @@
+---
+interface Props {
+  text: string;
+  href?: string;
+  size?: 'default' | 'sm';
+}
+
+const { text, href, size = 'default' } = Astro.props;
+const Tag = href ? 'a' : 'span';
+const attrs = href ? { href } : {};
+---
+
+<Tag class:list={['tag', { 'tag--sm': size === 'sm' }]} {...attrs}>
+  {text}
+</Tag>
+
+<style>
+  .tag {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: 500;
+    padding: 2px 8px;
+    background: rgba(251, 146, 60, 0.15);
+    color: var(--brand-orange);
+    border: none;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: background 300ms steps(3);
+  }
+
+  .tag:hover {
+    background: rgba(251, 146, 60, 0.25);
+  }
+
+  .tag--sm {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+</style>
