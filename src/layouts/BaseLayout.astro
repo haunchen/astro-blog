@@ -1,6 +1,7 @@
 ---
 import { SEO } from 'astro-seo';
 import { ClientRouter } from 'astro:transitions';
+import Nav from '../components/Nav.astro';
 import '../styles/global.css';
 
 import '@fontsource/merriweather/400.css';
@@ -68,6 +69,7 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
       },
     }}
   >
+    <Nav />
     <slot />
   </body>
 </html>
