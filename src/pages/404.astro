@@ -1,0 +1,146 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="404 — 找不到頁面">
+  <div class="error-page">
+    <div class="error-code">404</div>
+    <p class="error-message">找不到這個頁面</p>
+    <p class="error-desc">你要找的頁面可能已經移除、更改了網址，或是暫時無法使用。</p>
+    <div class="error-links">
+      <a href="/" class="btn btn--primary">← 回首頁</a>
+      <a href="/articles/" class="btn btn--outline">瀏覽文章</a>
+    </div>
+    <div class="error-terminal">
+      <span class="prompt">$</span> <span class="cmd">curl -I frankchen.tw/this-page</span><br>
+      <span class="output">HTTP/2 404 Not Found</span><br>
+      <span class="prompt">$</span> <span class="cursor"></span>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .error-page {
+    text-align: center;
+    padding: 120px 24px 80px;
+    max-width: 600px;
+    margin: 0 auto;
+    min-height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .error-code {
+    font-family: var(--font-mono);
+    font-size: 120px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-primary);
+    letter-spacing: 0.05em;
+    margin-bottom: 24px;
+    animation: einkGlitch 4s steps(3) infinite;
+  }
+
+  .error-code::after {
+    content: '';
+    display: block;
+    width: 80px;
+    height: 2px;
+    background: var(--brand-orange);
+    margin: 16px auto 0;
+  }
+
+  .error-message {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+
+  .error-desc {
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 40px;
+    max-width: 400px;
+  }
+
+  .error-links {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    height: 40px;
+    padding: 0 16px;
+    border-radius: var(--radius-sm);
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 300ms steps(3);
+  }
+
+  .btn--primary {
+    background: var(--brand-blue);
+    color: var(--text-primary);
+  }
+
+  .btn--primary:hover {
+    background: var(--brand-blue-hover);
+  }
+
+  .btn--outline {
+    background: transparent;
+    color: var(--brand-blue);
+    border: 1px solid var(--brand-blue);
+  }
+
+  .btn--outline:hover {
+    background: rgba(0, 132, 255, 0.1);
+  }
+
+  .error-terminal {
+    margin-top: 48px;
+    padding: 20px 24px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: left;
+    display: inline-block;
+    line-height: 24px;
+  }
+
+  .error-terminal .prompt {
+    color: var(--brand-orange);
+  }
+
+  .error-terminal .cmd {
+    color: var(--text-primary);
+  }
+
+  .error-terminal .output {
+    color: var(--state-error);
+  }
+
+  .error-terminal .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--text-muted);
+    vertical-align: text-bottom;
+    animation: blink 1s steps(1) infinite;
+  }
+</style>
