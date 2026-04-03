@@ -3,6 +3,7 @@ import { getCollection, render } from 'astro:content';
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
+import TableOfContents from '../components/TableOfContents.astro';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -126,13 +127,8 @@ const categoryLabel = categoryNames[post.data.category] ?? post.data.category;
           </div>
         )}
 
-        <!-- TOC placeholder (Task 11) -->
-        <div class="aside-widget">
-          <div class="aside-widget-title">目錄</div>
-          <div style="font-family:var(--font-sans);font-size:13px;color:var(--color-text-muted);">
-            TableOfContents 將在 Task 11 加入
-          </div>
-        </div>
+        <!-- Table of Contents -->
+        <TableOfContents headings={headings} />
       </aside>
     </div>
   </main>
