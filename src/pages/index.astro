@@ -1,20 +1,473 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import TagBadge from '../components/TagBadge.astro';
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft);
+const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured = latestPosts[0];
+const rest = latestPosts.slice(1, 4);
+
+const categories = [
+  { name: 'n8n 自動化', count: 17, href: '/category/n8n/' },
+  { name: '架站部署', count: 7, href: '/category/deployment/' },
+  { name: 'Flutter', count: 4, href: '/category/flutter/' },
+  { name: '工具', count: 4, href: '/category/tools/' },
+  { name: '樹莓派', count: 3, href: '/category/raspberry-pi/' },
+];
+
+const projects = [
+  {
+    name: 'n8nManager',
+    desc: 'n8n 工作流管理 App，雙平台即時監控',
+    tags: ['Flutter', 'Dart', 'MVVM'],
+    link: 'https://github.com/haunchen',
+    linkText: '查看專案 →',
+  },
+  {
+    name: '醫療教學模擬器 G3',
+    desc: '領導 5 人團隊開發，BOM 成本降低 30%',
+    tags: ['Raspberry Pi', 'Hailo AI'],
+    link: '#',
+    linkText: '了解更多 →',
+  },
+  {
+    name: '法蘭克技術部落格',
+    desc: '個人技術部落格，分享開發實戰經驗',
+    tags: ['Astro', 'Cloudflare'],
+    link: '/',
+    linkText: '前往網站 →',
+  },
+];
 ---
 
-<BaseLayout title="Frank's Blog">
-  <main style="max-width: var(--width-content); margin: 0 auto; padding: 48px 24px;">
-    <h1 style="font-size: 36px; font-weight: 700; margin-bottom: 16px;">
-      BaseLayout 測試頁
-    </h1>
-    <p style="color: var(--color-text-secondary);">
-      如果你看到深色背景 (#0f172a)、Merriweather serif 字型、以及細微的 paper noise overlay，表示 BaseLayout 運作正常。
-    </p>
-    <p style="font-family: var(--font-sans); margin-top: 16px;">
-      這段文字使用 Inter / Noto Sans TC 無襯線字型。
-    </p>
-    <p style="font-family: var(--font-mono); margin-top: 16px;">
-      console.log('JetBrains Mono 等寬字型測試');
-    </p>
+<BaseLayout title="法蘭克的技術筆記" description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。">
+  <main>
+    <!-- Hero -->
+    <div class="container">
+      <div class="hero">
+        <h1>法蘭克｜不典型的軟體工程師</h1>
+        <p>從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。</p>
+        <div class="hero-tags">
+          <TagBadge text="系統整合" />
+          <TagBadge text="技術部落客" />
+          <TagBadge text="開源貢獻" />
+        </div>
+        <div class="hero-scroll">
+          <a href="#latest" class="hero-scroll-indicator">閱讀文章<span class="hero-scroll-arrow">&darr;</span></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最新文章 -->
+    <div class="container">
+      <div class="section" id="latest">
+        <div class="section-header">
+          <h2 class="section-title">最新文章</h2>
+          <a href="/articles/" class="section-link">查看全部 &rarr;</a>
+        </div>
+        {latestPosts.length > 0 && (
+          <div style="display:grid;gap:24px;">
+            {featured && (
+              <ArticleCard
+                title={featured.data.title}
+                description={featured.data.description}
+                date={featured.data.date}
+                category={featured.data.category}
+                slug={featured.id}
+                cover={featured.data.cover}
+                featured={true}
+              />
+            )}
+            {rest.length > 0 && (
+              <div class="card-grid--three">
+                {rest.map((post) => (
+                  <ArticleCard
+                    title={post.data.title}
+                    description={post.data.description}
+                    date={post.data.date}
+                    category={post.data.category}
+                    slug={post.id}
+                    cover={post.data.cover}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+
+    <!-- 探索主題 -->
+    <div class="container">
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">探索主題</h2>
+        </div>
+        <div class="category-grid">
+          {categories.map((cat) => (
+            <a href={cat.href} class="category-card">
+              <div class="category-name">{cat.name}</div>
+              <div class="category-count">{cat.count} 篇</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- 關於我 -->
+    <div class="container">
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">關於我</h2>
+          <a href="/about/" class="section-link">更多 &rarr;</a>
+        </div>
+        <div class="about-preview">
+          <div class="about-avatar">F</div>
+          <div class="about-content">
+            <p class="about-bio">系統整合工程師，擁有超過 3 年的軟體開發經驗。曾領導 5 人團隊完成兩代智慧醫療模擬器的完整開發與商業化，涵蓋軟體、韌體、硬體、App 及後端系統。</p>
+            <p class="about-role">系統整合課長 @ 原妙醫學科技</p>
+            <div class="about-tags">
+              <TagBadge text="系統架構" />
+              <TagBadge text="電路設計" />
+              <TagBadge text="Flutter" />
+              <TagBadge text="n8n" />
+              <TagBadge text="Raspberry Pi" />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 專案作品 -->
+    <div class="container">
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">專案作品</h2>
+          <a href="/about/" class="section-link">查看全部 &rarr;</a>
+        </div>
+        <div class="project-grid">
+          {projects.map((project) => (
+            <div class="project-card">
+              <div class="project-image">[ {project.name} 截圖 ]</div>
+              <div class="project-body">
+                <div class="project-name">{project.name}</div>
+                <div class="project-desc">{project.desc}</div>
+                <div class="project-tags">
+                  {project.tags.map((tag) => (
+                    <TagBadge text={tag} size="sm" />
+                  ))}
+                </div>
+                <a href={project.link} class="project-link">{project.linkText}</a>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   </main>
 </BaseLayout>
+
+<style>
+  /* Container */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* Section */
+  .section {
+    padding: 80px 0;
+  }
+
+  .section + .section {
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 32px;
+  }
+
+  .section-title {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    line-height: 38px;
+    font-weight: 600;
+  }
+
+  .section-link {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .section-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
+  }
+
+  /* Hero */
+  .hero {
+    padding: 96px 0 64px;
+    max-width: var(--width-content);
+    margin: 0 auto;
+  }
+
+  .hero h1 {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .hero p {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 28px;
+    color: var(--color-text-secondary);
+    margin-bottom: 24px;
+    max-width: 560px;
+  }
+
+  .hero-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .hero-scroll {
+    margin-top: 48px;
+    text-align: center;
+  }
+
+  .hero-scroll-indicator {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    text-decoration: none;
+  }
+
+  .hero-scroll-arrow {
+    display: block;
+    margin-top: 4px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+
+  /* Card grid (for regular article cards) */
+  .card-grid--three {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  /* Category grid */
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  .category-card {
+    background: transparent;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 500ms steps(4);
+  }
+
+  .category-card:hover {
+    animation: einkRefresh 500ms steps(4) forwards;
+  }
+
+  .category-name {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .category-count {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-muted);
+  }
+
+  /* About preview */
+  .about-preview {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .about-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-border-default);
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-sans);
+    font-size: 32px;
+    color: var(--color-text-muted);
+  }
+
+  .about-content {
+    flex: 1;
+  }
+
+  .about-bio {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 28px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .about-role {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+  }
+
+  .about-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Project grid & cards */
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .project-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: border-color 500ms steps(4);
+  }
+
+  .project-card:hover {
+    animation: einkRefresh 500ms steps(4) forwards;
+  }
+
+  .project-image {
+    width: 100%;
+    height: 140px;
+    background: var(--color-bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .project-body {
+    padding: 16px;
+  }
+
+  .project-name {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .project-desc {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .project-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .project-link {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .project-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 48px 24px 32px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      line-height: 38px;
+    }
+
+    .card-grid--three {
+      grid-template-columns: 1fr;
+    }
+
+    .category-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .about-preview {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .about-tags {
+      justify-content: center;
+    }
+
+    .section {
+      padding: 48px 0;
+    }
+
+    .container {
+      padding: 0 16px;
+    }
+  }
+</style>
