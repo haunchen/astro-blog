@@ -17,7 +17,6 @@ for (const f of files) {
   const { data } = matter(raw);
   if (data.draft) continue;
   for (const c of data.title ?? '') chars.add(c);
-  for (const c of data.description ?? '') chars.add(c);
 }
 
 const text = [...chars].join('');
@@ -33,7 +32,7 @@ const cssRes = await fetch(cjkUrl, {
 });
 if (!cssRes.ok) throw new Error(`Google Fonts CSS fetch failed: ${cssRes.status}`);
 const css = await cssRes.text();
-const woffMatch = css.match(/url\((https:\/\/[^)]+)\)/);
+const woffMatch = css.match(/url\(["']?(https:\/\/[^"')]+)["']?\)/);
 if (!woffMatch) throw new Error('Could not extract font URL from Google Fonts CSS');
 const fontRes = await fetch(woffMatch[1]);
 if (!fontRes.ok) throw new Error(`Font binary fetch failed: ${fontRes.status}`);
