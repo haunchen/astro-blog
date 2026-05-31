@@ -1,5 +1,36 @@
 import TurndownService from 'turndown';
 
+function htmlDecode(s) {
+  return s
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&'); // &amp; 必須最後
+}
+
+function extractCodeBlocksPro(html) {
+  const blocks = [];
+  // 開頭註解 JSON 在單行內，故 \{.*\} 用貪婪配到 ' -->'；中間渲染 HTML 用 [\s\S]*? 非貪婪到收尾註解
+  const re = /<!-- wp:kevinbatdorf\/code-block-pro (\{.*\}) -->[\s\S]*?<!-- \/wp:kevinbatdorf\/code-block-pro -->/g;
+  const replaced = html.replace(re, (whole, json) => {
+    let code = '', language = '';
+    try {
+      const obj = JSON.parse(json);
+      code = htmlDecode(obj.code || '');
+      language = (obj.language || '').trim();
+    } catch {
+      return whole; // JSON parse 失敗 → 原樣保留交給 turndown
+    }
+    const token = `CBPLACEHOLDER${blocks.length}END`;
+    blocks.push('```' + language + '\n' + code + '\n```');
+    return `\n\n${token}\n\n`;
+  });
+  return { replaced, blocks };
+}
+
 function makeTurndown() {
   const td = new TurndownService({
     headingStyle: 'atx',
@@ -40,10 +71,12 @@ function stripWpComments(html) {
 }
 
 export function htmlToMarkdown(html) {
-  const cleaned = stripWpComments(html || '');
+  const { replaced, blocks } = extractCodeBlocksPro(html || '');
+  const cleaned = stripWpComments(replaced);
   const td = makeTurndown();
-  return td
-    .turndown(cleaned)
-    .replace(/\n{3,}/g, '\n\n')
-    .trim() + '\n';
+  let md = td.turndown(cleaned).replace(/\n{3,}/g, '\n\n').trim();
+  blocks.forEach((b, i) => {
+    md = md.replace(`CBPLACEHOLDER${i}END`, () => b); // function replacer 避免 $ 被當特殊
+  });
+  return md + '\n';
 }

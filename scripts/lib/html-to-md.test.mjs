@@ -29,3 +29,19 @@ test('連結與粗體正常', () => {
   assert.match(md, /\[這裡\]\(https:\/\/x\.com\)/);
   assert.match(md, /\*\*重點\*\*/);
 });
+
+test('code-block-pro 轉乾淨 fenced block（entity 解碼、無孤立語言標籤、無 shiki 殘留、不重複）', () => {
+  const html = `<!-- wp:kevinbatdorf/code-block-pro {"code":"echo a &amp;&amp; echo b","language":"bash"} -->
+<div class="wp-block-kevinbatdorf-code-block-pro"><span>Bash</span><span class="code-block-pro-copy-button"><pre><textarea>echo a &amp;&amp; echo b</textarea></pre></span><pre class="shiki"><code><span class="line"><span>echo a</span></span></code></pre></div>
+<!-- /wp:kevinbatdorf/code-block-pro -->`;
+  const md = htmlToMarkdown(html);
+  // 含正確解碼後的 fenced block
+  assert.match(md, /```bash\necho a && echo b\n```/);
+  // 不含孤立的語言標籤行
+  assert.doesNotMatch(md, /^Bash$/m);
+  // 不含 shiki 字樣
+  assert.doesNotMatch(md, /shiki/);
+  // echo 只出現一次（不重複）
+  const echoCount = (md.match(/echo a/g) || []).length;
+  assert.equal(echoCount, 1);
+});
