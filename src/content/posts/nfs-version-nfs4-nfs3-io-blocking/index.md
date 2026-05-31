@@ -40,12 +40,7 @@ draft: false
 
 首先檢查應用程式的 Log 紀錄，發現當機發生在檔案寫入操作：
 
-\[2025-01-15 10:30:15\] INFO: 使用者觸發寫入功能
-\[2025-01-15 10:30:15\] DEBUG: 開始寫入檔案至 NFS
-\[2025-01-15 10:30:15\] DEBUG: 寫入路徑: /mnt/nfs/data/file\_001.jpg
-# 之後沒有任何 Log，程式凍結
-
-```
+```python
 [2025-01-15 10:30:15] INFO: 使用者觸發寫入功能
 [2025-01-15 10:30:15] DEBUG: 開始寫入檔案至 NFS
 [2025-01-15 10:30:15] DEBUG: 寫入路徑: /mnt/nfs/data/file_001.jpg
@@ -54,13 +49,7 @@ draft: false
 
 如果 NFS 檔案操作正確會是：
 
-\[2025-01-15 10:30:15\] INFO: 使用者觸發寫入功能
-\[2025-01-15 10:30:15\] DEBUG: 開始寫入檔案至 NFS
-\[2025-01-15 10:30:15\] DEBUG: 寫入路徑: /mnt/nfs/data/file\_001.jpg
-\[2025-01-15 10:30:16\] DEBUG: /mnt/nfs/data/file\_001.jpg 完成寫入
-# 會有寫入完成訊息
-
-```
+```python
 [2025-01-15 10:30:15] INFO: 使用者觸發寫入功能
 [2025-01-15 10:30:15] DEBUG: 開始寫入檔案至 NFS
 [2025-01-15 10:30:15] DEBUG: 寫入路徑: /mnt/nfs/data/file_001.jpg
@@ -72,9 +61,7 @@ draft: false
 
 使用 `ps` 指令檢查應用程式的執行緒狀態：
 
-ps aux | grep myapp
-
-```
+```bash
 ps aux | grep myapp
 ```
 
@@ -88,15 +75,7 @@ ps aux | grep myapp
 
 #### 測試一：NFS4 vs NFS3 協定
 
-\# 測試 NFS4（原配置）
-mount -t nfs -o vers=4 192.168.1.100:/export /mnt/nfs
-# 開機後立即寫入 → 當機
-
-# 測試 NFS3
-mount -t nfs -o vers=3 192.168.1.100:/export /mnt/nfs
-# 開機後立即寫入 → 正常運作
-
-```
+```bash
 # 測試 NFS4（原配置）
 mount -t nfs -o vers=4 192.168.1.100:/export /mnt/nfs
 # 開機後立即寫入 → 當機
@@ -108,10 +87,7 @@ mount -t nfs -o vers=3 192.168.1.100:/export /mnt/nfs
 
 #### 測試二：時間因素
 
-\# 使用 NFS4，開機後等待 2 分鐘再寫入 → 正常運作
-# 使用 NFS3，開機後立即寫入 → 正常運作
-
-```
+```bash
 # 使用 NFS4，開機後等待 2 分鐘再寫入 → 正常運作
 # 使用 NFS3，開機後立即寫入 → 正常運作
 ```
@@ -195,21 +171,7 @@ lease 機制未初始化
 
 讓我們追蹤一次寫入操作的完整流程：
 
-T0: 應用程式發起寫入
-↓
-T1: NFS Client 需要 OPEN 檔案
-↓
-T2: OPEN 需要有效的 clientid
-↓
-T3: 檢查發現 SETCLIENTID 尚未完成
-↓
-T4: 進入等待狀態 (D state - 不可中斷睡眠)
-↓
-... 等待 30-120 秒 ...
-↓
-T5: 初始化完成 OR 超時失敗
-
-```
+```bash
 T0: 應用程式發起寫入
 ↓
 T1: NFS Client 需要 OPEN 檔案
@@ -327,16 +289,7 @@ NFS4
 
 在修改之前，先確認當前使用的 NFS 版本：
 
-\# 查看當前掛載資訊
-mount | grep nfs
-
-# 輸出範例（NFS4）：
-# 192.168.1.100:/export on /mnt/nfs type nfs4 (rw,relatime,vers=4.2,...)
-
-# 查看更詳細的統計資訊
-nfsstat -m
-
-```
+```bash
 # 查看當前掛載資訊
 mount | grep nfs
 
@@ -353,22 +306,7 @@ nfsstat -m
 
 執行此步驟前，請確保沒有程式正在使用 NFS 目錄。
 
-\# 檢查是否有程式正在使用
-lsof /mnt/nfs
-fuser -m /mnt/nfs
-
-# 如果有程式在使用，先停止相關服務
-sudo systemctl stop your-app.service
-
-# 卸載 NFS
-sudo umount /mnt/nfs
-
-# 如果提示 "device is busy"，可以使用強制卸載（謹慎使用）
-sudo umount -f /mnt/nfs
-# 或使用 lazy unmount
-sudo umount -l /mnt/nfs
-
-```
+```bash
 # 檢查是否有程式正在使用
 lsof /mnt/nfs
 fuser -m /mnt/nfs
@@ -389,13 +327,7 @@ sudo umount -l /mnt/nfs
 
 先用指令方式掛載，確認可以正常運作後再修改 fstab。
 
-\# 基本 NFS3 掛載
-sudo mount -t nfs -o vers=3,tcp <server-ip>:<nfs-server-folder> /mnt/nfs
-
-# 推薦的完整參數（適合 Raspberry Pi）
-sudo mount -t nfs -o vers=3,nolock,tcp,rsize=8192,wsize=8192,timeo=14,intr \\<server-ip>:<nfs-server-folder> /mnt/nfs
-
-```
+```bash
 # 基本 NFS3 掛載
 sudo mount -t nfs -o vers=3,tcp <server-ip>:<nfs-server-folder> /mnt/nfs
 
@@ -471,24 +403,7 @@ RPC 超時時間
 
 ### 步驟四：驗證掛載是否成功
 
-\# 1. 確認掛載資訊
-mount | grep nfs
-# 應該看到: type nfs (... vers=3 ...)
-
-# 2. 測試讀取
-ls -lh /mnt/nfs
-
-# 3. 測試寫入（關鍵）
-echo "test" | sudo tee /mnt/nfs/test.txt
-cat /mnt/nfs/test.txt
-
-# 4. 測試開機後立即寫入的場景
-# 重啟系統後立即執行寫入操作
-sudo reboot
-# 開機後
-echo "immediate write test" | sudo tee /mnt/nfs/boot\_test.txt
-
-```
+```bash
 # 1. 確認掛載資訊
 mount | grep nfs
 # 應該看到: type nfs (... vers=3 ...)
@@ -519,31 +434,20 @@ echo "immediate write test" | sudo tee /mnt/nfs/boot_test.txt
 
 #### 5.1 備份原始設定
 
-\# 備份 fstab（重要！）
-sudo cp /etc/fstab /etc/fstab.backup.$(date +%Y%m%d)
-
-```
+```bash
 # 備份 fstab（重要！）
 sudo cp /etc/fstab /etc/fstab.backup.$(date +%Y%m%d)
 ```
 
 #### 5.2 開啟 fstab 檔案
 
-sudo nano /etc/fstab
-
-```
+```bash
 sudo nano /etc/fstab
 ```
 
 #### 5.3 添加 NFS3 掛載項
 
-\# /etc/fstab - NFS3 掛載設定
-# 基本設定 (單客戶端場景)
-<server-ip>:<nfs-server-folder> /mnt/nfs nfs vers=3,nolock,tcp,rsize=8192,wsize=8192 0 0
-# 推薦設定 (含超時和中斷)
-<server-ip>:<nfs-server-folder> /mnt/nfs nfs vers=3,nolock,tcp,rsize=8192,wsize=8192,timeo=14,intr 0 0
-
-```
+```bash
 # /etc/fstab - NFS3 掛載設定
 # 基本設定 (單客戶端場景)
 <server-ip>:<nfs-server-folder> /mnt/nfs nfs vers=3,nolock,tcp,rsize=8192,wsize=8192 0 0
@@ -553,10 +457,7 @@ sudo nano /etc/fstab
 
 fstab 欄位說明：
 
-\[設備\]                           \[掛載點\]   \[類型\]  \[選項\]           \[dump\] \[fsck\]
-<server-ip>:<nfs-server-folder> /mnt/nfs   nfs    vers=3,tcp,...   0      0
-
-```
+```bash
 [設備]                           [掛載點]   [類型]  [選項]           [dump] [fsck]
 <server-ip>:<nfs-server-folder> /mnt/nfs   nfs    vers=3,tcp,...   0      0
 ```
@@ -567,17 +468,7 @@ fstab 欄位說明：
 
 #### 5.4 測試 fstab 設定
 
-\# 卸載現有掛載
-sudo umount /mnt/nfs
-
-# 測試 fstab 設定（不重啟）
-sudo mount -a
-
-# 確認掛載成功
-mount | grep nfs
-df -h | grep nfs
-
-```
+```bash
 # 卸載現有掛載
 sudo umount /mnt/nfs
 
@@ -591,13 +482,7 @@ df -h | grep nfs
 
 如果 mount -a 失敗：
 
-\# 查看詳細錯誤
-sudo mount -av
-
-# 檢查 fstab 語法
-cat /etc/fstab | grep -v "^#" | grep nfs
-
-```
+```bash
 # 查看詳細錯誤
 sudo mount -av
 

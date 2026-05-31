@@ -28,23 +28,14 @@ draft: false
 
 建議使用 NodeSource 提供的安裝腳本，確保安裝最新版本 Node.js。
 
-Bash
-
-curl -fsSL https://deb.nodesource.com/setup\_22.x | sudo bash - 
-sudo apt-get install -y nodejs
-
-```
+```bash
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - 
 sudo apt-get install -y nodejs
 ```
 
 -   pnpm 套件
 
-Bash
-
-curl -L https://get.pnpm.io/install.sh | sh -
-
-```
+```bash
 curl -L https://get.pnpm.io/install.sh | sh -
 ```
 
@@ -54,21 +45,13 @@ curl -L https://get.pnpm.io/install.sh | sh -
 
 -   導航到專案資料夾
 
-Bash
-
-cd your/project/folder
-
-```
+```bash
 cd your/project/folder
 ```
 
 -   安裝專案依賴
 
-Bash
-
-pnpm install
-
-```
+```bash
 pnpm install
 ```
 
@@ -76,11 +59,7 @@ pnpm install
 
 依賴安裝完成後，您可以啟動開發伺服器。通常 Next.js 專案會使用 `pnpm dev` 命令。
 
-Bash
-
-pnpm dev
-
-```
+```bash
 pnpm dev
 ```
 
@@ -88,12 +67,7 @@ pnpm dev
 
 -   執行正式環境
 
-Bash
-
-pnpm build
-pnpm start
-
-```
+```bash
 pnpm build
 pnpm start
 ```

@@ -346,22 +346,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 
 成功回應範例：
 
-{
-  "items": \[
-    {
-      "id": "DAFxxxxxx",
-      "title": "我的海報設計",
-      "created\_at": "2025-11-06T10:30:00Z",
-      "updated\_at": "2025-11-06T12:45:00Z",
-      "thumbnail": {
-        "url": "https://..."
-      }
-    }
-  \],
-  "continuation": null
-}
-
-```
+```json
 {
   "items": [
     {

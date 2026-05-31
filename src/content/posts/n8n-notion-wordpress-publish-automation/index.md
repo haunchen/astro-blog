@@ -122,13 +122,7 @@ Notion 是以 Block 概念堆砌整篇文章，而 WordPress 是用 HTML 語法�
 
 以 H2 為例，在 Notion 的 Type 會是 heading\_2，而在 Wordpress 的語法如下：
 
-HTML
-
-<!-- wp:heading {"level":2} -->
-<h2 class="wp-block-heading">H2</h2>
-<!-- /wp:heading -->
-
-```
+```html
 <!-- wp:heading {"level":2} -->
 <h2 class="wp-block-heading">H2</h2>
 <!-- /wp:heading -->

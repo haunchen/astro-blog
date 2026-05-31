@@ -30,12 +30,7 @@ draft: false
 -   懷疑理由：Release 版本特有問題，懷疑 Google Play 的 R8 壓縮工具移除了必要的原生程式碼。
 -   採取行動：
 
-\# 在 android/app/proguard-rules.pro 中加入
--keep class io.flutter.plugins.\*\* { \*; }
--keep class com.google.android.gms.\*\* { \*; }
--dontwarn io.flutter.plugins.\*\*
-
-```
+```xml
 # 在 android/app/proguard-rules.pro 中加入
 -keep class io.flutter.plugins.** { *; }
 -keep class com.google.android.gms.** { *; }
@@ -49,14 +44,7 @@ draft: false
 -   懷疑理由：google\_mobile\_ads 套件在初始化時可能導致應用程式凍結。
 -   採取行動：
 
-// 將廣告初始化從 main.dart 移至其他位置
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  // 移除 MobileAds.instance.initialize();
-  runApp(MyApp());
-}
-
-```
+```dart
 // 將廣告初始化從 main.dart 移至其他位置
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -87,11 +75,7 @@ flutter\_secure\_storage 套件會依賴 Android KeyStore 將數據加密過後�
 
 但是不會備份加密用的 Key，導致重新安裝 App 時還原的加密數據無法被解密，造成 App Deadlock。
 
-// 當執行到這行程式碼時
-final apiKey = await \_storage.read(key: 'api\_key');
-// 原生層嘗試讀取加密數據，但無法正常解密，進入無限等待
-
-```
+```dart
 // 當執行到這行程式碼時
 final apiKey = await _storage.read(key: 'api_key');
 // 原生層嘗試讀取加密數據，但無法正常解密，進入無限等待
@@ -101,31 +85,7 @@ final apiKey = await _storage.read(key: 'api_key');
 
 ### 核心代碼修復
 
-import 'package:flutter\_secure\_storage/flutter\_secure\_storage.dart';
-
-class SecureStorageService {
-  static const FlutterSecureStorage \_storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      resetOnError: true, // 關鍵設定：遇到錯誤時重置
-      encryptedSharedPreferences: true,
-    ),
-    iOptions: IOSOptions(
-      accessibility: IOSAccessibility.first\_unlock\_this\_device,
-    ),
-  );
-  
-  static Future<String?> getApiKey() async {
-    try {
-      return await \_storage.read(key: 'api\_key');
-    } catch (e) {
-      // 額外的錯誤處理
-      print('SecureStorage error: $e');
-      return null;
-    }
-  }
-}
-
-```
+```dart
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
@@ -163,29 +123,7 @@ class SecureStorageService {
 
 ### 1\. 強化錯誤處理
 
-class RobustSecureStorage {
-  static const \_storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      resetOnError: true,
-      encryptedSharedPreferences: true,
-    ),
-  );
-  
-  static Future<String?> safeRead(String key) async {
-    try {
-      return await \_storage.read(key: key);
-    } on PlatformException catch (e) {
-      if (e.code == 'UserCancel') {
-        return null;
-      }
-      // 記錄錯誤並重試
-      await \_storage.deleteAll();
-      return null;
-    }
-  }
-}
-
-```
+```dart
 class RobustSecureStorage {
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(
@@ -217,16 +155,7 @@ class RobustSecureStorage {
 
 ### 3\. 監控與日誌
 
-void main() async {
-  FlutterError.onError = (FlutterErrorDetails details) {
-    // 記錄 flutter\_secure\_storage 相關錯誤
-    if (details.toString().contains('flutter\_secure\_storage')) {
-      print('SecureStorage Error: ${details.exception}');
-    }
-  };
-}
-
-```
+```dart
 void main() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     // 記錄 flutter_secure_storage 相關錯誤

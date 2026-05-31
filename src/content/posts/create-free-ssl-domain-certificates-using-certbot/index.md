@@ -34,12 +34,7 @@ Certbot 是一款由電子前哨基金會（Electronic Frontier Foundation, EFF�
 
 系統依賴項包含 Python 、Python venv 模組和 Apache 的插件 Augeas。
 
-Bash
-
-sudo apt update
-sudo apt install python3 python3-venv libaugeas-dev
-
-```
+```bash
 sudo apt update
 sudo apt install python3 python3-venv libaugeas-dev
 ```
@@ -48,11 +43,7 @@ sudo apt install python3 python3-venv libaugeas-dev
 
 如果您之前有安裝過 certbot 相關的軟體包，請先使用以下的指令移除，避免套件產生衝突。
 
-Bash
-
-sudo apt remove certbot
-
-```
+```bash
 sudo apt remove certbot
 ```
 
@@ -60,23 +51,14 @@ sudo apt remove certbot
 
 執行以下指令建立全新的 Python 虛擬環境，以避免與系統環境產生衝突。
 
-Bash
-
-sudo python3 -m venv /opt/certbot/
-sudo /opt/certbot/bin/pip install --upgrade pip
-
-```
+```bash
 sudo python3 -m venv /opt/certbot/
 sudo /opt/certbot/bin/pip install --upgrade pip
 ```
 
 ### 安裝 Certbot
 
-Bash
-
-sudo /opt/certbot/bin/pip install certbot certbot-nginx
-
-```
+```bash
 sudo /opt/certbot/bin/pip install certbot certbot-nginx
 ```
 
@@ -84,21 +66,13 @@ sudo /opt/certbot/bin/pip install certbot certbot-nginx
 
 將安裝在 Python 虛擬環境的 certbot 連結至指定目錄，以便後續的調用。
 
-Bash
-
-sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
-
-```
+```bash
 sudo ln -s /opt/certbot/bin/certbot /usr/bin/certbot
 ```
 
 ### 使用 Certbot 取得 SSL 憑證
 
-Bash
-
-sudo certbot certonly --nginx -d <your.demain>
-
-```
+```bash
 sudo certbot certonly --nginx -d <your.demain>
 ```
 
@@ -116,21 +90,13 @@ Let's Encrypt 頒發的憑證只有為期 3 個月，所以建議加入自動續
 
 這邊透過系統內建的排程管理神器 corntab 來設定，方法如下：
 
-Bash
-
-sudo crontab -e
-
-```
+```bash
 sudo crontab -e
 ```
 
 開啟後在檔案最後一行加入
 
-Bash
-
-0 \*/12 \* \* \* root test -x /usr/bin/certbot -a \\\\! -d /run/systemd/system && perl -e 'sleep int(rand(3600))' && certbot -q renew
-
-```
+```bash
 0 */12 * * * root test -x /usr/bin/certbot -a \\! -d /run/systemd/system && perl -e 'sleep int(rand(3600))' && certbot -q renew
 ```
 

@@ -64,49 +64,7 @@ draft: false
 -   學習 Debounce 概念的入門練習
 -   對即時性要求不高的簡單專案
 
-// ========== 簡單延遲法 (Simple Delay) ==========
-
-// ========== 變數宣告 ==========
-buttonPin = 1
-lastStableState = LOW            // 上一次穩定的狀態 (初始為放開)
-
-// ========== 主程式迴圈 ==========
-LOOP:
-    // 1. 讀取當前按鈕狀態
-    currentState = digitalRead(buttonPin)
-
-    // 2. 檢查狀態是否改變
-    IF currentState != lastStableState THEN
-        // 3. 偵測到變化,直接阻塞等待
-        delay(50)  // == 阻塞 50ms,期間無法做任何事 ==
-
-        // 4. 重新讀取按鈕狀態 (二次確認)
-        confirmedState = digitalRead(buttonPin)
-
-        // 5. 確認狀態真的改變了 (不是抖動)
-        IF confirmedState != lastStableState THEN
-            // 6. 更新穩定狀態
-            lastStableState = confirmedState
-
-            // 7. 判斷是按下還是放開
-            IF lastStableState == HIGH THEN
-                PRINT "按鈕被按下！"
-                // 在此執行按鈕按下的邏輯
-            ELSE
-                PRINT "按鈕被放開！"
-                // 在此執行按鈕放開的邏輯
-            END IF
-        END IF
-        // ELSE: 是抖動,忽略此次變化
-    END IF
-
-    // 8. 短暫延遲避免過度耗用 CPU (可選)
-    delay(1)
-
-    GOTO LOOP
-END LOOP
-
-```
+```python
 // ========== 簡單延遲法 (Simple Delay) ==========
 
 // ========== 變數宣告 ==========
@@ -164,63 +122,7 @@ END LOOP
 -   有多個按鈕需要監控
 -   對即時性有一定要求的應用
 
-// ========== 變數宣告 ==========
-buttonPin = 1
-currentState = LOW               // 當前按鈕狀態
-lastStableState = LOW            // 上一次穩定的狀態 (初始為放開)
-lastDebounceTime = 0             // 上一次狀態改變的時間戳記
-debounceDelay = 50               // 防彈跳延遲閾值 (毫秒)
-
-// ========== 主程式迴圈 ==========
-LOOP:
-    // 1. 讀取當前按鈕的原始狀態
-    reading = digitalRead(buttonPin)
-
-    // 2. 檢查是否有狀態變化（可能是雜訊或真實按下/放開）
-    IF reading != currentState THEN
-        // 狀態改變了，重置計時器
-        lastDebounceTime = getCurrentTime()
-        currentState = reading
-    END IF
-
-    // 3. 檢查當前狀態是否已穩定超過閾值時間
-    IF (getCurrentTime() - lastDebounceTime) > debounceDelay THEN
-        // 4. 狀態已穩定，檢查是否與上次穩定狀態不同
-        IF currentState != lastStableState THEN
-            // 5. 確認為有效的狀態變化
-            lastStableState = currentState
-
-            // 6. 判斷是按下還是放開
-            IF lastStableState == HIGH THEN
-                PRINT "按鈕被按下！"
-                // 在此執行按鈕按下的邏輯
-            ELSE
-                PRINT "按鈕被放開！"
-                // 在此執行按鈕放開的邏輯
-            END IF
-        END IF
-    END IF
-
-    // 7. 執行其他非阻塞任務
-    doOtherTasks()
-
-    // 8. 短暫延遲（可選，避免過度耗用 CPU）
-    delay(1)  // 例如 1ms
-
-    GOTO LOOP
-END LOOP
-
-// ========== 輔助函數 ==========
-FUNCTION getCurrentTime():
-    RETURN 當前系統時間（毫秒）
-END FUNCTION
-
-FUNCTION doOtherTasks():
-    // 在這裡執行其他需要持續運行的任務
-    // 例如：更新顯示、處理通訊、檢查感測器等
-END FUNCTION
-
-```
+```python
 // ========== 變數宣告 ==========
 buttonPin = 1
 currentState = LOW               // 當前按鈕狀態
@@ -300,59 +202,19 @@ END FUNCTION
 -   不要在 ISR 內使用會阻塞的函數（如 delay）
 -   Debounce 延遲時間可以根據實際按鈕特性調整（通常 50~300ms）
 
-// ========== 變數宣告 ==========
-buttonPin = 1                    // GPIO 腳位
-last\_trigger\_time = 0            // 上一次觸發時間
-DEBOUNCE\_TIME = 50              // 防彈跳延遲閾值 (毫秒)
-
-// ========== 初始化 ==========
-設定 buttonPin 為輸入模式
-啟用 buttonPin 的下拉電阻
-註冊中斷：當 buttonPin 偵測到上升緣時，執行 button\_pressed\_ISR
-
-// ========== 主程式迴圈 ==========
-LOOP:
-    PRINT "執行其他任務..."
-    延遲 2 秒
-
-    GOTO LOOP
-END LOOP
-
-// ========== 中斷服務常式 ==========
-FUNCTION button\_pressed\_ISR():
-    current\_time = getCurrentTime()  // 取得目前時間（毫秒）
-
-    // 防彈跳檢查
-    IF (current\_time - last\_trigger\_time) < DEBOUNCE\_TIME THEN
-        RETURN  // 忽略此次觸發
-    END IF
-
-    // 更新最後觸發時間
-    last\_trigger\_time = current\_time
-
-    // 執行按鈕按下的動作
-    PRINT "按鈕被按下！"
-    // 在此執行其他邏輯
-    // == 按鈕確定被按下時，會執行到這裡！ ==
-
-END FUNCTION
-
-// ========== 輔助函數 ==========
-FUNCTION getCurrentTime():
-    RETURN 當前系統時間（毫秒）
-END FUNCTION
-
-```
+```python
 // ========== 變數宣告 ==========
 buttonPin = 1                    // GPIO 腳位
 last_trigger_time = 0            // 上一次觸發時間
 DEBOUNCE_TIME = 50              // 防彈跳延遲閾值 (毫秒)
+
 
 // ========== 初始化 ==========
 設定 buttonPin 為輸入模式
 啟用 buttonPin 的下拉電阻
 註冊中斷：當 buttonPin 偵測到上升緣時，執行 button_pressed_ISR
 
+
 // ========== 主程式迴圈 ==========
 LOOP:
     PRINT "執行其他任務..."
@@ -360,6 +222,7 @@ LOOP:
 
     GOTO LOOP
 END LOOP
+
 
 // ========== 中斷服務常式 ==========
 FUNCTION button_pressed_ISR():
@@ -379,6 +242,7 @@ FUNCTION button_pressed_ISR():
     // == 按鈕確定被按下時，會執行到這裡！ ==
 
 END FUNCTION
+
 
 // ========== 輔助函數 ==========
 FUNCTION getCurrentTime():

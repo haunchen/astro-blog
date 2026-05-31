@@ -22,22 +22,13 @@ Google 推出了免費的 Gemini CLI 工具，看來 Claude Code 遇到對手了
 
 -   於隔離環淨執行 (意味著不會安裝在電腦上)
 
-Bash
-
-npx https://github.com/google-gemini/gemini-cli
-
-```
+```bash
 npx https://github.com/google-gemini/gemini-cli
 ```
 
 -   直接安裝在電腦上，爾後只要在 terminal 視窗輸入 `gemini` 即可啟動 Gemini CLI
 
-Bash
-
-npm install -g @google/gemini-cli
-gemini
-
-```
+```bash
 npm install -g @google/gemini-cli
 gemini
 ```
@@ -76,11 +67,7 @@ gemini
 
 用法：
 
-Bash
-
-/chat <list|save|resume> \[tag\]
-
-```
+```bash
 /chat <list|save|resume> [tag]
 ```
 

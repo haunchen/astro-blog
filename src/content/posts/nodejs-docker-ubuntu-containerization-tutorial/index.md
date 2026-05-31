@@ -29,22 +29,7 @@ Docker 是一個開源平台，用於自動化應用程式的部署、擴展和�
 
 若是首次安裝 Docker Engine 的系統，需要先設定 Docker apt 庫，設定好之後便可直接從倉庫安裝和更新 Docker。
 
-Bash
-
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# 將儲存庫新增至 Apt 來源:
-echo \\
-  "deb \[arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc\] https://download.docker.com/linux/ubuntu \\
-  $(. /etc/os-release && echo "${UBUNTU\_CODENAME:-$VERSION\_CODENAME}") stable" | \\
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-
-```
+```bash
 sudo apt-get update
 sudo apt-get install ca-certificates curl
 sudo install -m 0755 -d /etc/apt/keyrings
@@ -61,21 +46,13 @@ sudo apt-get update
 
 ### 安裝 Docker Engine
 
-Bash
-
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-```
+```bash
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
 
 ### 測試是否安裝成功
 
-Bash
-
-sudo docker run hello-world
-
-```
+```bash
 sudo docker run hello-world
 ```
 
@@ -91,63 +68,13 @@ sudo docker run hello-world
 
 首先，先進入到 Node.js 專案資料夾
 
-Bash
-
-cd your/project/folder
-
-```
+```bash
 cd your/project/folder
 ```
 
 接著創建 `Dockerfile` 檔案，注意，此檔案沒有附檔名。
 
-Dockerfile
-
-\# 使用一個輕量級的 Node.js 映像檔作為基礎
-FROM node:20-alpine AS base
-
-# 設定工作目錄
-WORKDIR /app
-
-# 複製 package.json 和 lock file (pnpm-lock.yaml)
-# 這樣可以利用 Docker 的快取機制，如果依賴沒有改變，就不需要重新安裝
-COPY package.json pnpm-lock.yaml ./
-
-# 安裝 pnpm
-RUN npm install -g pnpm
-
-# 安裝依賴
-# 使用 pnpm install --frozen-lockfile 以確保依賴版本一致
-RUN pnpm install --frozen-lockfile
-
-# 複製專案的其餘程式碼
-COPY . .
-
-# 建置 Next.js 應用程式
-# 使用 output: "standalone" 可以建立一個獨立的伺服器，減少最終映像檔的大小
-# 需要在 next.config.mjs 中設定 output: 'standalone'
-# 參考: https://nextjs.org/docs/app/api-reference/next-config-js/output
-RUN pnpm run build
-
-# --- 運行階段映像檔 ---
-# 使用一個更小的映像檔來運行應用程式，減少攻擊面
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-
-# 複製建置階段生成的 standalone 輸出
-COPY --from=base /app/.next/standalone ./
-COPY --from=base /app/public ./public
-COPY --from=base /app/.next/static ./.next/static
-
-# 暴露應用程式運行的埠號 (Next.js 預設是 3000)
-EXPOSE 3000
-
-# 定義容器啟動時執行的命令
-# 運行 standalone 伺服器
-CMD \["node", "server.js"\]
-
-```
+```docker
 # 使用一個輕量級的 Node.js 映像檔作為基礎
 FROM node:20-alpine AS base
 
@@ -195,17 +122,7 @@ CMD ["node", "server.js"]
 
 **＊重要：為了使用 `output: "standalone"` 功能，需要在你的專案的 `next.config.mjs` 檔案中添加或修改配置：**
 
-Bash
-
-// next.config.mjs
-/\*\* @type {import('next').NextConfig} \*/
-const nextConfig = {
-  output: 'standalone', // 添加這一行
-};
-
-export default nextConfig;
-
-```
+```bash
 // next.config.mjs
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -219,11 +136,7 @@ export default nextConfig;
 
 在專案的跟目錄下打開終端機，執行以下命令來建置 Docker 映像檔：
 
-Bash
-
-docker build -t your-docker-name .
-
-```
+```bash
 docker build -t your-docker-name .
 ```
 
@@ -237,11 +150,7 @@ docker build -t your-docker-name .
 
 映像檔建置完成後，就可以執行以下指令來啟動 Docker 容器：
 
-Bash
-
-docker run -p 3000:3000 your-docker-name
-
-```
+```bash
 docker run -p 3000:3000 your-docker-name
 ```
 
@@ -251,11 +160,7 @@ docker run -p 3000:3000 your-docker-name
 
 剛剛執行的容器無法在後台運行，你關掉終端機後就會自動停止，可使用以下指令讓容器在後台運行：
 
-Bash
-
-docker run -d -p 3000:3000 your-docker-name
-
-```
+```bash
 docker run -d -p 3000:3000 your-docker-name
 ```
 
@@ -263,11 +168,7 @@ docker run -d -p 3000:3000 your-docker-name
 
 為確保容器在崩潰或伺服器重啟後自動重啟容器，可以使用 —restart 標誌：
 
-Bash
-
-docker run -d --restart unless-stopped -p 3000:3000 your-docker-name
-
-```
+```bash
 docker run -d --restart unless-stopped -p 3000:3000 your-docker-name
 ```
 

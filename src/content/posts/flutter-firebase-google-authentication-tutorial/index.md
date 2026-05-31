@@ -54,11 +54,7 @@ draft: false
 
 安裝完成後，請在終端機執行以下指令，登入 Firebase。
 
-Bash
-
-firebase login
-
-```
+```bash
 firebase login
 ```
 
@@ -70,11 +66,7 @@ firebase login
 
 這裡為確保指令執行成功，建議這兩個指令都在Ｆlutter 專案的根目錄下執行，首先先將 Firebase CLI 在 Flutter 環境中啟動。
 
-Bash
-
-dart pub global activate flutterfire\_cli
-
-```
+```bash
 dart pub global activate flutterfire_cli
 ```
 
@@ -84,11 +76,7 @@ dart pub global activate flutterfire_cli
 
 再來，在你的Flutter 專案中註冊 Firebase。
 
-Bash
-
-flutterfire configure --project=flutter-firebase-test-9d0b2
-
-```
+```bash
 flutterfire configure --project=flutter-firebase-test-9d0b2
 ```
 
@@ -110,11 +98,7 @@ flutterfire configure --project=flutter-firebase-test-9d0b2
 
 在終端機輸入以下指令產生指紋 (Fingerprints)，密碼輸入”android”即可。
 
-Bash
-
-keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
-
-```
+```bash
 keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
 ```
 
@@ -130,235 +114,7 @@ keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
 
 以下為 main.dart 的程式碼
 
-Dart
-
-import 'package:flutter/material.dart';
-import 'package:firebase\_core/firebase\_core.dart';
-import 'package:firebase\_auth/firebase\_auth.dart';
-import 'package:google\_sign\_in/google\_sign\_in.dart';
-import 'firebase\_options.dart';
-
-/// 應用程式進入點
-void main() async {
-  // 確保 Flutter 綁定已初始化，這是使用任何 Flutter 功能前的必要步驟
-  WidgetsFlutterBinding.ensureInitialized();
-
-  // 初始化 Firebase，使用當前平台的配置選項
-  await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  // 啟動 Flutter 應用程式
-  runApp(const MainApp());
-}
-
-/// 主要應用程式類別
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Google 登入範例',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: const AuthScreen(), // 設定首頁為認證畫面
-    );
-  }
-}
-
-/// 認證畫面 - 處理 Google 登入/登出功能
-class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
-
-  @override
-  State<authscreen> createState() => \_AuthScreenState();
-}
-
-class \_AuthScreenState extends State<authscreen> {
-  // Firebase 認證實例
-  final FirebaseAuth \_auth = FirebaseAuth.instance;
-  // Google 登入實例
-  final GoogleSignIn \_googleSignIn = GoogleSignIn();
-  // 當前登入的使用者
-  User? \_user;
-  // 載入狀態標記
-  bool \_isLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // 監聽認證狀態變化，當使用者登入/登出時自動更新 UI
-    \_auth.authStateChanges().listen((User? user) {
-      setState(() {
-        \_user = user;
-      });
-    });
-  }
-
-  /// Google 登入功能
-  Future<void> \_signInWithGoogle() async {
-    // 設定載入狀態為 true，顯示載入指示器
-    setState(() {
-      \_isLoading = true;
-    });
-
-    try {
-      // 觸發 Google 登入選擇帳號流程
-      final GoogleSignInAccount? googleUser = await \_googleSignIn.signIn();
-
-      // 如果使用者取消登入，結束函數執行
-      if (googleUser == null) {
-        setState(() {
-          \_isLoading = false;
-        });
-        return ;
-      }
-
-      // 從 Google 帳號取得認證資料（access token 和 id token）
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-
-      // 建立 Firebase 認證憑證
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // 使用 Google 憑證登入 Firebase
-      await \_auth.signInWithCredential(credential);
-    } catch (e) {
-      // 如果登入過程發生錯誤，顯示錯誤訊息
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('登入失敗：$e')),
-      );
-    } finally {
-      // 無論成功或失敗，都要關閉載入狀態
-      setState(() {
-        \_isLoading = false;
-      });
-    }
-  }
-
-  /// 登出功能 - 同時從 Firebase 和 Google 登出
-  Future<void> \_signOut() async {
-    await \_auth.signOut();
-    await \_googleSignIn.signOut();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Google 登入範例'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Center(
-        // 根據使用者登入狀態顯示不同內容
-        child: \_user == null ? \_buildSignInButton() : \_buildUserProfile(),
-      ),
-    );
-  }
-
-  /// 建立登入按鈕 Widget（當使用者未登入時顯示）
-  Widget \_buildSignInButton() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: \[
-        const Text(
-          '請登入 Google 帳號',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 30),
-        // 根據載入狀態顯示不同內容
-        \_isLoading
-          ? const CircularProgressIndicator() // 載入中顯示圓形進度指示器
-          : ElevatedButton.icon(
-            onPressed: \_signInWithGoogle, // 點擊時執行 Google 登入
-            icon: Image.asset(
-              'assets/google\_logo.png', // Google 標誌圖片
-              height: 24,
-              width: 24,
-              // 如果圖片載入失敗，顯示預設圖示
-              errorBuilder: (context, error, stackTrace) {
-                return const Icon(Icons.login, color: Colors.white);
-              },
-            ),
-            label: const Text(
-              '使用 Google 登入',
-              style: TextStyle(fontSize: 16),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red, // Google 品牌色
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-      \],
-    );
-  }
-
-  /// 建立使用者資料 Widget（當使用者已登入時顯示）
-  Widget \_buildUserProfile() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: \[
-        // 使用者大頭照 - 圓形頭像
-        CircleAvatar(
-          radius: 50,
-          // 如果使用者有大頭照則顯示，否則顯示預設圖示
-          backgroundImage: \_user?.photoURL != null
-              ? NetworkImage(\_user!.photoURL!)
-              : null,
-          child: \_user?.photoURL == null
-              ? const Icon(Icons.person, size: 50)
-              : null,
-        ),
-        const SizedBox(height: 20),
-        // 歡迎訊息
-        const Text(
-          '歡迎',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        // 使用者顯示名稱
-        Text(
-          \_user?.displayName ?? '未知使用者',
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 10),
-        // 使用者 Email 地址
-        Text(
-          \_user?.email ?? '',
-          style: const TextStyle(fontSize: 16, color: Colors.grey),
-        ),
-        const SizedBox(height: 30),
-        // 登出按鈕
-        ElevatedButton.icon(
-          onPressed: \_signOut,
-          icon: const Icon(Icons.logout),
-          label: const Text('登出'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 12,
-            ),
-          ),
-        ),
-      \],
-    );
-  }
-}</void></void></authscreen></authscreen>
-
-```
+```dart
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';

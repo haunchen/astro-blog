@@ -237,10 +237,7 @@ Access Token 分為`短期`及`長期`，短期的 1 小時內就會過期，要
 
 如果是從 WordPress 下載，或是有綁定 [Cloudflare](https://www.cloudflare.com/zh-tw/application-services/products/cdn/) 的 CND，請先檢查 `robots.txt` 有沒有阻擋 Meta 的爬蟲機器人，有的話請加入以下這段：
 
-User-agent: facebookexternalhit
-Allow: /wp-content/uploads/
-
-```
+```xml
 User-agent: facebookexternalhit
 Allow: /wp-content/uploads/
 ```
