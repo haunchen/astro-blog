@@ -156,10 +156,10 @@ class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<authscreen> createState() => _AuthScreenState();
+  State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<authscreen> {
+class _AuthScreenState extends State<AuthScreen> {
   // Firebase 認證實例
   final FirebaseAuth _auth = FirebaseAuth.instance;
   // Google 登入實例
@@ -339,7 +339,7 @@ class _AuthScreenState extends State<authscreen> {
       ],
     );
   }
-}</void></void></authscreen></authscreen>
+}
 ```
 
 ## 實際操作介面
