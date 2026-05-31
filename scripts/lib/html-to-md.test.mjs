@@ -30,6 +30,28 @@ test('連結與粗體正常', () => {
   assert.match(md, /\*\*重點\*\*/);
 });
 
+test('wp:code 含泛型角括號不被當 HTML 標籤破壞', () => {
+  const html = `<!-- wp:code {"language":"dart"} --><pre class="wp-block-code"><code lang="dart" class="language-dart">class A extends State<AuthScreen> {
+  Future<void> foo() async {}
+}</code></pre><!-- /wp:code -->`;
+  const md = htmlToMarkdown(html);
+  assert.match(md, /```dart/);
+  assert.match(md, /State<AuthScreen>/);   // 大小寫保留、無小寫化
+  assert.match(md, /Future<void>/);
+  assert.doesNotMatch(md, /<\/authscreen>|<authscreen>/); // 無殘留/小寫化標籤（case-sensitive）
+});
+
+test('wp:code entity 編碼版本 htmlDecode 後得到正確角括號', () => {
+  const html = `<!-- wp:code {"language":"dart"} --><pre class="wp-block-code"><code lang="dart" class="language-dart">class A extends State&lt;AuthScreen&gt; {
+  Future&lt;void&gt; foo() async {}
+}</code></pre><!-- /wp:code -->`;
+  const md = htmlToMarkdown(html);
+  assert.match(md, /```dart/);
+  assert.match(md, /State<AuthScreen>/);
+  assert.match(md, /Future<void>/);
+  assert.doesNotMatch(md, /<\/authscreen>|<authscreen>/); // case-sensitive
+});
+
 test('code-block-pro 轉乾淨 fenced block（entity 解碼、無孤立語言標籤、無 shiki 殘留、不重複）', () => {
   const html = `<!-- wp:kevinbatdorf/code-block-pro {"code":"echo a &amp;&amp; echo b","language":"bash"} -->
 <div class="wp-block-kevinbatdorf-code-block-pro"><span>Bash</span><span class="code-block-pro-copy-button"><pre><textarea>echo a &amp;&amp; echo b</textarea></pre></span><pre class="shiki"><code><span class="line"><span>echo a</span></span></code></pre></div>

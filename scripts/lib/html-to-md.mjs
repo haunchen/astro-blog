@@ -31,6 +31,37 @@ function extractCodeBlocksPro(html) {
   return { replaced, blocks };
 }
 
+function extractWpCodeBlocks(html) {
+  const blocks = [];
+  const re = /<!-- wp:code(?: (\{[^}]*\}))? -->\s*<pre[^>]*class="[^"]*wp-block-code[^"]*"[^>]*>\s*<code([^>]*)>([\s\S]*?)<\/code>\s*<\/pre>\s*<!-- \/wp:code -->/g;
+  const replaced = html.replace(re, (whole, jsonStr, codeAttrs, rawContent) => {
+    let language = '';
+    // 1. 先試 wp:code 註解 JSON 的 language
+    if (jsonStr) {
+      try {
+        const obj = JSON.parse(jsonStr);
+        if (obj.language) language = obj.language.trim();
+      } catch {
+        // JSON parse 失敗忽略，繼續試屬性
+      }
+    }
+    // 2. 再試 <code> 屬性：class="language-xxx" 或 lang="xxx"
+    if (!language && codeAttrs) {
+      const langClass = codeAttrs.match(/class="[^"]*language-(\w+)/);
+      if (langClass) language = langClass[1];
+    }
+    if (!language && codeAttrs) {
+      const langAttr = codeAttrs.match(/\blang="(\w+)"/);
+      if (langAttr) language = langAttr[1];
+    }
+    const code = htmlDecode(rawContent).replace(/\s+$/, '');
+    const token = `WPCODEPLACEHOLDER${blocks.length}END`;
+    blocks.push('```' + language + '\n' + code + '\n```');
+    return `\n\n${token}\n\n`;
+  });
+  return { replaced, blocks };
+}
+
 function makeTurndown() {
   const td = new TurndownService({
     headingStyle: 'atx',
@@ -71,12 +102,16 @@ function stripWpComments(html) {
 }
 
 export function htmlToMarkdown(html) {
-  const { replaced, blocks } = extractCodeBlocksPro(html || '');
-  const cleaned = stripWpComments(replaced);
+  const { replaced: replacedPro, blocks: blocksPro } = extractCodeBlocksPro(html || '');
+  const { replaced: replacedWp, blocks: blocksWp } = extractWpCodeBlocks(replacedPro);
+  const cleaned = stripWpComments(replacedWp);
   const td = makeTurndown();
   let md = td.turndown(cleaned).replace(/\n{3,}/g, '\n\n').trim();
-  blocks.forEach((b, i) => {
+  blocksPro.forEach((b, i) => {
     md = md.replace(`CBPLACEHOLDER${i}END`, () => b); // function replacer 避免 $ 被當特殊
+  });
+  blocksWp.forEach((b, i) => {
+    md = md.replace(`WPCODEPLACEHOLDER${i}END`, () => b);
   });
   return md + '\n';
 }
