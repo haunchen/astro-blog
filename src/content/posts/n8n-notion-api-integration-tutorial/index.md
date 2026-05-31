@@ -418,8 +418,6 @@ Notion API 目前不支援直接刪除 Page 或 Database 記錄。變通方法�
 
 ### 延伸閱讀
 
--   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
 -   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
--   [【2025 最新】n8n 自動化上傳 Instagram 完全指南：從取得 Token 到排程發文](/n8n-instagram-access-token/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

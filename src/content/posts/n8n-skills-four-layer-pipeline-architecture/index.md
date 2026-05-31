@@ -308,7 +308,7 @@ test-priority-ranker.ts  # 測試優先級計算
 
 系列文章導航：
 
-1.  [從 0 到 1 打造 n8n AI 技能包](/n8n-skills-claude-ai-skill-pack-tutorial/)
+1.  從 0 到 1 打造 n8n AI 技能包
 2.  **\[目前位置\]** 架構設計篇：四層式 Pipeline
 3.  核心演算法篇：分層合併與索
 4.  工程實戰篇：動態載入與 CI 優化

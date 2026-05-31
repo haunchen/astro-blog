@@ -253,6 +253,3 @@ Data Table 是用來記錄 LINE Bot 的操作狀態，確保每個步驟都能�
 -   [Cavna 官方 API 文件](https://www.canva.dev/docs/connect/)
 
 ### 延伸閱讀
-
--   【 n8n 模板分享 】[探店心願助手](/n8n-template-store-wish-list/)
--   【 n8n 模板分享 】[Notion Page 轉 Wordpress Article](/n8n-notion-wordpress-publish-automation/)

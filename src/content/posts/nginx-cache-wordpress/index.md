@@ -447,6 +447,5 @@ Nginx Cache 作為 Cloudflare 之後的第二層快取，提供了額外的保�
 
 ### 延伸閱讀
 
--   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](/cloudflare-cache-rules-wordpress/) - 第一層 CDN 快取設定
 -   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
 -   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 如果你想把 WordPress 搬到 Zeabur 平台

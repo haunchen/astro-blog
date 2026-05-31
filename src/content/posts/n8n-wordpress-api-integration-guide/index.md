@@ -383,7 +383,6 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 
 想了解更多 n8n 自動化應用嗎？推薦你閱讀以下文章：
 
--   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
 -   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](/n8n-notion-api-integration-tutorial/)
 -   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
 -   [n8n 憑證設定懶人包：常用服務快速導覽](/n8n-credentials-setup-complete-guide/)

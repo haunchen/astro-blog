@@ -462,8 +462,6 @@ Telegram Bot API 有速率限制：個人對話每秒最多 30 則，群組每�
 -   [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議](/n8n-line-discord-telegram-bot-comparison/)
 -   [用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](/n8n-discord-bot-setup-tutorial/)
 -   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
--   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
--   [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
 -   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

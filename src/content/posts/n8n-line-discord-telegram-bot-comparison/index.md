@@ -626,15 +626,6 @@ Telegram
 
 ## 延伸閱讀
 
-想深入學習各平台的完整設定？這裡是詳細教學：
-
--   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
--   [用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](/n8n-discord-bot-setup-tutorial/)
--   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
-
-其他 n8n 憑證設定教學：
-
--   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](/n8n-notion-api-integration-tutorial/)
 -   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

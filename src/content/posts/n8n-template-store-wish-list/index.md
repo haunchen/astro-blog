@@ -88,5 +88,3 @@ Facebook、Instagram 等社交平台時常看到創作者分享的美食、遊�
 
 -   【 n8n 模板分享 】[Notion Page 轉 Wordpress Article](/n8n-notion-wordpress-publish-automation/)
 -   【 n8n 模板分享 】[Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
--   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
--   [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較](/n8n-line-discord-telegram-bot-comparison/)

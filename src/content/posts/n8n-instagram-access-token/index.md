@@ -272,5 +272,3 @@ Allow: /wp-content/uploads/
 延伸閱讀：[n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
 
 延伸閱讀：[n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
-
-延伸閱讀：[【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
