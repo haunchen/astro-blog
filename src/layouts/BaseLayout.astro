@@ -1,6 +1,8 @@
 ---
 import { SEO } from 'astro-seo';
 import { ClientRouter } from 'astro:transitions';
+import JsonLd from '../components/JsonLd.astro';
+import { ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -21,9 +23,11 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  jsonLd?: object[];
 }
 
-const { title, description = '', ogImage } = Astro.props;
+const { title, description = '', ogImage, jsonLd = [] } = Astro.props;
+const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...jsonLd];
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
 ---
@@ -50,6 +54,8 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
         },
       }}
     />
+    <link rel="alternate" type="application/rss+xml" title={title} href="/rss.xml" />
+    <JsonLd data={allJsonLd} />
     <ClientRouter />
   </head>
   <body

@@ -19,3 +19,6 @@ pnpm-debug.log*
 
 # macOS
 .DS_Store
+
+# build-time subset fonts (regenerated each build)
+src/assets/og-fonts/
