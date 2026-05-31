@@ -50,9 +50,22 @@ let imgOk = 0;
 let imgFail = 0;
 
 // ── 逐篇處理 ──────────────────────────────────────────────────────────────
+const postsRoot = path.resolve(POSTS_DIR);
+
 for (const post of posts) {
   const slug = post.slug;
-  const outDir = path.join(POSTS_DIR, slug);
+
+  // 安全守衛：空 slug 或路徑穿越（外部 WXR 輸入，不可信任）
+  if (!slug) {
+    console.error(`[SKIP] slug 為空，跳過此篇`);
+    continue;
+  }
+  const outDir = path.resolve(POSTS_DIR, slug);
+  if (outDir !== postsRoot && !outDir.startsWith(postsRoot + path.sep)) {
+    console.error(`[SKIP] 偵測到不安全的 slug（路徑穿越）: ${slug}`);
+    continue;
+  }
+
   const imagesDir = path.join(outDir, 'images');
 
   console.log(`\n處理: ${slug}`);
