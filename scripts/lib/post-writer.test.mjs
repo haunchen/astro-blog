@@ -17,6 +17,20 @@ test('rewriteImageRefs：找不到對應的 URL 保留並加 TODO 註解', () =>
   assert.match(out, /TODO/);
 });
 
+test('buildFrontmatter：title 含雙引號與反斜線、description 含換行', () => {
+  const fm = buildFrontmatter({
+    title: 'She said "hello" and \\done',
+    date: '2025-01-01',
+    description: 'line1\nline2',
+    category: 'tools',
+    tags: [],
+    cover: '',
+  });
+  assert.match(fm, /title: "She said \\"hello\\" and \\\\done"/);
+  assert.match(fm, /description: "line1\\nline2"/);
+  assert.match(fm, /tags: \[\]/);
+});
+
 test('buildFrontmatter：產出合法 YAML 區塊', () => {
   const fm = buildFrontmatter({
     title: '如何使用 Certbot',

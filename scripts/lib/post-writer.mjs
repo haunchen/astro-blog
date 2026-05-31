@@ -24,12 +24,18 @@ export function rewriteImageRefs(markdown, map) {
 }
 
 /**
- * 用雙引號包覆字串，並跳脫內部雙引號。
+ * 用雙引號包覆字串，並跳脫反斜線、雙引號與換行。
+ * 跳脫順序：反斜線必須最先，否則後續跳脫產生的反斜線會被再次跳脫。
  * @param {string} s
  * @returns {string}
  */
 function yamlString(s) {
-  return '"' + String(s).replace(/"/g, '\\"') + '"';
+  return '"' + String(s)
+    .replace(/\\/g, '\\\\')   // 反斜線先跳脫（必須第一個做）
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, '\\r')
+    .replace(/\n/g, '\\n')
+    + '"';
 }
 
 /**
