@@ -22,7 +22,7 @@ draft: false
 
 兩台設備透過 NFS 共享檔案系統，Client 端負責寫入檔案到 Server 端。
 
-![Raspberry Pi NFS 系統架構](./images/img-1.webp)
+![兩台裝置透過 NFS 共享檔案系統，Client 端寫入、Server 端儲存的系統架構示意圖](./images/nfs-client-server-architecture.webp)
 
 ### 開機後立即當機的典型症狀
 

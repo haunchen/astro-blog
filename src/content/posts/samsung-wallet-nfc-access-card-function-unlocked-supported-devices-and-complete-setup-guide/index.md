@@ -51,11 +51,11 @@ draft: false
 
 進入「**Samsung Wallet**」，點擊右上角「**+**」—> 「**數位名片**」—>「**新增 NFC 門禁卡**」—>「**新增**」
 
-![Samsung Wallet NFC 門禁卡設定步驟](./images/img-1.webp)
+![在 Samsung Wallet 點擊「+」→「數位名片」→「新增 NFC 門禁卡」→「新增」的操作步驟截圖](./images/samsung-wallet-add-nfc-access-card-steps.webp)
 
 接著將你的實體卡靠在手機背面，之後根據手機提示照著步驟走，即可完成綁定。
 
-![Samsung Wallet NFC 門禁卡設定步驟](./images/img-2.webp)
+![將實體門禁卡靠在手機背面進行 NFC 感應綁定的示意截圖](./images/samsung-wallet-nfc-card-tap-to-bind.webp)
 
 ## 要如何使用「NFC 門禁卡」功能？
 

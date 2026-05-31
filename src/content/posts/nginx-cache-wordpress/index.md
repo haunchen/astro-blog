@@ -414,7 +414,7 @@ chmod -R 755 /var/cache/nginx
 
 **Q3：Docker 環境下快取目錄會消失？**
 
-記得把快取目錄掛載為 Volume，避免容器重啟後快取消失。
+記得把快取目錄掛載為 Volume，避免容器重啟後快取消失。如果你還沒有容器化部署的經驗，可以參考 [Ubuntu 上容器化 Node.js 教學](/nodejs-docker-ubuntu-containerization-tutorial/)。
 
 **Q4：為什麼一直看到 MISS？**
 
@@ -436,7 +436,7 @@ Nginx Cache 作為 Cloudflare 之後的第二層快取，提供了額外的保�
 -   降低資料庫和 PHP 的負擔
 -   設定一次，長期受益
 
-搭配 [Cloudflare Cache Rules](https://www.frankchen.tw/cloudflare-cache-rules-wordpress/) 一起使用，就能打造完整的雙層快取架構，讓你的 WordPress 網站達到最佳效能。
+搭配 [Cloudflare Cache Rules](/cloudflare-cache-rules-wordpress/) 一起使用，就能打造完整的雙層快取架構，讓你的 WordPress 網站達到最佳效能。
 
 ## 參考資料與延伸閱讀
 
@@ -447,6 +447,6 @@ Nginx Cache 作為 Cloudflare 之後的第二層快取，提供了額外的保�
 
 ### 延伸閱讀
 
--   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](https://www.frankchen.tw/cloudflare-cache-rules-wordpress/) - 第一層 CDN 快取設定
--   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](https://www.frankchen.tw/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
--   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](https://www.frankchen.tw/wordpress-migrate-to-zeabur/) - 如果你想把 WordPress 搬到 Zeabur 平台
+-   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](/cloudflare-cache-rules-wordpress/) - 第一層 CDN 快取設定
+-   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
+-   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 如果你想把 WordPress 搬到 Zeabur 平台

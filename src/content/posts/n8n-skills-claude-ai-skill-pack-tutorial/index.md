@@ -96,7 +96,7 @@ n8n-skills/
 4.  **Generators (生成器)**：生成 Markdown 格式的 Skill Pack。
 
 如果你對這個架構的設計理念感興趣，請參考系列文章：  
-👉 **[n8n-skills 技術解密 (1)：打造可擴展的四層式資料處理 Pipeline](https://www.frankchen.tw/n8n-skills-four-layer-pipeline-architecture/)**
+👉 **[n8n-skills 技術解密 (1)：打造可擴展的四層式資料處理 Pipeline](/n8n-skills-four-layer-pipeline-architecture/)**
 
 ## 開發過程：兩週的密集踩坑
 
@@ -150,6 +150,6 @@ n8n-skills/
 **系列文章導航：**
 
 1.  **\[目前位置\]** 從 0 到 1 打造 n8n AI 技能包
-2.  [架構設計篇：四層式 Pipeline](https://www.frankchen.tw/n8n-skills-four-layer-pipeline-architecture/)
+2.  [架構設計篇：四層式 Pipeline](/n8n-skills-four-layer-pipeline-architecture/)
 3.  核心演算法篇：分層合併與索引
 4.  工程實戰篇：動態載入與 CI 優化

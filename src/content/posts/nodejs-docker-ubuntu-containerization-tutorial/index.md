@@ -58,7 +58,7 @@ sudo docker run hello-world
 
 若有安裝成功，系統會自行下載一個鏡像並運行。容器運行後會輸出類似如下訊息。
 
-![Docker 安裝成功畫面](./images/img-1.webp)
+![終端機顯示 Docker hello-world 容器執行成功的確認訊息](./images/docker-hello-world-success-output.webp)
 
 ## 開始構建你的 Docker
 
@@ -175,3 +175,9 @@ docker run -d --restart unless-stopped -p 3000:3000 your-docker-name
 ## 小結
 
 這就是使用 Docker 容器化 Node.js 專案並實現自動執行的基本做法。可以將建置和運行 Docker 映像檔的步驟整合到 CI/CD 流程中，實現完全自動化部署。
+
+容器化完成後，你可能會需要以下進一步的部署設定：
+
+- [如何使用 Certbot 建立免費的 SSL 網域憑證](/create-free-ssl-domain-certificates-using-certbot/)（在 Ubuntu 上為你的 Node.js 服務設定 HTTPS）
+- [Node.js 記憶體優化實戰：用多層降級策略解決 geoip-lite 的 100MB 記憶體問題](/nextjs-geoip-memory-optimization/)（部署 Next.js 應用時的記憶體調校）
+- [私密資料不上傳！將 v0.dev 生成的 Web 應用程式部署到你自己的 Ubuntu 伺服器](/vercel-v0-dev-ubuntu-deploy-web-app/)（自架 Ubuntu 伺服器部署 Node.js 完整流程）

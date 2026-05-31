@@ -18,7 +18,7 @@ draft: false
 
 ## n8n 工作流程設計思路：如何讓 Notion 與 Wordpress 自動化 協作？
 
-![n8n notion wordpress 自動化 工作流程預覽](./images/img-1.webp)
+![n8n Notion 轉 WordPress 自動化工作流程整體架構預覽](./images/workflow-overview.webp)
 
 這個 Workflow 的設計靈感來自於內容發佈的實際需求：從內容生成、格式轉換、到最終發佈，每一步都應該盡可能自動化。
 
@@ -56,19 +56,19 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 -   **替換連結**：流程會自動將原始 Notion 圖片連結替換成 Wordpress 的新連結，確保所有圖片都能正常顯示，不再依賴 Notion 伺服器。
 
-![處理圖片，上傳到 WordPress](./images/img-2.webp)
+![n8n 自動下載 Notion 圖片並上傳至 WordPress 媒體庫的流程節點](./images/image-upload-to-wordpress.webp)
 
 ### 合併與發佈：從零碎的區塊到完整的文章
 
 當所有區塊都轉換成 HTML 格式後，流程會按照原始順序將它們合併在一起，確保你的文章結構完整不變。最終，這篇完整的 HTML 文章會透過 Wordpress API 自動發佈到你的網站後台，並設定為草稿狀態，讓你在發佈前仍有最終檢查的機會。
 
-![合併所有區塊，並上傳到 WordPress](./images/img-3.webp)
+![n8n 將所有 HTML 區塊合併並透過 WordPress API 自動發佈為草稿](./images/merge-blocks-publish-wordpress.webp)
 
 ### 錯誤處理與通知：讓你隨時掌握狀況
 
 流程中特別設計了錯誤偵測機制。如果遇到不支援的 `Block` 類型（例如表格 Table），流程會立即停止，並透過 Telegram 向你發送通知。這能確保文章不會因為轉換失敗而發佈不完整，讓你能夠及時手動處理或優化工作流。
 
-![通知有未支援的格式出現](./images/img-4.webp)
+![n8n 偵測到不支援的 Notion Block 類型時透過 Telegram 發送錯誤通知](./images/telegram-error-notification.webp)
 
 如果之後在使用過程中遇到不支援的 Block 也歡迎底下留言或透過 Mail ( [qwer4488999@gmail.com](mailto:qwer4488999@gmail.com) ) 聯絡我，我會更新工作流。或是對於工作流有什麼修改上的建議，讓整體變得更好的想法，也歡迎留言交流。
 
@@ -76,15 +76,15 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 ### 工作流會使用的憑證
 
--   Notion：取得 Page 及 Block 內容，教學文章參考 [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
+-   Notion：取得 Page 及 Block 內容，教學文章參考 [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
 
--   Wordpress：上傳圖片、文章，憑證設定教學請參考 [n8n x WordPress 整合指南](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)
+-   Wordpress：上傳圖片、文章，憑證設定教學請參考 [n8n x WordPress 整合指南](/n8n-wordpress-api-integration-guide/)
 
 -   Google Translate：翻譯文章標題作為 Slug (未來可串 AI 進行 SEO 優化)
 
 -   Telegram：發送錯誤訊息
 
-其他的憑證設定看這邊 👉 [點擊前往](https://www.frankchen.tw/n8n-integrations-credentials-guide/)。
+其他的憑證設定看這邊 👉 [點擊前往](/n8n-credentials-setup-complete-guide/)。
 
 ### Notion Page Database 資料結構
 
@@ -96,13 +96,13 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 -   如果偵測到沒辦法轉換的 Block ，會把狀態設定為『**有未支援的格式**』。
 
-![Notion Database Pages](./images/img-5.webp)
+![Notion Database 文章狀態欄位設計，包含撰寫中、撰寫完成、已上傳WP等標籤](./images/notion-database-structure.webp)
 
 ### 產生文章 Slug
 
 文章的 Slug 很重要，但是如果是用中文作為 Slug，在網址呈現上會看起來像是亂碼，所以會先將文章標題轉成英文後，再透過 Code 節點把所有特殊符號及空白去除後，就可以得到全英文的 Slug，這樣在之後的文章連結看起來就會比較整齊。
 
-![產生 WordPress 文章 Slug](./images/img-6.webp)
+![n8n 透過 Google Translate 將中文標題翻譯並轉換為英文 Slug 的節點設定](./images/generate-wordpress-slug.webp)
 
 記得，這裡使用的 Google Translate 功能，要將 Google Cloud 上面的「**Google Translate API**」啟用。
 
@@ -114,7 +114,7 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 -   Upload Image to Wordpress 節點裡的 URL 請輸入你自己的 WordPress 網址，並在後面加上 /wp-json/wp/v2/media (如：https://your.wordpress.url/wp-json/wp/v2/media)，WordPress API 設定方法請見 。
 
-![處理圖片，上傳到 WordPress](./images/img-7.webp)
+![Upload Image to WordPress 節點設定，填入 wp-json/wp/v2/media API 端點](./images/image-handling-wordpress-node.webp)
 
 ### 格式轉換
 

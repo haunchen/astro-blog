@@ -78,4 +78,4 @@ pnpm start
 
 以上就是針對將 [v0.dev](https://v0.dev/) 產生的專案部署到自己的伺服器上，如果不想把私人的資料上傳到網站的話可以使用此方法。
 
-👉 [Node.js 專案容器化 (Docker)](https://www.frankchen.tw/node-js-project-containerization-docker/)
+伺服器跑起來後，通常還需要幾個後續步驟：申請免費 SSL 憑證可以參考 [使用 Certbot 建立免費 SSL 憑證](/create-free-ssl-domain-certificates-using-certbot/)；若專案規模增大、部署複雜度上升，也可以考慮 [將 Node.js 專案容器化（Docker）](/nodejs-docker-ubuntu-containerization-tutorial/) 來管理環境；在 Next.js 應用上線後如果遇到記憶體用量偏高，可以參考 [geoip-lite 記憶體優化實戰](/nextjs-geoip-memory-optimization/) 的降級策略思路。

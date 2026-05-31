@@ -116,13 +116,13 @@ Discord Bot 的設定分為三個主要階段，讓我們一步步完成。
 
 應用程式建立成功後，你會進入設定頁面。
 
-![Discord Developer Portal 的 Applications 頁面，顯示建立新應用程式的對話框](./images/img-1.webp)
+![Discord Developer Portal 的 Applications 頁面，顯示建立新應用程式的對話框](./images/discord-developer-portal-new-application.webp)
 
 ### 1.2 設定 Installation 參數
 
 點擊左側的「Installation」分頁，進行以下設定：
 
-![Discord Developer Portal 的 Installation 設定頁面，Install Link 設為 None](./images/img-2.webp)
+![Discord Developer Portal 的 Installation 設定頁面，Install Link 設為 None](./images/discord-app-installation-link-none.webp)
 
 **重要設定：**
 
@@ -136,7 +136,7 @@ Discord Bot 的設定分為三個主要階段，讓我們一步步完成。
 
 點擊左側的「Bot」分頁，進行以下設定：
 
-![Discord Developer Portal 的 Bot 設定頁面，顯示授權流程和特權閘道意圖選項](./images/img-3.webp)
+![Discord Developer Portal 的 Bot 設定頁面，顯示授權流程和特權閘道意圖選項](./images/discord-bot-privileged-gateway-intents.webp)
 
 **重要設定：**
 
@@ -171,7 +171,7 @@ Discord Bot 的設定分為三個主要階段，讓我們一步步完成。
 4.  在憑證設定頁面中，你會看到「OAuth Redirect URL」欄位
 5.  複製這個 URL
 
-![n8n 的 Discord 憑證設定頁面，顯示 OAuth Redirect URL 與連線狀態](./images/img-4.webp)
+![n8n 的 Discord 憑證設定頁面，顯示 OAuth Redirect URL 與連線狀態](./images/n8n-discord-oauth-redirect-url.webp)
 
 **OAuth Redirect URL 範例：**
 
@@ -188,7 +188,7 @@ https://your-n8n-domain.com/rest/oauth2-credential/callback
 3.  將剛剛複製的 n8n Redirect URL 貼上
 4.  點擊「Save Changes」儲存
 
-![Discord Developer Portal 的 OAuth2 頁面，顯示 Redirects URL 和 Scopes 權限勾選](./images/img-5.webp)
+![Discord Developer Portal 的 OAuth2 頁面，顯示 Redirects URL 和 Scopes 權限勾選](./images/discord-oauth2-redirects-and-scopes.webp)
 
 接著向下捲動到「Default Authorization Link」區塊，在「Scopes」中勾選：
 
@@ -212,7 +212,7 @@ https://your-n8n-domain.com/rest/oauth2-credential/callback
 -   Read Message History（讀取訊息歷史）
 -   Add Reactions（新增表情符號反應）
 
-![Discord Developer Portal 的 Bot 權限設定頁面，顯示各項權限勾選和 Generated URL](./images/img-6.webp)
+![Discord Developer Portal 的 Bot 權限設定頁面，顯示各項權限勾選和 Generated URL](./images/discord-bot-permissions-generated-url.webp)
 
 設定完成後，最底下會產生一個「Generated URL」。
 
@@ -237,7 +237,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 3.  在頁面頂部找到「Client ID」
 4.  點擊「Copy」複製
 
-![Discord Developer Portal 的 OAuth2 頁面，標示 Client ID 和 Client Secret 欄位位置](./images/img-7.webp)
+![Discord Developer Portal 的 OAuth2 頁面，標示 Client ID 和 Client Secret 欄位位置](./images/discord-oauth2-client-id-secret.webp)
 
 ### 3.2 取得 Client Secret
 
@@ -256,7 +256,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 4.  點擊「Copy」複製
 5.  **重要：這組 Token 只會顯示一次，請立即儲存**
 
-![Discord Developer Portal 的 Bot 頁面，標示 Token 區塊和複製按鈕](./images/img-8.webp)
+![Discord Developer Portal 的 Bot 頁面，標示 Token 區塊和複製按鈕](./images/discord-bot-token-copy.webp)
 
 **安全提醒：**
 
@@ -278,7 +278,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 3.  完成授權後，系統會自動跳回 n8n，看到「Connected」或綠色勾勾表示連接成功
 4.  點擊右上角的「Save」儲存憑證
 
-![n8n 的 Discord 憑證設定頁面，顯示 OAuth Redirect URL 與連線狀態](./images/img-4.webp)
+![n8n 的 Discord 憑證設定頁面，顯示 OAuth Redirect URL 與連線狀態](./images/n8n-discord-oauth-redirect-url.webp)
 
 建議為憑證命名，方便日後管理：
 
@@ -293,7 +293,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 2.  加入「Manual Trigger」節點
 3.  加入 Discord 的「Send a message」節點
 
-![n8n 工作流程編輯器顯示 Manual Trigger 連接 Discord Send a message 節點](./images/img-9.webp)
+![n8n 工作流程編輯器顯示 Manual Trigger 連接 Discord Send a message 節點](./images/n8n-workflow-manual-trigger-discord.webp)
 
 在 Discord 節點中設定：
 
@@ -306,11 +306,11 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 7.  **Channel**：From list，選擇目標頻道
 8.  **Message**：輸入測試訊息，例如「這是一則測試訊息」
 
-![n8n Discord Send a message 節點的參數設定，包含連線類型、伺服器、頻道和訊息欄位](./images/img-10.webp)
+![n8n Discord Send a message 節點的參數設定，包含連線類型、伺服器、頻道和訊息欄位](./images/n8n-discord-send-message-node-settings.webp)
 
 點擊「Execute step」執行。如果設定正確，右側會顯示 OUTPUT 回應，Discord 頻道也會收到訊息。
 
-![n8n Discord 節點執行成功，右側顯示 JSON 格式的 OUTPUT 回應](./images/img-11.webp)
+![n8n Discord 節點執行成功，右側顯示 JSON 格式的 OUTPUT 回應](./images/n8n-discord-send-message-execution-output.webp)
 
 **如果出現錯誤，請檢查：**
 
@@ -327,7 +327,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 
 n8n 的 Discord 節點內建 Embeds 設定，在節點下方找到「Embeds」區塊，選擇「Enter Fields」就能直接填寫欄位，不需要手動寫 JSON。
 
-![n8n Discord 節點的 Embeds 設定面板，顯示標題、描述、作者、顏色等欄位](./images/img-12.webp)
+![n8n Discord 節點的 Embeds 設定面板，顯示標題、描述、作者、顏色等欄位](./images/n8n-discord-embed-fields-settings.webp)
 
 常用欄位說明：
 
@@ -339,7 +339,7 @@ n8n 的 Discord 節點內建 Embeds 設定，在節點下方找到「Embeds」�
 
 發送後，Discord 會顯示格式化的 Embed 訊息：
 
-![Discord 頻道中顯示的 Embed 訊息，包含標題、作者名稱和時間戳記](./images/img-13.webp)
+![Discord 頻道中顯示的 Embed 訊息，包含標題、作者名稱和時間戳記](./images/discord-channel-embed-message-preview.webp)
 
 ### Reaction 反應：新增表情符號
 
@@ -347,7 +347,7 @@ Bot 可以對訊息新增表情符號反應（例如：✅、❌、👍），常
 
 這裡用一個簡單的範例示範。當「Send Message」節點執行成功後，Discord 會回傳該訊息的 Message ID，我們可以把這組 ID 傳給下一個「Reaction」節點，對剛發送的訊息加上反應：
 
-![n8n 工作流程顯示 Send a message 節點連接到 React with an emoji 節點](./images/img-14.webp)
+![n8n 工作流程顯示 Send a message 節點連接到 React with an emoji 節點](./images/n8n-workflow-send-message-reaction.webp)
 
 在 Reaction 節點中設定：
 
@@ -357,11 +357,11 @@ Bot 可以對訊息新增表情符號反應（例如：✅、❌、👍），常
 4.  **Message ID**：從前一個 Send Message 節點拖曳取得
 5.  **Emoji**：輸入表情符號（例如：✅、👍、🎉）
 
-![n8n Discord Reaction 節點設定，顯示 Message ID 引用和 Emoji 欄位](./images/img-15.webp)
+![n8n Discord Reaction 節點設定，顯示 Message ID 引用和 Emoji 欄位](./images/n8n-discord-reaction-node-settings.webp)
 
 執行後，Discord 頻道中的訊息就會自動帶上 Bot 的表情符號反應：
 
-![Discord 頻道中的 Embed 訊息下方顯示 Bot 新增的綠色勾勾表情符號反應](./images/img-16.webp)
+![Discord 頻道中的 Embed 訊息下方顯示 Bot 新增的綠色勾勾表情符號反應](./images/discord-message-bot-emoji-reaction.webp)
 
 ### Webhook vs Bot 的快速比較
 
@@ -456,8 +456,9 @@ Webhook 的限制：
 
 想了解更多 n8n 自動化應用嗎？推薦你閱讀以下文章：
 
--   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](https://www.frankchen.tw/n8n-telegram-bot-notification-tutorial/)
--   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
--   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)
+-   [LINE、Discord、Telegram 通知機器人怎麼選？n8n 完整比較與實戰建議](/n8n-line-discord-telegram-bot-comparison/)
+-   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
+-   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](/n8n-notion-api-integration-tutorial/)
+-   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

@@ -10,7 +10,7 @@ draft: false
 
 「n8nManager」Landing page: [https://www.frankchen.tw/n8nmanager/](https://www.frankchen.tw/n8nmanager/)
 
-![n8nManager 的 icon](./images/img-1.webp)
+![n8nManager App 齒輪構成 N 字造型的應用程式圖示](./images/n8nmanager-app-icon.webp)
 
 ## 前言：告別電腦束縛，自動化盡在掌握！
 
@@ -47,4 +47,6 @@ n8nManager App 功能亮點解析：
 
 下載連結：[https://play.google.com/store/apps/details?id=tw.frankchen.n8n\_management\_tool](https://play.google.com/store/apps/details?id=tw.frankchen.n8n_management_tool)
 
-![](./images/img-2.webp)
+![n8nManager 儀表板截圖，顯示執行次數、工作流程數量、成功失敗圓餅圖與過去七天執行趨勢條形圖](./images/n8nmanager-dashboard-screenshot.webp)
+
+如果你尚未設定 n8n 憑證，可以先參考 [n8n 憑證設定懶人包](/n8n-credentials-setup-complete-guide/)，快速完成 API 金鑰等前置作業。想進一步延伸 n8n 自動化的應用，可以參考 [n8n 整合 Notion 自動發布 WordPress 文章](/n8n-notion-wordpress-publish-automation/) 或 [n8n × WordPress API 整合指南](/n8n-wordpress-api-integration-guide/)。另外，如果你希望在手機收到 n8n 執行通知，搭配 [Telegram Bot 通知機器人](/n8n-telegram-bot-notification-tutorial/) 是個實用的組合。

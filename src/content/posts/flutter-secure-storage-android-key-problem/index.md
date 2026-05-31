@@ -14,6 +14,8 @@ draft: false
 
 經過反覆的測試及除錯，發現主要問題是 Flutter Secure Storage 套件造成。本文將完整記錄除錯過程與解決方案，希望能幫助遇到類似問題的開發者。
 
+> 如果你也在 Flutter App 中串接 Firebase 或 Google 登入，並使用 flutter\_secure\_storage 儲存 token，本文的除錯方法同樣適用。可以參考 [Flutter x Firebase 身份驗證教學](/flutter-firebase-google-authentication-tutorial/)。
+
 ## 問題現象
 
 -   **環境**：Samsung S23 Ultra，Android 15
@@ -52,6 +54,8 @@ void main() async {
   runApp(MyApp());
 }
 ```
+
+> `MyApp()` 通常是 [MaterialApp 或 CupertinoApp](/flutter-study-materialapp-vs-cupertinoapp/) 的根 Widget，若初始化在根 Widget 建構期間就卡死，整個 UI 樹都無法掛載。
 
 結果：問題持續，證明不是廣告套件造成。
 
@@ -170,7 +174,7 @@ void main() async {
 
 這個問題的解決過程體現了 App 開發的複雜性。看起來簡單的啟動卡死問題，實際上牽涉了：
 
--   Flutter 框架與原生平台的整合
+-   Flutter 框架與原生平台的整合（包含 [StatefulWidget 的生命週期](/flutter-study-writing-statefulwidget-vs-statelesswidget/)管理）
 -   Google Play 的應用程式優化機制
 -   不同 Android 版本的相容性
 -   安全儲存系統的底層實作

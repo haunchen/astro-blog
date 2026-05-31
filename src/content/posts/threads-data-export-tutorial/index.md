@@ -19,7 +19,7 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 3.  點擊「你的資訊和權限」
 4.  選擇你要輸出的帳號
 
-![Instagram 個人頁面進入帳號管理中心的操作步驟截圖](./images/img-1.webp)
+![在 Instagram 個人頁面點擊三條線選單，依序進入帳號管理中心與你的資訊和權限頁面](./images/instagram-account-center-navigation.webp)
 
 ## 第二步：前往匯出資料頁面
 
@@ -28,7 +28,7 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 7.  選擇要匯出的帳號
 8.  選擇「匯出到裝置」
 
-![帳號管理中心匯出資訊頁面的設定選項截圖](./images/img-2.webp)
+![帳號管理中心點擊匯出你的資訊、建立匯出資訊，並選擇帳號與匯出到裝置的操作畫面](./images/export-info-page-settings.webp)
 
 ## 第三步：設定匯出資料的內容
 
@@ -36,7 +36,7 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 10.  **日期範圍**：選擇「去年」或「自訂」設定 2025/1/1~2025/12/31
 11.  **格式**：選擇「JSON」
 
-![選擇 Threads 資料、日期範圍與 JSON 格式的設定畫面](./images/img-3.webp)
+![自訂資料選擇 Threads、日期範圍設定 2025 年、格式選擇 JSON 的三步驟設定畫面](./images/threads-date-format-selection.webp)
 
 ## 第四步：匯出 Threads 資料
 
@@ -45,7 +45,7 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 14.  輸入 Instagram 密碼
 15.  輸入完密碼後，畫面即會出現開始匯出的畫面，匯出完成後平台會寄信通知。（匯出的時間長度與你的資料量有關）
 
-![設定影像畫質並輸入密碼開始匯出的操作畫面](./images/img-4.webp)
+![選擇較低影像畫質、輸入 Instagram 密碼並按下開始匯出的操作畫面](./images/image-quality-password-export-start.webp)
 
 ## 第五步：開始回顧你的 Threads
 
@@ -56,11 +56,11 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 18.  點擊上傳 ZIP 檔案
 19.  選擇你剛剛下載的壓縮檔，開始你的 Threads 回顧之旅吧！
 
-![下載匯出檔案並上傳至 Threads Wrapped 的操作步驟](./images/img-5.webp)
+![點擊 Download 下載壓縮檔後，前往 Threads Wrapped 點擊上傳區塊選取 ZIP 檔的操作步驟](./images/download-and-upload-to-threads-wrapped.webp)
 
 別忘了最後可以下載統計圖，分享到你的 Threads 或 Instagram 限時動態！
 
-![Threads Wrapped 產生的年度回顧統計圖範例](./images/img-6.webp)
+![Threads Wrapped 產生的 2025 年度回顧統計圖，顯示發文數、互動數等數據](./images/threads-wrapped-annual-stats-result.webp)
 
 ## 常見問題
 
@@ -84,8 +84,3 @@ Threads Wrapped 完全在你的瀏覽器本地執行，你的資料不會上傳�
 
 Threads Wrapped 是一個開源專案，讓你可以回顧自己在 Threads 上的一整年。如果你喜歡這個專案，歡迎到 [GitHub](https://github.com/haunchen/threads-wrapped) 給個 Star 支持一下！
 
-## 延伸閱讀
-
--   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](https://www.frankchen.tw/cloudflare-cache-rules-wordpress/)
--   [n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](https://www.frankchen.tw/n8n-instagram-access-token/)
--   [不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://www.frankchen.tw/n8n-notion-wordpress-publish-automation/)

@@ -43,11 +43,11 @@ gemini
 
 -   Vertex AI: 如果你有開通 Google Cloud 上的 [Vertex AI](https://cloud.google.com/vertex-ai) 服務的話也可以使用
 
-![](./images/img-1.webp)
+![Gemini CLI 登入驗證畫面，提供 Login with Google、Gemini API Key、Vertex AI 三種選項](./images/login-auth-options.webp)
 
 登入後，即可看到操作畫面
 
-![](./images/img-2.webp)
+![Gemini CLI 登入後的主操作介面](./images/main-interface-after-login.webp)
 
 ## Gemini CLI 指令
 
@@ -59,7 +59,7 @@ gemini
 
 透過瀏覽器開啟操作說明文件
 
-![](./images/img-3.webp)
+![執行 /docs 指令後自動在瀏覽器開啟 Gemini CLI 官方說明文件](./images/docs-command-browser-open.webp)
 
 ### /chat
 
@@ -81,13 +81,13 @@ gemini
 
 檢查 Gemini CLI 會話統計資料
 
-![](./images/img-4.webp)
+![/stats 指令顯示的 Gemini CLI 會話統計資料，包含 token 用量與請求次數](./images/stats-session-usage.webp)
 
 ### /compress
 
 壓縮 Gemini CLI 對話的上下文，減少 token 使用量
 
-![](./images/img-5.webp)
+![/compress 指令執行後的上下文壓縮結果畫面](./images/compress-context-window.webp)
 
 ### /mcp
 
@@ -99,37 +99,37 @@ gemini
 
 列出可用的 Gemini CLI 工具
 
-![](./images/img-6.webp)
+![/tools 指令列出所有可用的 Gemini CLI 內建工具清單](./images/tools-list.webp)
 
 ### /theme
 
 更改 Gemini CLI 的主題
 
-![](./images/img-7.webp)
+![/theme 指令的主題選擇介面，可切換不同配色風格](./images/theme-selection.webp)
 
 ### /auth
 
 更改 Gemini CLI 身份驗證方法
 
-![](./images/img-8.webp)
+![/auth 指令的身份驗證方法切換畫面](./images/auth-method-change.webp)
 
 ### /editor
 
 設定外部編輯器預設選項
 
-![](./images/img-9.webp)
+![/editor 指令的外部編輯器設定畫面](./images/editor-settings.webp)
 
 ### /bug
 
 使用 Gemini CLI 若有遇到任何Bug，可以透過此命令進行回報
 
-![](./images/img-10.webp)
+![/bug 指令的 Bug 回報介面](./images/bug-report-command.webp)
 
 ### /about
 
 顯示 Gemini CLI 版本資訊
 
-![](./images/img-11.webp)
+![/about 指令顯示 Gemini CLI 版本資訊畫面](./images/about-version-info.webp)
 
 ### /clear
 
@@ -146,3 +146,10 @@ gemini
 這對於一班使用者來說額度絕對夠用，而且還是使用最新的 `gemini-2.5-pro` 模型
 
 免費使用不知道會持續多久，大家快點把握機會試試看吧～～
+
+---
+
+對 AI CLI 工具有興趣的話，也可以看看這幾篇：
+
+-   [從 0 到 1 打造 n8n AI 技能包：讓 Claude 掌握 500+ 個自動化節點的開源專案實戰](/n8n-skills-claude-ai-skill-pack-tutorial/)
+-   [n8n-skills 技術解密 (1)：打造可擴展的四層式資料處理 Pipeline](/n8n-skills-four-layer-pipeline-architecture/)

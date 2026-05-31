@@ -80,7 +80,7 @@ sudo certbot certonly --nginx -d <your.demain>
 
 等待幾秒鐘後，便會出現 ”Successfully received certificate“ 等字眼，代表已經取得 Let's Encrypt 頒發 SSL 憑證了。
 
-![如何使用 Certbot 建立免費的 SSL 網域憑證](./images/img-1.webp)
+![Certbot 執行成功後終端機顯示 "Successfully received certificate" 及憑證路徑的輸出畫面](./images/certbot-success-certificate-issued.webp)
 
 certbot 預設產生的路徑為 `/etc/letsencrypt/live/<your.demain>`，該目錄底下會有兩個檔案，分別為 `fullchain.pem` 及 `privkey.pem`，後續將這兩個檔案加入 nginx 設定檔即可。
 
@@ -110,7 +110,7 @@ sudo crontab -e
 
 可以參考這個 [Repository](https://github.com/haunchen/certbot-deploy)，提供你自動化部署的方法。
 
-下一篇將教您 nginx 如何設定SSL 憑證。
+取得憑證後，可以進一步替 Nginx 設定快取策略，提升網站效能，請參考 [Nginx Cache WordPress 完整教學](/nginx-cache-wordpress/)。如果你是在 Ubuntu 上部署 Node.js 應用並需要啟用 HTTPS，也可以搭配 [Ubuntu 容器化 Node.js 部署教學](/nodejs-docker-ubuntu-containerization-tutorial/) 一起參考。
 
 參考連結：
 

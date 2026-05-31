@@ -30,7 +30,7 @@ draft: false
 
 高頻訊號示意圖：會以一個很快的速度上下跳動，導致程式判讀訊號異常。
 
-![](./images/img-1.webp)
+![高頻雜訊波形示意圖，顯示訊號在高電位與低電位之間快速抖動](./images/high-frequency-noise-waveform.webp)
 
 圖片來源：[https://simonfang1.github.io/blog/2019/04/25/music-theory-1/](https://simonfang1.github.io/blog/2019/04/25/music-theory-1/)
 
@@ -86,7 +86,7 @@ draft: false
 
 以 R = 10kΩ、C = 0.1µF 為例，截止頻率大約是 159 Hz。這意味著高於 159 Hz 的訊號都會被大幅衰減，對於我們動輒幾百 kHz 的雜訊來說，綽綽有餘！
 
-![](./images/img-2.webp)
+![RC 低通濾波器電路圖，電阻串聯於訊號線、電容並聯接地，用於過濾高頻雜訊](./images/rc-low-pass-filter-circuit.webp)
 
 ### 方案二：善用遮蔽隔離 (物理防禦)
 

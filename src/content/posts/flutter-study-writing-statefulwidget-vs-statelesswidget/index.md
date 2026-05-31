@@ -8,7 +8,7 @@ cover: "./images/cover.webp"
 draft: false
 ---
 
-簡單來說，在 [Flutter](https://flutter.dev/) 中，StatefulWidget 是動態的頁面，StatelessWidget 就如同字面上的的意思，是個靜態的頁面。
+簡單來說，在 [Flutter](https://flutter.dev/) 中，StatefulWidget 是動態的頁面，StatelessWidget 就如同字面上的的意思，是個靜態的頁面。認識這兩種 Widget 的差異，是進一步理解 [MaterialApp 與 CupertinoApp 根 Widget 選擇](/flutter-study-materialapp-vs-cupertinoapp/) 的基礎。
 
 ## StatefulWidget
 
@@ -37,6 +37,8 @@ draft: false
 -   `ListView.builder`：顯示一個可滾動的列表，當數據改變時，列表內容會更新。
 
 -   `AlertDialog`：彈出對話匡，根據使用者響應來執行特定操作。
+
+實務上，像是 [串接 Firebase Google 登入](/flutter-firebase-google-authentication-tutorial/) 的頁面通常就是 StatefulWidget，因為需要追蹤登入狀態與回應按鈕點擊。
 
 ## StatelessWidget
 

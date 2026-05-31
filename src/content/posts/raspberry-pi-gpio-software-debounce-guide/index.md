@@ -12,7 +12,7 @@ draft: false
 
 ## 前言
 
-[上一篇](/raspberry-pi-gpio-high-frequency-noise)我們聊到，在 GPIO 腳位和 GND 之間並聯一顆 0.1µF 的陶瓷電容，這個成本不到 1 塊錢的「低通濾波器」，就能擋掉大部分高頻雜訊。
+[上一篇](/raspberry-pi-gpio-high-frequency-noise/)我們聊到，在 GPIO 腳位和 GND 之間並聯一顆 0.1µF 的陶瓷電容，這個成本不到 1 塊錢的「低通濾波器」，就能擋掉大部分高頻雜訊。
 
 照理說這樣軟體面就能使用乾淨的雜訊，但其實還有來自元件本身的物理現象「`機械彈跳 (Mechanical Bouncing)`」，這物理性的抖動得靠軟體來解決。
 
@@ -32,7 +32,7 @@ draft: false
 
 這個「彈跳」的過程，對人體來說根本無法察覺，但對樹莓派的 GPIO 來說，它的反應速度快到足以捕捉到每一次微小的碰撞。所以一次的按壓，在它眼裡就變成了好幾次的快速開關。
 
-![](./images/img-1.webp)
+![按鈕機械彈跳示意圖：金屬彈片在按下瞬間來回碰撞，導致訊號快速切換的物理過程](./images/button-mechanical-bounce-diagram.webp)
 
 [圖片來源](https://www.instructables.com/%E5%A6%82%E6%AD%A4%E7%B0%A1%E5%96%AE-MicroPython-%E6%8C%89%E9%88%95%E9%96%8B%E9%97%9C-Vs-%E5%BD%88%E8%B7%B3%E7%8F%BE%E8%B1%A1/)
 
@@ -46,7 +46,7 @@ draft: false
 
 這就像你只點擊了一下滑鼠，結果電腦卻幫你點了三四下，是不是很惱人？**這就是「彈跳」在電子訊號層面帶來的實際困擾**。
 
-![](./images/img-2.webp)
+![GPIO 訊號波形圖：按鈕按下後 HIGH 與 LOW 之間來回跳動的彈跳訊號，最終才穩定在高電位](./images/gpio-bounce-signal-waveform.webp)
 
 ## 軟體解彈跳 (Debounce) 的三種方法
 
@@ -292,7 +292,7 @@ END FUNCTION
 
 記住，沒有哪種方法是絕對最好的，重點是根據你的專案需求來選擇。如果只是簡單的按鈕控制 LED，方法一就夠用了；但如果要同時處理多個任務，那就考慮方法二或方法三吧。
 
-現在，**結合硬體篇的 RC 濾波電路和這篇的軟體 Debounce 演算法**，你的 GPIO 訊號品質應該已經相當乾淨穩定了。下次再遇到按鈕誤判或訊號亂跳的問題，就知道該從哪裡下手了。
+現在，**結合[硬體篇的 RC 濾波電路](/raspberry-pi-gpio-high-frequency-noise/)和這篇的軟體 Debounce 演算法**，你的 GPIO 訊號品質應該已經相當乾淨穩定了。下次再遇到按鈕誤判或訊號亂跳的問題，就知道該從哪裡下手了。
 
 相關文章：
 

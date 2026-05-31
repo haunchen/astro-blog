@@ -31,17 +31,17 @@ draft: false
 
 在 Data Table 介面中，現在可以直接將整個資料表匯出成 CSV 檔案。點擊資料表右側的選單，就能看到「Download CSV」選項。
 
-![n8n Data Table 匯出 CSV 按鈕位置](./images/img-1.webp)
+![n8n Data Table 右側選單展開，顯示 Download CSV 按鈕](./images/data-table-download-csv-button.webp)
 
 匯出的 CSV 檔案會包含所有欄位定義和資料內容，包括系統自動產生的 `id`、`createdAt`、`updatedAt` 欄位。
 
-![匯出的 CSV 檔案內容範例](./images/img-2.webp)
+![匯出的 CSV 檔案包含 id、createdAt、updatedAt 等系統欄位的內容範例](./images/exported-csv-file-content-sample.webp)
 
 ### 匯入功能
 
 點擊右上角的「Create data table」按鈕，在彈出的視窗中選擇「Import CSV」，就能上傳 CSV 檔案來建立新的 Data Table。
 
-![n8n Data Table 匯入 CSV 介面](./images/img-3.webp)
+![n8n 建立資料表視窗中選擇 Import CSV 的介面](./images/data-table-import-csv-dialog.webp)
 
 這個功能對於需要批次建立資料或是從其他來源遷移資料的情境特別實用。
 
@@ -122,7 +122,7 @@ DateTime
 
 下圖是準備匯入的 CSV 範例，可以看到第一行資料使用 `TRUE` 和 `FALSE` 來觸發 Boolean 型態：
 
-![準備匯入的 CSV 檔案範例](./images/img-4.webp)
+![準備匯入的 CSV 檔案，第一行資料使用 TRUE 和 FALSE 觸發 Boolean 型態辨識](./images/csv-import-data-type-boolean-example.webp)
 
 ## 對模板分享的實際影響
 
@@ -163,6 +163,7 @@ Data Table 的 CSV 匯出匯入功能雖然看似是個小更新，但對於經�
 
 ## 延伸閱讀
 
--   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](https://www.frankchen.tw/n8n-line-api-integration-tutorial/)
--   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://www.frankchen.tw/n8n-canva-oauth-setup/)
--   [【2025 最新】n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](https://www.frankchen.tw/n8n-instagram-access-token/)
+-   [【n8n 模板分享】探店心願助手：Line Bot 一鍵整理社群美食店家](/n8n-template-store-wish-list/)
+-   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
+-   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
+-   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)

@@ -28,11 +28,11 @@ Zeabur 提供的核心功能包括：
 
 總結來說，Zeabur 提供了一個**簡易、快速、經濟且高效能**的**網站託管環境**，特別適合想要擺脫**網站部署複雜性**的開發者、部落客和企業。
 
-![Zeabur 方案選擇](./images/img-1.webp)
+![Zeabur 開發者方案定價頁面](./images/zeabur-pricing-plan.webp)
 
 ## WordPress 網站搬遷前哨站：確保您的資料萬無一失
 
-在進行任何[**網站遷移**或**網站轉移**](https://www.frankchen.tw/wordpress-migrate-to-zeabur/)操作之前，最關鍵且不可或缺的步驟就是**網站資料備份**，確保您的文章、圖片、設定等所有寶貴資料再轉移過程不丟失，這份備份檔也是您在新環境匯入資料的來源。
+在進行任何**網站遷移**或**網站轉移**操作之前，最關鍵且不可或缺的步驟就是**網站資料備份**，確保您的文章、圖片、設定等所有寶貴資料再轉移過程不丟失，這份備份檔也是您在新環境匯入資料的來源。
 
 為了簡化**WordPress 備份流程**，強力推薦使用 [All-in-One WP Migration and Backup](https://tw.wordpress.org/plugins/all-in-one-wp-migration/) 外掛。
 
@@ -43,7 +43,7 @@ Zeabur 提供的核心功能包括：
 3.  **等待備份完成**：系統將自動壓縮並打包您的 WordPress 網站所有內容（包括資料庫、主題、外掛、媒體檔案等）。這個過程所需時間取決於您網站的大小。
 4.  **下載備份檔**：備份完成後，外掛會自動提示您下載 `.wpress` 格式的備份檔案。請務必將此檔案儲存到您的電腦硬碟中，這是您未來在新環境中**復原 WordPress 網站**的關鍵。
 
-![WordPress 外掛 All-in-One WP Migration and Backup 備份檔案](./images/img-2.webp)
+![All-in-One WP Migration and Backup 外掛匯出備份介面](./images/all-in-one-wp-migration-backup-export.webp)
 
 **備份注意事項：**
 
@@ -67,22 +67,22 @@ WordPress 需要包含一個資料庫的環境，而 Zeabur 貼心地提供了�
 
 -   登入 Zeabur 後台後，找到並點擊 `WordPress` 模板。
 
-![Zeabur WordPress 模板](./images/img-3.webp)
+![Zeabur 後台選擇 WordPress 模板](./images/zeabur-wordpress-template.webp)
 
 -   點開模板後，點擊「部署」(Deploy) 按鈕，準備開始建立您的新專案。
 
-![Zeabur WordPress 部署](./images/img-4.webp)
+![點擊 Zeabur WordPress 模板的 Deploy 部署按鈕](./images/zeabur-wordpress-deploy-button.webp)
 
 ### 第三步：建立新的專案與設定基本資訊
 
 -   **選擇部署區域 (Region)**：為了確保您的網站載入速度最快，並為您的目標受眾提供最佳體驗，請選擇離我們最近的「**Tokyo, Japan (東京, 日本)**」資料中心。這將有效降低網站的延遲時間。
 -   **自訂網域 (Domain)**：在此欄位中直接輸入您希望用於 WordPress 網站的**自定義網域**。例如：`yourblog.zeabure.app`。這將是您網站未來的主要網址。若需綁定自己購買的網域，可於設定完成後，於後台修改。
 
-![Zeabur 部署](./images/img-5.webp)
+![Zeabur 部署設定：選擇東京資料中心與輸入自訂網域](./images/zeabur-deploy-region-domain-settings.webp)
 
 -   點擊確認後，Zeabur 會自動開始為您部署 WordPress 服務，畫面會顯示服務正在運作中。這個過程通常只需要幾分鐘。
 
-![Zeabur 部署完成畫面](./images/img-6.webp)
+![Zeabur 專案部署完成，服務運作中的狀態畫面](./images/zeabur-deploy-complete.webp)
 
 ### 第四步：設定與綁定您的網域
 
@@ -94,7 +94,7 @@ WordPress 需要包含一個資料庫的環境，而 Zeabur 貼心地提供了�
 -   在這裡，您會找到綁定**自訂網域**的選項。您需要將您的網域解析設定（DNS 設定）指向 Zeabur 提供的 IP 地址或 CNAME 記錄。具體操作會因您的網域註冊商而異，通常涉及新增 A 紀錄或 CNAME 紀錄。
 -   **重要提示**：在進入下一步**初始化 WordPress** 之前，請務必確認您的網域已成功綁定並生效。DNS 傳播可能需要一些時間（從幾分鐘到幾小時不等），您可以使用 DNS 查詢工具來檢查網域解析是否已更新。
 
-![Zeabur 自有網域綁定](./images/img-7.webp)
+![Zeabur Networking 分頁綁定自訂網域的設定介面](./images/zeabur-custom-domain-binding.webp)
 
 ### 第五步：初始化 Zeabur 上的 WordPress
 
@@ -114,7 +114,7 @@ WordPress 需要包含一個資料庫的環境，而 Zeabur 貼心地提供了�
 -   系統將會自動開始上傳並匯入所有資料。這個過程根據您的網站大小，大約需要 5 到 10 分鐘。請耐心等待，確保網路連線穩定。
 -   **匯入完成後**：外掛會提示您匯入成功，並可能要求您重新登入。此時，您應該使用舊網站的管理者帳號和密碼進行登入，因為這些資訊已經被匯入覆蓋了。
 
-![WordPress 資料備份](./images/img-8.webp)
+![All-in-One WP Migration 匯入 .wpress 備份檔至 Zeabur WordPress](./images/all-in-one-wp-migration-import.webp)
 
 ### 第七步：網站設定檢查與最終確認
 
@@ -141,6 +141,14 @@ WordPress 需要包含一個資料庫的環境，而 Zeabur 貼心地提供了�
 -   **DNS 傳播時間**：網域綁定後，DNS 記錄的更新需要時間在全球生效。在此期間，您的網站可能會暫時無法訪問或顯示舊網站內容。
 -   **SSL 憑證生效**：雖然 Zeabur 自動提供 SSL，但首次綁定網域後，憑證生效也需要一點時間。
 -   **外掛相容性**：在極少數情況下，特定外掛可能在新環境中出現相容性問題。建議在轉移後仔細測試所有外掛功能。
+
+## 延伸閱讀
+
+完成 WordPress 遷移到 Zeabur 後，可以進一步優化網站效能與架構：
+
+- [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/)
+- [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](/cloudflare-cache-rules-wordpress/)
+- [Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](/nginx-cache-wordpress/)
 
 ## 小結
 

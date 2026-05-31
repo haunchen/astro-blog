@@ -43,10 +43,10 @@ draft: false
 這個模板運作時需要串接多個服務，因此你需要準備以下憑證：
 
 -   n8n 伺服器 - Zeabur 託管或本地部署都可以，版本需為 v1.113.2 以上
--   LINE 憑證 - [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](https://www.frankchen.tw/n8n-line-api-integration-tutorial/)
--   WordPress 憑證 - [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)
--   Canva 憑證 - [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://www.frankchen.tw/n8n-canva-oauth-setup/)
--   Google Drive 憑證 - [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](https://www.frankchen.tw/n8n-google-credentials-setup-guide/)
+-   LINE 憑證 - [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
+-   WordPress 憑證 - [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
+-   Canva 憑證 - [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
+-   Google Drive 憑證 - [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
 
 上面每個連結都有完整的憑證設定教學，跟著步驟操作即可。模板匯入後，你只需要在對應的節點中選擇你已經建立好的憑證就可以了。
 
@@ -60,17 +60,17 @@ draft: false
 
 點擊左上角「Create data table」
 
-![在 n8n 建立新的 Data Table](./images/img-1.webp)
+![n8n 左上角的「Create data table」按鈕](./images/data-table-create-button.webp)
 
 輸入 Data table 名稱（建議命名為 `line_bot_status` 或其他容易辨識的名稱），點擊「Create」
 
-![輸入 Data Table 名稱](./images/img-2.webp)
+![在 n8n 輸入新 Data Table 的名稱並點擊 Create](./images/data-table-name-input.webp)
 
 ### 步驟二：新增 Column 欄位
 
 點擊右上角的「Add Column」
 
-![新增 n8n Data Table 的 Column](./images/img-3.webp)
+![n8n Data Table 右上角的「Add Column」按鈕](./images/data-table-add-column.webp)
 
 模板需要以下 6 個欄位，請依序建立：
 
@@ -118,21 +118,21 @@ string
 
 你只需要照著上表建立這些欄位即可，每個欄位的用途和數值都由模板自動處理。
 
-![n8n Data Table 的欄位名稱及屬性說明](./images/img-4.webp)
+![n8n Data Table 六個欄位的名稱、型態與用途說明](./images/data-table-column-schema.webp)
 
 ### 步驟三：新增 Row 資料
 
 點擊右上角的「Add Row」
 
-![新增 n8n Data Table 的 Row](./images/img-5.webp)
+![n8n Data Table 右上角的「Add Row」按鈕](./images/data-table-add-row.webp)
 
 點一下之後，就會看到新增一行資料
 
-![Data Table 新增 Row 之後會看到一行資料被新增](./images/img-6.webp)
+![n8n Data Table 新增一筆空白 Row 後的畫面](./images/data-table-row-added.webp)
 
 這時候我們要手動把「none」欄位的資料設為 `true`，雙擊「none」底下的儲存格打勾就好
 
-![將 Data Table 的 none 欄位勾選](./images/img-7.webp)
+![在 n8n Data Table 將 none 欄位的布林值勾選為 true](./images/data-table-none-field-checked.webp)
 
 設定完成後，Data Table 就準備好了。之後模板運作時，會自動在這個表格中更新狀態，你不需要再做任何調整。
 
@@ -146,7 +146,7 @@ string
 
 在 Canva 編輯完成後，複製畫面上方的網址（格式像是：`https://www.canva.com/design/<design-id>/<user-id>/edit`），然後直接貼到 LINE Bot 傳送。
 
-![Canva 的設計稿連結](./images/img-8.webp)
+![Canva 編輯頁面上方的設計稿分享連結格式](./images/canva-design-url.webp)
 
 模板會自動解析出 Design ID，並向 Canva API 取得該設計檔的資訊。
 
@@ -154,7 +154,7 @@ string
 
 > 如果是複製已存在的設計再修改，預覽圖有可能會是舊的，這是 Canva 官方更新時間較慢造成的。確認你上傳的網址是對的就可以按下「確認」執行後續步驟。
 
-![透過 Line Bot 上傳 Canva 連結](./images/img-9.webp)
+![在 LINE Bot 對話框貼上 Canva 設計稿連結並收到預覽圖回傳](./images/line-bot-send-canva-link.webp)
 
 ### 功能二：確認輸出 Canva 設計
 
@@ -168,7 +168,7 @@ string
 
 > LINE 傳輸圖片需要使用 LINE 可以訪問的連結，因此模板利用 Google Drive 的共用功能來實現圖片傳送。整個過程都是自動化處理，你不需要手動操作 Google Drive。
 
-![透過 Line Bot 確認 Canva 輸出內容](./images/img-10.webp)
+![LINE Bot 回傳 Canva 匯出的 PNG 預覽圖供使用者確認](./images/line-bot-confirm-canva-export.webp)
 
 ### 功能三：上傳 WordPress 媒體庫
 
@@ -178,7 +178,7 @@ string
 
 > 這個模板也可以替換成其他支援圖檔上傳的平台或社群媒體，如果你有其他需求，可以修改 WordPress 節點為其他服務。
 
-![透過 Line Bot 確認上傳到 WordPress](./images/img-11.webp)
+![LINE Bot 回傳圖片已成功上傳至 WordPress 媒體庫的確認訊息](./images/line-bot-confirm-wordpress-upload.webp)
 
 整個流程從上傳 Canva 連結到完成 WordPress 上傳，只需要在 LINE 上點擊幾次，所有的 API 串接、檔案轉換、備份、上傳都由模板自動處理。
 
@@ -254,5 +254,5 @@ Data Table 是用來記錄 LINE Bot 的操作狀態，確保每個步驟都能�
 
 ### 延伸閱讀
 
--   【 n8n 模板分享 】[探店心願助手](https://www.frankchen.tw/n8n-template-store-wish-list/)
--   【 n8n 模板分享 】[Notion Page 轉 Wordpress Article](https://www.frankchen.tw/n8n-notion-wordpress-publish-automation/)
+-   【 n8n 模板分享 】[探店心願助手](/n8n-template-store-wish-list/)
+-   【 n8n 模板分享 】[Notion Page 轉 Wordpress Article](/n8n-notion-wordpress-publish-automation/)

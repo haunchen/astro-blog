@@ -14,7 +14,7 @@ draft: false
 
 我自己的 WordPress 網站在導入 Cloudflare Cache Rules 後，頁面載入時間從原本的 2-3 秒降到了 1 秒以內，而且伺服器負擔也大幅降低。更直接的證據是主機帳單：從 11 月的 $12.37 美金降到 12 月的 $8.89 美金，省下將近 30% 的費用。
 
-![Cloudflare Cache Rules 設定前後的主機帳單比較](./images/img-1.webp)
+![導入 Cloudflare Cache Rules 後主機費用從 $12.37 降至 $8.89 的帳單截圖](./images/hosting-bill-before-after-cache.webp)
 
 這篇教學會完整分享我的設定方式，讓你也能輕鬆達到同樣的效果。
 
@@ -57,7 +57,7 @@ draft: false
 
 登入 Cloudflare 控制台後，選擇你的網站，進入「DNS」頁面，確認你的主要 DNS 記錄長這樣：
 
-![Cloudflare DNS 設定：確認 Proxy 狀態為橘色雲朵（已代理）](./images/img-2.webp)
+![Cloudflare DNS 管理頁面中 A 記錄的 Proxy 狀態設定為橘色雲朵（已代理）](./images/cloudflare-dns-proxy-orange-cloud.webp)
 
 **重點**：Proxy 狀態一定要是橘色雲朵（已代理），灰色雲朵代表流量沒有經過 Cloudflare，快取規則就不會生效。
 
@@ -71,7 +71,7 @@ draft: false
 Cloudflare 控制台 → 選擇網域 → 快取 (Caching) → 快取規則 (Cache Rules) → 建立規則
 ```
 
-![Cloudflare 控制台：進入 Cache Rules 設定頁面的操作路徑](./images/img-3.webp)
+![Cloudflare 控制台「快取 → 快取規則」頁面入口與新增規則按鈕](./images/cloudflare-cache-rules-navigation.webp)
 
 ### 規則一：後台不快取（最重要）
 
@@ -419,7 +419,7 @@ Cloudflare Free 方案可以設定最多 10 條 Cache Rules，對於一般 WordP
 -   後端 WordPress 出問題時，Nginx 可以繼續提供過期內容
 -   雙層快取讓你的網站更加穩定
 
-詳細設定方式請參考下一篇文章：[Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](https://www.frankchen.tw/nginx-cache-wordpress/)
+詳細設定方式請參考下一篇文章：[Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](/nginx-cache-wordpress/)
 
 ## 總結
 
@@ -441,6 +441,6 @@ Cloudflare Free 方案可以設定最多 10 條 Cache Rules，對於一般 WordP
 
 ### 延伸閱讀
 
--   [Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](https://www.frankchen.tw/nginx-cache-wordpress/)\- 加入 Nginx 作為第二層快取，讓網站更穩定
--   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](https://www.frankchen.tw/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
--   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](https://www.frankchen.tw/wordpress-migrate-to-zeabur/) - 如果你想把 WordPress 搬到 Zeabur 平台
+-   [Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](/nginx-cache-wordpress/) - 加入 Nginx 作為第二層快取，讓網站更穩定
+-   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
+-   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 如果你想把 WordPress 搬到 Zeabur 平台

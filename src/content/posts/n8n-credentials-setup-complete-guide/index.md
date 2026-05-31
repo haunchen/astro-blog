@@ -30,7 +30,7 @@ Telegram Bot 是我最推薦新手第一個設定的服務。設定超簡單，�
 -   用 `@userinfobot` 取得你的 Chat ID
 -   在 n8n 填入 Token 就完成了
 
-**完整教學：** [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](https://www.frankchen.tw/n8n-telegram-bot-notification-tutorial/)
+**完整教學：** [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
 
 ### 2\. WordPress - 部落格作者必備
 
@@ -42,7 +42,7 @@ Telegram Bot 是我最推薦新手第一個設定的服務。設定超簡單，�
 -   注意：要用應用程式密碼，不是你的登入密碼
 -   WordPress URL 結尾不要加斜線
 
-**完整教學：** [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)
+**完整教學：** [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 
 ### 3\. Notion - 別忘了授權頁面
 
@@ -56,7 +56,7 @@ Notion 設定不難，但有一個步驟超容易漏掉。我第一次設定時�
 -   取得 Internal Integration Secret
 -   **最容易漏掉：到你的頁面或 Database 授權給這個 Integration**
 
-**完整教學：** [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
+**完整教學：** [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
 
 ### 4\. Discord Bot - 步驟多但照著做就行
 
@@ -72,7 +72,7 @@ Discord 的 OAuth 設定步驟比較多，需要在 Developer Portal 設定好�
 
 > 如果你只是想發通知，用 Discord Webhook 會更簡單，不需要設定 Bot。
 
-**完整教學：** [n8n x Discord Bot 社群自動化完全指南：OAuth 設定到發送訊息實戰](https://www.frankchen.tw/n8n-discord-bot-setup-tutorial/)
+**完整教學：** [n8n x Discord Bot 社群自動化完全指南：OAuth 設定到發送訊息實戰](/n8n-discord-bot-setup-tutorial/)
 
 ### 5\. Line Bot - 台灣市場必備
 
@@ -87,7 +87,7 @@ Line 在台灣的使用率超高，從個人生活到公司內部溝通都離不
 -   設定 Webhook URL 讓 Line 知道要把訊息傳到哪
 -   注意：免費方案每月只能主動推送 200 則訊息
 
-**完整教學：** [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](https://blog.frankchen.tw/n8n-line-api-integration-tutorial/)
+**完整教學：** [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
 
 ### 7\. Canva - 台灣少見的教學
 
@@ -102,7 +102,7 @@ Canva 憑證設定在台灣幾乎沒人寫過教學，我當初花了不少時�
 -   使用 OAuth 2.0 PKCE 模式
 -   重定向網址要完全一致，少一個 `/` 都會報錯
 
-**完整教學：** [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://blog.frankchen.tw/n8n-canva-oauth-setup/)
+**完整教學：** [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
 
 ### 8\. Google 系列 - 最複雜但最常用
 
@@ -119,7 +119,7 @@ Google 憑證設定是我覺得 n8n 裡面最麻煩的。在 Google Cloud Consol
 -   設定 OAuth 同意畫面和資料存取權
 -   **重要：記得發布應用程式，不然每週都要重新授權**
 
-**完整教學：** [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](https://blog.frankchen.tw/n8n-google-credentials-setup-guide/)
+**完整教學：** [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
 
 ### 9\. Instagram / Facebook - 最耗時的設定
 
@@ -133,7 +133,7 @@ Instagram API 的設定步驟最多，而且 Token 只有 60 天效期，需要�
 -   Instagram 帳號必須是「專業帳號」且綁定 Facebook 粉絲專頁
 -   短期 Token 要轉換成長期 Token（60 天）
 
-**完整教學：** [n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](https://blog.frankchen.tw/n8n-instagram-access-token/)
+**完整教學：** [n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](/n8n-instagram-access-token/)
 
 ## 服務比較表
 
@@ -223,19 +223,19 @@ Token 60 天過期
 
 ### 憑證設定教學系列
 
--   [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](#)
--   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](#)
--   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](#)
--   [n8n x Discord Bot 社群自動化完全指南：OAuth 設定到發送訊息實戰](#)
--   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](https://blog.frankchen.tw/n8n-line-api-integration-tutorial/)
--   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://blog.frankchen.tw/n8n-canva-oauth-setup/)
--   [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](https://blog.frankchen.tw/n8n-google-credentials-setup-guide/)
--   [n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](https://blog.frankchen.tw/n8n-instagram-access-token/)
+-   [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
+-   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
+-   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
+-   [n8n x Discord Bot 社群自動化完全指南：OAuth 設定到發送訊息實戰](/n8n-discord-bot-setup-tutorial/)
+-   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
+-   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
+-   [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
+-   [n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文](/n8n-instagram-access-token/)
 
 ### 實戰應用案例
 
--   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://blog.frankchen.tw/n8n-notion-wordpress-publish-automation/)
--   [Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](https://www.frankchen.tw/n8n-template-line-bot-upload-system/)
--   [n8n 模板分享 - 探店心願助手](https://blog.frankchen.tw/n8n-template-store-wish-list/)
+-   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
+-   [Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
+-   [n8n 模板分享 - 探店心願助手](/n8n-template-store-wish-list/)
 
 這篇文章會持續更新，之後會加入 Meta 系列、GitHub 等服務的設定教學。如果你在設定過程中遇到問題，歡迎到 [Threads](https://www.threads.com/@frankchen.tw) 或 [Instagram](https://www.instagram.com/frankchen.tw/) 找我。

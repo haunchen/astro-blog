@@ -143,3 +143,5 @@ iOS
 ## 小結
 
 兩者都是 `WidgetApps` 的具體實現，兩個核心區別在於遵循的設計系統。`MaterialApp` 專注於遵循 Google 的 Material Design，而 `CupertinoApp` 則專注於 Apple 的 iOS Human Interface Guidelines。
+
+如果你剛開始學 Flutter，建議同步搞清楚 [StatefulWidget 與 StatelessWidget 的差異](/flutter-study-writing-statefulwidget-vs-statelesswidget/)，這是另一個核心概念，配合 `MaterialApp` 的狀態管理理解效果更好。確定好應用框架之後，就可以進一步嘗試串接後端服務，像是 [用 Firebase 實作 Google 登入](/flutter-firebase-google-authentication-tutorial/)就是個很好的練手起點。

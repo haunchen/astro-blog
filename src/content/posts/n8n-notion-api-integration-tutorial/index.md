@@ -65,19 +65,19 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 2.  使用你的 Notion 帳號登入
 3.  進入後會看到你目前已建立的所有 Integration
 
-![Notion Integrations 管理頁面顯示已建立的整合清單](./images/img-1.webp)
+![Notion Integrations 管理頁面顯示已建立的整合清單](./images/notion-integrations-management-page.webp)
 
 ### 1.2 建立新的 Integration
 
 點擊頁面右上角的「新增整合」或「New integration」按鈕。
 
-![點擊右上角新增整合按鈕建立新的 Integration](./images/img-2.webp)
+![點擊右上角新增整合按鈕建立新的 Integration](./images/notion-new-integration-button.webp)
 
 ### 1.3 填寫 Integration 資訊
 
 在建立頁面中，你需要填寫以下資訊：
 
-![Integration 建立表單填寫名稱、工作區與權限設定](./images/img-3.webp)
+![Integration 建立表單填寫名稱、工作區與權限設定](./images/notion-integration-create-form.webp)
 
 **必填欄位說明：**
 
@@ -97,7 +97,7 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 
 建立成功後，你會看到 Integration 的設定頁面。最重要的是「內部整合密鑰」。
 
-![Integration 設定頁面顯示內部整合密鑰與複製按鈕](./images/img-4.webp)
+![Integration 設定頁面顯示內部整合密鑰與複製按鈕](./images/notion-integration-secret-key.webp)
 
 **重要操作：**
 
@@ -130,9 +130,9 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 4.  在搜尋框中輸入你要授權的頁面或 Database 名稱
 5.  選擇要授權的頁面後，點擊「儲存」完成新增
 
-![Integration 存取權限分頁顯示編輯權限按鈕](./images/img-5.webp)
+![Integration 存取權限分頁顯示編輯權限按鈕](./images/notion-integration-access-permissions.webp)
 
-![搜尋並選擇要授權的 Notion 頁面或 Database](./images/img-6.webp)
+![搜尋並選擇要授權的 Notion 頁面或 Database](./images/notion-integration-page-search-authorize.webp)
 
 完成後，已授權的頁面會顯示在列表中，你可以看到「私人」分類下有多少個頁面已啟用此整合。
 
@@ -146,7 +146,7 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 4.  點擊「新增連接」，輸入你的 Integration 名稱（例如：`n8n 自動化工具`）
 5.  點擊該 Integration，完成授權
 
-![從 Notion 頁面右上角選單新增連接 Integration](./images/img-7.webp)
+![從 Notion 頁面右上角選單新增連接 Integration](./images/notion-page-connect-integration-menu.webp)
 
 這個方法適合後續新增的頁面或 Database，不用再重新進入 Integration 頁面設定。
 
@@ -158,7 +158,7 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 
 ## 第三步：在 n8n 設定 Notion 憑證
 
-現在我們已經取得 Notion 的 Integration Secret，接下來就是在 n8n 中建立憑證。
+現在我們已經取得 Notion 的 Integration Secret，接下來就是在 n8n 中建立憑證。如果你還不熟悉 n8n 憑證的統一管理方式，可以先看 [n8n 憑證設定懶人包：常用服務快速導覽](/n8n-credentials-setup-complete-guide/)。
 
 ### 3.1 開啟 n8n 憑證設定
 
@@ -167,13 +167,13 @@ Notion Integration 是 Notion 提供給開發者和第三方工具的連接方�
 3.  點擊右上角的「Add Credential」
 4.  在搜尋框中輸入「Notion」，選擇「Notion API」
 
-![n8n 新增憑證頁面搜尋 Notion API](./images/img-8.webp)
+![n8n 新增憑證頁面搜尋 Notion API](./images/n8n-add-credential-search-notion.webp)
 
 ### 3.2 填寫 Notion 憑證
 
 在憑證設定頁面中，只需要填入一個欄位：
 
-![n8n Notion 憑證設定填入 Internal Integration Secret](./images/img-9.webp)
+![n8n Notion 憑證設定填入 Internal Integration Secret](./images/n8n-notion-credential-secret-input.webp)
 
 **欄位說明：**
 
@@ -206,13 +206,13 @@ n8n 會要求你為這個憑證命名，建議使用有意義的名稱，例如�
 3.  加入一個「Manual Trigger」節點（手動觸發）
 4.  加入一個「Notion」節點
 
-![n8n 工作流程編輯器顯示 Manual Trigger 與 Notion 節點](./images/img-10.webp)
+![n8n 工作流程編輯器顯示 Manual Trigger 與 Notion 節點](./images/n8n-workflow-manual-trigger-notion-node.webp)
 
 ### 4.2 使用 Get a Database 測試
 
 在 Notion 節點中進行以下設定：
 
-![Notion 節點設定 Get Database 操作與選擇 Database](./images/img-11.webp)
+![Notion 節點設定 Get Database 操作與選擇 Database](./images/n8n-notion-get-database-operation.webp)
 
 1.  **Credential**：選擇剛剛建立的 Notion 憑證
 2.  **Resource**：選擇「Database」
@@ -228,7 +228,7 @@ n8n 會要求你為這個憑證命名，建議使用有意義的名稱，例如�
 -   節點執行成功
 -   返回 Database 的資訊（ID、名稱、URL）
 
-![n8n 節點執行成功返回 Database 資訊](./images/img-12.webp)
+![n8n 節點執行成功返回 Database 資訊](./images/n8n-notion-node-execute-success.webp)
 
 **如果出現錯誤，請檢查：**
 
@@ -333,7 +333,7 @@ Notion Database 的每筆記錄都有多個屬性（欄位），常見的屬性�
 **適用情境：**  
 內容創作自動化、部落格管理、團隊內容協作
 
-完整的工作流程設定，請參考 [n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://www.frankchen.tw/n8n-notion-wordpress-publish-automation/)。
+完整的工作流程設定，請參考 [n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)。
 
 ### 案例 2：定期備份 Notion Database 到 Google Sheet
 
@@ -350,6 +350,8 @@ Notion Database 的每筆記錄都有多個屬性（欄位），常見的屬性�
 
 **適用情境：**  
 資料備份、跨平台資料同步、報表生成
+
+如果你的工作流需要進一步自動發布到 WordPress，可以參考 [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)。
 
 ### 其他應用方向
 
@@ -416,8 +418,8 @@ Notion API 目前不支援直接刪除 Page 或 Database 記錄。變通方法�
 
 ### 延伸閱讀
 
--   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://blog.frankchen.tw/n8n-notion-wordpress-publish-automation/)
--   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://www.frankchen.tw/n8n-canva-oauth-setup/)
--   [【2025 最新】n8n 自動化上傳 Instagram 完全指南：從取得 Token 到排程發文](https://www.frankchen.tw/n8n-instagram-access-token/)
+-   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
+-   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
+-   [【2025 最新】n8n 自動化上傳 Instagram 完全指南：從取得 Token 到排程發文](/n8n-instagram-access-token/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

@@ -18,7 +18,7 @@ draft: false
 
 這篇文章會分享我在設計 n8n-skills 時採用的四層式 Pipeline 架構。如果你也在做類似的資料處理專案，或是對軟體架構設計有興趣，這篇應該會對你有幫助。
 
-> 本文是 n8n-skills 技術解密系列的第一篇，主要聚焦在架構設計。如果你還不清楚這個專案在做什麼，建議先看[從 0 到 1 打造 n8n AI 技能包](https://www.frankchen.tw/n8n-skills-claude-ai-skill-pack-tutorial/)。
+> 本文是 n8n-skills 技術解密系列的第一篇，主要聚焦在架構設計。如果你還不清楚這個專案在做什麼，建議先看[從 0 到 1 打造 n8n AI 技能包](/n8n-skills-claude-ai-skill-pack-tutorial/)。
 
 ## 為什麼需要 Pipeline 架構？
 
@@ -37,7 +37,7 @@ n8n 的節點定義是用 TypeScript 類別來描述的，每個節點都有自�
 -   AI 相關的節點（LangChain 系列）又有完全不同的結構，它們的輸入輸出是用 `ai_agent`、`ai_tool` 這種特殊類型
 -   更麻煩的是，同一個節點可能有多個版本（`nodeVersions`），每個版本的 properties 都不一樣
 
-![Google Sheets 與 Slack 節點的 properties 結構對比，展示不同節點的 JSON 格式差異](./images/img-1.webp)
+![Google Sheets 與 Slack 節點的 properties 結構對比，展示不同節點的 JSON 格式差異](./images/node-properties-json-comparison.webp)
 
 如果你把所有邏輯都寫在同一個地方，很快就會遇到這種情況：
 
@@ -79,7 +79,7 @@ if (node.type === 'trigger') {
 
 n8n-skills 採用四層式的 Pipeline 架構，每一層只負責一件事，然後把處理結果往下傳。你可以把它想像成工廠的生產線：原料進來，經過不同工站的加工，最後產出成品。
 
-![n8n-skills 四層式 Pipeline 架構圖，從收集器層到生成器層的資料流程](./images/img-2.webp)
+![n8n-skills 四層式 Pipeline 架構圖，從收集器層到生成器層的資料流程](./images/four-layer-pipeline-architecture-diagram.webp)
 
 用一句話來描述每層的角色：
 
@@ -133,7 +133,7 @@ NpmCollector 負責從 NPM 套件載入 n8n 節點的類別定義。這裡要處
 
 ApiCollector 則是從 n8n.io 的公開 API 抓取工作流程範本和節點使用統計。這些數據會在後面的 PriorityRanker 用到，幫助我們判斷哪些節點比較重要。
 
-![NpmCollector 輸出的節點資料 JSON，包含 nodeType、displayName 等欄位](./images/img-3.webp)
+![NpmCollector 輸出的節點資料 JSON，包含 nodeType、displayName 等欄位](./images/npm-collector-output-json.webp)
 
 這層的設計重點是：不做任何資料轉換，只負責把原始資料原封不動地取回來。這樣做的好處是，如果未來有新的資料來源（比如從資料庫讀取），只要新增一個 Collector 就好，不用改動其他層的程式碼。
 
@@ -158,7 +158,7 @@ PropertyParser 是最複雜的部分，也是我花最多時間的地方。它�
 
 前面提到的「不同節點格式差異大」問題，主要就是在這個 Parser 處理。我大概花了兩三天在研究各種節點的 properties 結構，一個一個節點去看它的 JSON 長什麼樣子，歸納出共通的模式，然後寫出能涵蓋大部分情況的解析邏輯。
 
-![PropertyParser 輸入輸出對照，左側為原始 properties，右側為解析後的結構化資料](./images/img-4.webp)
+![PropertyParser 輸入輸出對照，左側為原始 properties，右側為解析後的結構化資料](./images/property-parser-input-output.webp)
 
 InputOutputParser 負責分析節點的連接類型。n8n 的節點可以有不同類型的輸入輸出：
 
@@ -204,7 +204,7 @@ Specialized
 
 其餘節點
 
-![PriorityRanker 的 calculateScore 函式，展示多維度評分邏輯](./images/img-5.webp)
+![PriorityRanker 的 calculateScore 函式，展示多維度評分邏輯](./images/priority-ranker-calculate-score.webp)
 
 CategoryOrganizer 負責把節點分配到 6 大類別：
 
@@ -229,7 +229,7 @@ TemplateGenerator 生成工作流程範本文件，提供常見場景的實作�
 
 ConnectionRuleGenerator 生成節點相容性矩陣，告訴 AI 哪些節點可以互相連接。
 
-![輸出目錄的檔案樹結構，包含 SKILL.md、resources 等資料夾](./images/img-6.webp)
+![輸出目錄的檔案樹結構，包含 SKILL.md、resources 等資料夾](./images/generator-output-file-tree.webp)
 
 ## 這個設計帶來什麼好處？
 
@@ -308,7 +308,15 @@ test-priority-ranker.ts  # 測試優先級計算
 
 系列文章導航：
 
-1.  [從 0 到 1 打造 n8n AI 技能包](https://www.frankchen.tw/n8n-skills-claude-ai-skill-pack-tutorial/)
+1.  [從 0 到 1 打造 n8n AI 技能包](/n8n-skills-claude-ai-skill-pack-tutorial/)
 2.  **\[目前位置\]** 架構設計篇：四層式 Pipeline
 3.  核心演算法篇：分層合併與索
 4.  工程實戰篇：動態載入與 CI 優化
+
+---
+
+相關閱讀：
+
+- [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
+- [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
+- [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)

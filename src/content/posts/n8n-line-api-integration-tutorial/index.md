@@ -26,15 +26,15 @@ Line 在台灣市場廣大，從個人生活、公司內部溝通到自媒體的
 
 首先進入 [Line Developers](https://developers.line.biz/) 頁面，點擊右上角「Log in to Console」。
 
-![整合 n8n 前需要先申請 Line Bot](./images/img-1.webp)
+![LINE Developers 官方入口網站登入頁面](./images/line-developers-login-page.webp)
 
 可以使用你的 Line 帳號登入，透過掃描 QR Code 根據 Line 指示快速登入。
 
-![Line Bot 設定頁面登入](./images/img-2.webp)
+![使用 LINE 帳號 QR Code 掃描登入 LINE Developers Console](./images/line-developers-qr-login.webp)
 
 登入後就會看到這樣的畫面，如果你沒建立過 Line Bot，那麼你只會看到 Providers 的清單是空白的。
 
-![Line Bot Console 頁面](./images/img-3.webp)
+![LINE Developers Console 登入後的 Providers 清單畫面](./images/line-developers-providers-list.webp)
 
 ### 1.1 建立 Provider：權限管理的第一步
 
@@ -42,7 +42,7 @@ Line 在台灣市場廣大，從個人生活、公司內部溝通到自媒體的
 
 Provider 是什麼？簡單來說，Provider 就像是一個「組織單位」，用來管理和分類你的所有 Line Bot。如果你未來會建立多個 Line Bot（例如：客服機器人、通知系統、行銷機器人），透過 Provider 可以有效地分類管理這些 Bot 的權限和資源。
 
-![建立 Line Bot Provider](./images/img-4.webp)
+![在 LINE Developers Console 建立新 Provider 的表單](./images/line-developers-create-provider.webp)
 
 建立好 Provider 後，你會看到以下畫面，代表建立成功，可以開始建立你的第一個 Line Bot。
 
@@ -50,21 +50,21 @@ Provider 是什麼？簡單來說，Provider 就像是一個「組織單位」�
 
 接著，點擊「Create a Messaging API channel」，這一個就是所謂的 Line Bot。
 
-![建立 Messaging API Channel](./images/img-5.webp)
+![點擊 Create a Messaging API channel 建立 LINE Bot](./images/line-developers-create-messaging-api-channel.webp)
 
 這邊會引導你到另一個網頁先建立 LINE 官方帳號，點擊「Create a LINE Official Account」。
 
-![使用官方帳號建立 Line Bot](./images/img-6.webp)
+![引導前往建立 LINE 官方帳號的提示頁面](./images/line-official-account-creation-prompt.webp)
 
 再來根據 Line 官方指引建立官方帳號，最後可以按「稍後進行認證」，跳過認證帳號程序。
 
-![建立 Line 官方帳號](./images/img-7.webp)
+![填寫 LINE 官方帳號資料並選擇跳過認證的設定表單](./images/line-official-account-setup-form.webp)
 
 同意官方的使用條款後，就會進入到 Line 的官方帳號管理頁面。
 
 這時候你的 Line 應該也會出現你剛剛建立的 Line 官方帳號。
 
-![Line 官方帳號管理頁面](./images/img-8.webp)
+![LINE 官方帳號管理後台儀表板畫面](./images/line-official-account-manager-dashboard.webp)
 
 ### 1.3 啟用 Messaging API：開啟自動化整合的關鍵
 
@@ -74,11 +74,11 @@ Provider 是什麼？簡單來說，Provider 就像是一個「組織單位」�
 
 點擊畫面右上角的「設定」，左邊欄位的「Messaging API」，然後點擊畫面中的「啟用 Messaging API」。
 
-![啟用 Messaging API](./images/img-9.webp)
+![在 LINE 官方帳號設定頁面點擊啟用 Messaging API 按鈕](./images/line-enable-messaging-api.webp)
 
 選擇你剛剛建立的 Provider，選完後就按下同意;隱私權政策及服務條款可以不用填，直接按「確定」。
 
-![設定 Line 官方帳號的 Provider](./images/img-10.webp)
+![啟用 Messaging API 時選擇 Provider 的設定畫面](./images/line-messaging-api-select-provider.webp)
 
 ### 1.4 取得重要憑證資訊
 
@@ -93,7 +93,7 @@ Channel ID 和 Channel Secret 的用途：
 
 Channel secret 可以先存起來，在\[\[#步驟三：n8n Line 憑證設定\]\]會用到。
 
-![Messaging API 啟用後畫面](./images/img-11.webp)
+![Messaging API 啟用後顯示 Channel ID 與 Channel Secret 的頁面](./images/line-messaging-api-channel-credentials.webp)
 
 ### 1.5 關閉自動回應：避免 Webhook 衝突
 
@@ -101,7 +101,7 @@ Channel secret 可以先存起來，在\[\[#步驟三：n8n Line 憑證設定\]\
 
 為什麼必須關閉自動回應？因為當你使用 n8n 透過 Webhook 來處理訊息時，如果同時開啟自動回應，Line 系統會同時發送兩則訊息給使用者：一則是 Line 官方帳號的自動回應，另一則是 n8n 工作流的回應。這不僅會造成使用者困惑，也可能干擾你的自動化邏輯。
 
-![關閉 Line Bot 自動回應](./images/img-12.webp)
+![在 LINE 官方帳號回應設定中關閉自動回應訊息功能](./images/line-official-account-disable-auto-reply.webp)
 
 以上步驟都設定好之後，初步的 Line Bot 建立就算是完成一半了，接下來就是要搭配 n8n 的社群節點 `Line Messaging` 實作。
 
@@ -164,7 +164,7 @@ HTTP Request 節點
 
 如果你只想看怎麼設定 n8n 憑證，那麼可以直接跳到[步驟三：n8n Line 憑證設定](#步驟三：n8n_Line_憑證設定)。
 
-![n8n 安裝 Line Messaging 社群節點](./images/img-13.webp)
+![在 n8n 搜尋並安裝 Line Messaging 社群節點的操作畫面](./images/n8n-install-line-messaging-community-node.webp)
 
 ### 2.3 社群節點功能介紹
 
@@ -189,7 +189,7 @@ Trigger 節點的運作原理：當使用者在 Line 上與你的 Bot 互動時�
 
 Webhook URLs 需要提供給 Line 官方，讓它知道有事件觸發時要傳送到哪個位置，細節設定可以參考\[\[#步驟三：n8n Line 憑證設定\]\]。
 
-![n8n Line Messaging Trigger 節點](./images/img-14.webp)
+![n8n Line Messaging Trigger（On Message）節點的設定面板介面](./images/n8n-line-messaging-trigger-node.webp)
 
 #### 顯示載入中動畫
 
@@ -199,7 +199,7 @@ Webhook URLs 需要提供給 Line 官方，讓它知道有事件觸發時要傳�
 
 UX 最佳適合使用時機：當你的工作流需要呼叫外部 API（如 ChatGPT、資料庫查詢）或處理時間超過 3 秒時，建議加入載入動畫，避免使用者以為 Bot 沒有反應。
 
-![n8n Line Messaging 載入動畫節點](./images/img-15.webp)
+![n8n Line Messaging 顯示載入中動畫節點的設定面板](./images/n8n-line-messaging-loading-animation-node.webp)
 
 #### 回應訊息
 
@@ -216,7 +216,7 @@ Reply Message 的技術限制與優勢：
 
 Quote Token：回覆使用者傳送的訊息（就是我們在聊天時使用的回覆功能，Trigger 節點會提供）
 
-![n8n Line Messaging Reply 節點](./images/img-16.webp)
+![n8n Line Messaging Reply（回應訊息）節點的設定面板，顯示 Reply Token 欄位](./images/n8n-line-messaging-reply-node.webp)
 
 #### 推送訊息
 
@@ -314,7 +314,7 @@ Webhook 生效條件與驗證機制：
 -   URL 格式驗證：URL 必須是 HTTPS 開頭，HTTP 會被 Line 拒絕
 -   連線測試：設定完成後可以點擊「Verify」按鈕測試連線，如果失敗請檢查 n8n 工作流是否正在執行中
 
-![Line Bot 設定 n8n Webhook](./images/img-17.webp)
+![LINE Developers 的 Webhook settings 頁面，填入 n8n Webhook URL 並開啟 Use webhook](./images/line-bot-webhook-settings.webp)
 
 ### 3.2 設定 Line 憑證
 
@@ -326,7 +326,7 @@ Token 安全性注意事項：
 -   如果不小心外流了（例如：上傳到 GitHub、分享給他人），請立即點擊「Reissue」重新產生一組新的 token
 -   重新產生 token 後，舊的 token 會立即失效，需要同步更新 n8n 中的憑證設定
 
-![取得 Line Bot long-live access token](./images/img-18.webp)
+![LINE Developers Messaging API 頁面下方點擊 Issue 產生 long-lived Channel access token](./images/line-bot-channel-access-token.webp)
 
 接著回到 n8n，在 Trigger 節點操作面板中新增 Credential，依序填入：
 
@@ -342,19 +342,19 @@ Token 安全性注意事項：
 -   Line Bot 的 Messaging API 尚未啟用
 -   網路連線問題，n8n 無法連接到 Line API 伺服器
 
-![設定 n8n Line 憑證](./images/img-19.webp)
+![在 n8n 新增 LINE 憑證，填入 Channel Access Token 與 Channel Secret](./images/n8n-line-credential-setup.webp)
 
 ## 步驟四：測試 n8n 與 Line 的互動
 
 使用三個節點簡單測試 n8n 與 Line 之間的互動功能及憑證設定。
 
-![n8n Line 節點測試工作流](./images/img-20.webp)
+![用三個節點（Trigger、Loading Animation、Reply）組成的 n8n LINE 測試工作流](./images/n8n-line-test-workflow.webp)
 
 ### 4.1 Line Messaging Trigger 節點接收訊息
 
 接下來，Trigger 節點的「Credential to connect with」選擇剛剛設定好的憑證，按下「Execute step」，節點會開始等待發送訊息，這時候就到 Line Bot 的聊天視窗，隨意送出一則訊息。
 
-![執行 Line Messaging Trigger 節點](./images/img-21.webp)
+![執行 n8n Line Messaging Trigger 節點並等待 LINE Bot 收到訊息](./images/n8n-line-trigger-execute-step.webp)
 
 如果 Webhook 設定成功，且憑證也設定正確，那麼 Trigger 節點就會收到你剛剛傳送的訊息。
 
@@ -374,7 +374,7 @@ Trigger 節點收到的物件包含哪些資訊？
 
 小技巧：測試過程中，可以在接收到訊息後，按下節點設定畫面右上角的大頭針，把資料先留著，這樣在串後面服務過程中不用一直重新傳送訊息。
 
-![n8n Line Messaging Trigger 節點測試](./images/img-22.webp)
+![n8n Line Messaging Trigger 成功接收訊息，顯示 text、userId、replyToken 等資料](./images/n8n-line-trigger-received-message.webp)
 
 ### 4.2 Loading Animation 節點顯示載入中動畫
 
@@ -382,7 +382,7 @@ Trigger 節點收到的物件包含哪些資訊？
 -   **Chat ID**：使用 Trigger 節點收到訊息中的 `userId`
 -   **Loading Seconds**：動畫持續顯示的時間（5~60 秒）
 
-![n8n Line Messaging 載入動畫節點測試](./images/img-23.webp)
+![測試 n8n Line Messaging 載入動畫節點，設定 Chat ID 與 Loading Seconds](./images/n8n-line-loading-animation-test.webp)
 
 ### 4.3 Reply Message 節點回應訊息
 
@@ -392,7 +392,7 @@ Trigger 節點收到的物件包含哪些資訊？
     -   **Text**：你要回覆的訊息
     -   **Type**：`Text Message （V2）`
 
-![n8n Line Messaging 回應節點測試](./images/img-24.webp)
+![測試 n8n Line Messaging Reply Message 節點，填入 Reply Token 與回覆訊息內容](./images/n8n-line-reply-message-test.webp)
 
 ## 常見問題與錯誤排查
 
@@ -483,7 +483,7 @@ n8n Line 整合適合哪些應用場景？以下是幾個常見的實際應用�
 -   提供多種查詢方式：全部清單、依縣市查詢、依位置查詢
 -   可標記已踩點的店家和刪除不需要的店家
 
-文章連結：[探店心願助手](https://www.frankchen.tw/n8n-template-store-wish-list/)
+文章連結：[探店心願助手](/n8n-template-store-wish-list/)
 
 ### LINE 觸發自動匯出到 WordPress
 
@@ -543,7 +543,7 @@ n8n Line 整合適合哪些應用場景？以下是幾個常見的實際應用�
 
 ### 延伸閱讀
 
--   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](https://www.frankchen.tw/n8n-canva-oauth-setup/)
--   [【2025 最新】n8n 自動化上傳 Instagram 完全指南：從取得 Token 到排程發文](https://www.frankchen.tw/n8n-instagram-access-token/)
--   [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](https://www.frankchen.tw/n8n-integrations-credentials-guide/)
--   [n8n 憑證設定攻略：n8n 憑證設定問題一次解決](https://www.frankchen.tw/n8n-integrations-credentials-guide/)
+-   [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議](/n8n-line-discord-telegram-bot-comparison/)
+-   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
+-   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
+-   [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)

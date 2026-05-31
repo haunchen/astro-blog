@@ -12,9 +12,11 @@ draft: false
 
 這篇教學以最新版本的 Google Cloud 畫面為主，所以照個教學步驟走，一定可以完成連動。
 
+如果你還不熟悉 n8n 憑證設定的整體架構，可以先看看[n8n 憑證設定懶人包：常用服務快速導覽](/n8n-credentials-setup-complete-guide/)，裡面整理了各服務的設定入口。
+
 ## n8n 上有哪些 Google 服務？
 
-![n8n 中 Google 的服務](./images/img-1.webp)
+![n8n 節點列表中可用的 Google 服務，包含 Gmail、Google Sheets、Google Docs、Google Drive、Google Calendar](./images/n8n-google-services-list.webp)
 
 常用的有：
 
@@ -38,9 +40,9 @@ draft: false
 
 -   專案名稱命名一個你好辨識的名稱，此名稱後續**無法修改**。
 
-![Goole Cloud 專案設定](./images/img-2.webp)
+![Google Cloud 控制台頂部的專案選擇下拉選單，顯示「篩選專案」入口](./images/google-cloud-project-selector.webp)
 
-![Goole Cloud 專案設定](./images/img-3.webp)
+![Google Cloud 新增專案表單，填寫專案名稱與組織](./images/google-cloud-new-project-form.webp)
 
 ### 第二步：開啟 Google Cloud 上 API 服務
 
@@ -48,11 +50,11 @@ draft: false
 
 -   建議直接把**所有會用到的 API 服務一次開啟**，省得後面需要再進來設定。
 
-![Google Cloud API 設定](./images/img-4.webp)
+![Google Cloud 搜尋列輸入 Google Docs API 的搜尋結果畫面](./images/google-cloud-search-docs-api.webp)
 
 進入到「Google Docs API」設定頁面後，點擊「啟用」即可。
 
-![開啟 Google Docs API](./images/img-5.webp)
+![Google Docs API 頁面，顯示「啟用」按鈕](./images/google-docs-api-enable.webp)
 
 **其餘的 API 服務 (Google Sheet、Google Drive、Gmail … ) 也是像這樣操作開啟**。
 
@@ -62,7 +64,7 @@ OAuth 畫面是在你使用 Google 帳號登入某個服務時，會出現的一
 
 左手邊的「OAuth 同意畫面」開始設定你的授權畫面。
 
-![](./images/img-6.webp)
+![Google Cloud 左側選單中「OAuth 同意畫面」設定入口](./images/google-cloud-oauth-consent-entry.webp)
 
 如果沒有設定過，畫面中央會出現開始設定的引導頁面，點擊「**開始**」開始設定 OAuth。
 
@@ -72,25 +74,25 @@ OAuth 畫面是在你使用 Google 帳號登入某個服務時，會出現的一
 
 -   **使用者支援電子郵件**：填寫你的 Gmail 即可
 
-![](./images/img-7.webp)
+![OAuth 同意畫面設定表單，填寫應用程式名稱與使用者支援電子郵件](./images/google-cloud-oauth-app-info.webp)
 
 目標對象選擇「**外部**」。
 
-![](./images/img-8.webp)
+![OAuth 同意畫面設定，目標對象選擇「外部」選項](./images/google-cloud-oauth-audience-external.webp)
 
 聯絡資訊填入**你的 Gmail** 即可。
 
-![](./images/img-9.webp)
+![OAuth 同意畫面設定，填寫開發人員聯絡資訊電子郵件](./images/google-cloud-oauth-contact-info.webp)
 
 最後，**勾選同意後即可建立 OAuth**。
 
-![](./images/img-10.webp)
+![OAuth 同意畫面最後確認頁，勾選同意條款並建立](./images/google-cloud-oauth-consent-created.webp)
 
 再來，左側側邊欄選擇「**品牌**」，畫面底下有一個「**授權網域**」，這裡需要輸入**你部署 n8n 的網域**。
 
 -   這裡的網域不支援子網域，所以請輸入「**頂層網域**」，像我的網域就是 `frankchen.tw`。
 
-![](./images/img-11.webp)
+![Google Cloud OAuth 品牌設定頁面，底部「授權網域」欄位填入 n8n 部署網域](./images/google-cloud-oauth-brand-authorized-domain.webp)
 
 ### 第四步：建立 OAuth 2.0 客戶端
 
@@ -98,7 +100,7 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 左側側邊欄「**用戶端**」，點擊上方的「**建立用戶端**」
 
-![](./images/img-12.webp)
+![Google Cloud 用戶端列表頁面，顯示「建立用戶端」按鈕入口](./images/google-cloud-oauth-client-create-entry.webp)
 
 接著，輸入建立「**OAuth 用戶端**」需要的資料
 
@@ -114,9 +116,9 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 -   複製「OAuth Redirect URL」欄位的網址，這個網址就是重新導向 URL
 
-![重新導向 URL 怎麼取得呢？](./images/img-13.webp)
+![n8n Google 憑證設定畫面，顯示 OAuth Redirect URL 欄位供複製](./images/n8n-google-credential-oauth-redirect-url.webp)
 
-![](./images/img-14.webp)
+![Google Cloud OAuth 用戶端設定表單，填入應用程式類型、名稱與重新導向 URL](./images/google-cloud-oauth-client-redirect-url-config.webp)
 
 建立完成後，會跳出以下畫面，並包含以下資訊：
 
@@ -134,7 +136,7 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 **全開或是選擇你要用到的開啟即可，注意這裡如果有很多權限的話需要一頁一頁去勾選。**
 
-![](./images/img-15.webp)
+![Google Cloud OAuth 資料存取範圍設定頁面，勾選所需 API 存取權限](./images/google-cloud-oauth-data-access-scope.webp)
 
 ### 第六步：設定 n8n 的 Google 憑證
 
@@ -142,13 +144,13 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 這裡填入在第四步取得的**用戶端編號 (Client ID) 及用戶端密碼 (Client Secret)** 。
 
-![](./images/img-16.webp)
+![n8n Google 憑證設定畫面，填入 Client ID 與 Client Secret 欄位](./images/n8n-google-credential-client-id-secret-input.webp)
 
 點擊「Sign in with Google」，並選擇你剛剛設定的 Google 帳號，這裡會出現警示畫面，點擊「繼續」完成授權，就完成了 n8n 與 Google 的連動。
 
-![](./images/img-17.webp)
+![Google 帳號選擇畫面，選擇用來授權 n8n 的 Google 帳號](./images/google-account-sign-in-select.webp)
 
-![](./images/img-18.webp)
+![Google 授權警示畫面，提示應用程式未經驗證，點擊「繼續」完成授權](./images/google-auth-warning-continue.webp)
 
 **n8n 中的所有 Google 服務 (Gamil、Google Sheet … ) 的憑證設定方法皆相同。**
 
@@ -158,7 +160,7 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 如果無法選擇，那可以把節點的設定視窗關閉再重開；再不行，那就需要回頭檢查哪個步驟沒有做到。
 
-![](./images/img-19.webp)
+![n8n Google Sheets 節點設定畫面，憑證下拉選單成功顯示已設定的 Google 帳號](./images/n8n-google-node-credential-success.webp)
 
 ### 第八步：發布 Google Cloud 應用程式
 
@@ -168,6 +170,8 @@ OAuth 2.0 是你在按下同意時，背後 Google 執行的授權協議。
 
 左側側邊欄「**目標對象**」—> 「**發布應用程式**」
 
-![](./images/img-20.webp)
+![Google Cloud OAuth 目標對象頁面，點擊「發布應用程式」按鈕將應用程式從測試狀態發布](./images/google-cloud-app-publish.webp)
 
 完成這步驟，前面的測試也順利，那就恭喜你完成 Google 與 n8n 的連動了，可以開始建立屬於你的自動化流程。
+
+設定完 Google 憑證後，可以參考這些教學繼續建立自動化工作流：[n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)、[n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)。

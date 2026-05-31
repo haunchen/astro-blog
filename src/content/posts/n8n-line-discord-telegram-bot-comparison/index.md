@@ -127,9 +127,9 @@ LINE Bot 的設定流程是三個平台中最繁雜的，需要在 LINE Develope
 
 步驟看起來不多，但每一步都有細節要注意。像是啟用 Messaging API 後要記得關閉自動回應，不然會跟 n8n 的回覆打架，使用者會同時收到兩則訊息。
 
-![n8n 整合 LINE Bot 設定流程圖：從建立 Messaging Channel 到觸發訊息接收的 4 步驟與核心應用場景](./images/img-1.webp)
+![n8n 整合 LINE Bot 設定流程圖：建立 Messaging Channel、取得 Token、安裝 n8n 節點、觸發訊息接收四步驟與核心應用場景](./images/line-bot-setup-flow.webp)
 
-詳細步驟請參考：[n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](https://www.frankchen.tw/n8n-line-api-integration-tutorial/)
+詳細步驟請參考：[n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
 
 ### 費用與限制
 
@@ -217,9 +217,9 @@ Discord 是 n8n 官方支援的節點，功能完整且持續維護。不過設�
 
 建議跟著教學一步一步操作，不要跳過任何步驟。設定完成後，記得用 Generated URL 把 Bot 加入伺服器，這步很容易漏掉。
 
-![n8n 整合 Discord Bot 設定流程圖：從建立應用程式到測試發送訊息的 4 步驟與核心應用場景](./images/img-2.webp)
+![n8n 整合 Discord Bot 設定流程圖：建立應用程式、設定 OAuth 權限、n8n 憑證設定、測試發送訊息四步驟與核心應用場景](./images/discord-bot-setup-flow.webp)
 
-詳細步驟請參考：[用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](https://www.frankchen.tw/n8n-discord-bot-setup-tutorial/)
+詳細步驟請參考：[用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](/n8n-discord-bot-setup-tutorial/)
 
 ### 費用與限制
 
@@ -292,9 +292,9 @@ Telegram 是 n8n 官方支援的節點，整合方式是三個平台中最簡單
 
 如果你是第一次嘗試 n8n 自動化通知，強烈建議從 Telegram 開始，先體驗一下「原來這麼簡單」的感覺，之後再根據需求決定要不要換到其他平台。
 
-![n8n 整合 Telegram Bot 設定流程圖：從 BotFather 建立機器人到執行 Send Message 的 4 步驟與核心應用場景](./images/img-3.webp)
+![n8n 整合 Telegram Bot 設定流程圖：BotFather 建立機器人、取得 Chat ID、填入 Access Token、執行 Send Message 四步驟與核心應用場景](./images/telegram-bot-setup-flow.webp)
 
-詳細步驟請參考：[n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](https://www.frankchen.tw/n8n-telegram-bot-notification-tutorial/)
+詳細步驟請參考：[n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
 
 ### 費用與限制
 
@@ -504,7 +504,7 @@ Discord 的 Embed 訊息和 LINE 的 Flex Message 都能呈現專業的卡片式
 
 還是不確定該選哪個？決策核心在於「受眾在哪裡」。台灣一般民眾選 LINE、技術人員選 Telegram、社群團隊選 Discord。選定平台後，再根據訊息量（LINE）、檔案大小（Telegram）、設定熟悉度（Discord）做細部評估。
 
-![n8n 通知機器人平台選擇決策流程圖：依受眾類型選擇 LINE、Telegram 或 Discord](./images/img-4.webp)
+![n8n 通知機器人平台選擇決策樹：依受眾（台灣大眾/技術人員/社群團隊）分流至 LINE Bot、Telegram Bot 或 Discord Bot，並細分訊息量、檔案大小、OAuth 熟悉度等條件](./images/platform-selection-decision-tree.webp)
 
 ## 實戰應用案例
 
@@ -514,7 +514,7 @@ Discord 的 Embed 訊息和 LINE 的 Flex Message 都能呈現專業的卡片式
 
 工作流程設計：
 
-![n8n 工作流程執行通知流程圖：排程觸發後判斷成功或失敗，發送 Telegram 訊息](./images/img-5.webp)
+![n8n 工作流程執行通知流程圖：排程觸發 → 主要工作流程 → IF 判斷結果，成功送 Telegram 打勾訊息，失敗送 Telegram 錯誤訊息](./images/workflow-notification-telegram-flow.webp)
 
 為什麼選 Telegram：設定最快、完全免費、個人使用不需要其他人配合安裝 App。
 
@@ -524,7 +524,7 @@ Discord 的 Embed 訊息和 LINE 的 Flex Message 都能呈現專業的卡片式
 
 工作流程設計：
 
-![n8n LINE 客服自動回覆流程圖：AI 判斷意圖後回覆訂單或退換貨資訊](./images/img-6.webp)
+![n8n LINE 客服自動回覆流程圖：LINE Trigger 接收訊息 → 分析訊息 → AI 判斷意圖，查詢訂單分支回覆訂單狀態，退換貨分支回覆退換流程](./images/line-customer-service-ai-flow.webp)
 
 為什麼選 LINE：台灣客戶幾乎都有 LINE，不需要額外下載 App，觸及率最高。
 
@@ -534,7 +534,7 @@ Discord 的 Embed 訊息和 LINE 的 Flex Message 都能呈現專業的卡片式
 
 工作流程設計：
 
-![n8n Discord 專案進度通知流程圖：每天 9 點讀取 Notion 發送到頻道](./images/img-7.webp)
+![n8n Discord 每日專案進度推播流程圖：每天 9 點排程觸發 → 讀取 Notion → 整理 Embed 格式 → 發送到 Discord #daily-standup 頻道](./images/discord-daily-standup-notion-flow.webp)
 
 為什麼選 Discord：頻道分類清晰、Embed 訊息專業、團隊成員可能已經在用 Discord。
 
@@ -544,7 +544,7 @@ Discord 的 Embed 訊息和 LINE 的 Flex Message 都能呈現專業的卡片式
 
 工作流程設計：
 
-![n8n 多平台同步通知流程圖：同時發送到 Telegram、Discord、LINE](./images/img-8.webp)
+![n8n 多平台同步通知流程圖：工作流程完成後準備訊息，同時發送給 Telegram（自己）、Discord（團隊）、LINE（客戶）三個平台](./images/multi-platform-notification-flow.webp)
 
 n8n 可以輕鬆實現多平台同步通知，讓不同受眾在自己習慣的平台收到訊息。
 
@@ -628,14 +628,14 @@ Telegram
 
 想深入學習各平台的完整設定？這裡是詳細教學：
 
--   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](https://www.frankchen.tw/n8n-telegram-bot-notification-tutorial/)
--   [用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](https://www.frankchen.tw/n8n-discord-bot-setup-tutorial/)
--   [n8n 整合 Line 完整](https://www.frankchen.tw/n8n-line-api-integration-tutorial/)[教學：Line Bot 設定、憑證設定、節點介紹](#)
+-   [n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學](/n8n-telegram-bot-notification-tutorial/)
+-   [用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](/n8n-discord-bot-setup-tutorial/)
+-   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
 
 其他 n8n 憑證設定教學：
 
--   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
--   [n8n x WordPress 整合指南：API 設定、媒](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)[體上傳、自動發文全攻略](#)
+-   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](/n8n-notion-api-integration-tutorial/)
+-   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！
 

@@ -36,7 +36,7 @@ draft: false
 -   這對於一個簡單的短網址服務來說明顯過高
 -   在 Serverless 環境中，這會直接增加營運成本
 
-![優化前的 Zeabur 記憶體監控面板顯示超過 300MB](./images/img-1.webp)
+![Zeabur 記憶體監控面板顯示優化前應用程式佔用超過 300MB](./images/zeabur-memory-dashboard-before-optimization.webp)
 
 ## 記憶體元兇分析：geoip-lite 的 100MB 佔用從何而來？
 
@@ -265,7 +265,7 @@ ENABLE_GEOIP_LOOKUP=false
 
 關閉 `geoip-lite` 後，記憶體使用量從約 300MB 降至約 200MB，減少約 100MB。
 
-![優化後記憶體從 300MB 降至約 200MB](./images/img-2.webp)
+![Zeabur 記憶體監控面板顯示關閉 geoip-lite 後記憶體從 300MB 降至約 200MB](./images/zeabur-memory-dashboard-after-optimization.webp)
 
 ### 為什麼我能提供這個經驗？
 
@@ -344,5 +344,7 @@ ENABLE_GEOIP_LOOKUP=false
 
 ## 延伸閱讀
 
--   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](https://www.frankchen.tw/cloudflare-cache-rules-wordpress/)
--   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](https://www.frankchen.tw/zeabur-nginx-subdomain-to-subdirectory/)
+-   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](/cloudflare-cache-rules-wordpress/)
+-   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/)
+-   [讓你的 Node.js 專案無痛部署！Ubuntu 上手把手教你容器化 Node.js](/nodejs-docker-ubuntu-containerization-tutorial/)
+-   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/)

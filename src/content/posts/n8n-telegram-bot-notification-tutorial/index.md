@@ -101,7 +101,7 @@ Telegram 設定 Bot 比 LINE 來得簡單很多，只需要跟 BotFather 對話�
 3.  網頁會導向到 Telegram 應用程式
 4.  將 BotFather 加入好友
 
-![BotFather 官方頁面顯示 START BOT 按鈕和帳號介紹](./images/img-1.webp)
+![BotFather 官方頁面顯示 START BOT 按鈕和帳號介紹](./images/botfather-official-page-start-bot.webp)
 
 ### 1.2 建立新的 Bot
 
@@ -113,7 +113,7 @@ Telegram 設定 Bot 比 LINE 來得簡單很多，只需要跟 BotFather 對話�
 
 BotFather 會開始引導你建立 Bot，並詢問兩個問題。
 
-![BotFather 對話視窗展示建立新 Bot 的完整流程與 Token 取得](./images/img-2.webp)
+![BotFather 對話視窗展示建立新 Bot 的完整流程與 Token 取得](./images/botfather-create-bot-flow-and-token.webp)
 
 ### 1.3 設定 Bot 的顯示名稱
 
@@ -195,14 +195,14 @@ Telegram 官方提供了一個方便的工具 Bot，可以快速取得你的 Cha
 3.  網頁會導向到 Telegram 應用程式
 4.  將 User Info • Get ID • IDbot 加入好友
 
-![IDbot 官方頁面顯示 START BOT 按鈕和帳號介紹](./images/img-3.webp)
+![IDbot 官方頁面顯示 START BOT 按鈕和帳號介紹](./images/idbot-official-page-start-bot.webp)
 
 ### 2.2 取得個人帳號的 Chat ID
 
 1.  輸入`/start`
 2.  Bot 會回傳相關訊息
 
-![IDbot 回傳用戶的 Chat ID 和基本資訊](./images/img-4.webp)
+![IDbot 回傳用戶的 Chat ID 和基本資訊](./images/idbot-personal-chat-id-response.webp)
 
 **範例回覆訊息：**
 
@@ -236,7 +236,7 @@ Id: -5228947698
 -   群組 ID 是負數（開頭有減號 `-`）
 -   你的 Bot 必須留在群組中才能發送訊息
 
-![IDbot 對話視窗顯示 Group 按鈕與群組 Chat ID 回覆結果](./images/img-5.webp)
+![IDbot 對話視窗顯示 Group 按鈕與群組 Chat ID 回覆結果](./images/idbot-group-chat-id-response.webp)
 
 ## 第三步：在 n8n 設定 Telegram 憑證
 
@@ -248,13 +248,13 @@ Id: -5228947698
 2.  點擊右上角的「Create Credentials」
 3.  在搜尋框中輸入「Telegram」，選擇「Telegram API」
 
-![n8n 新增憑證對話框搜尋並選擇 Telegram API](./images/img-6.webp)
+![n8n 新增憑證對話框搜尋並選擇 Telegram API](./images/n8n-add-credential-search-telegram-api.webp)
 
 ### 3.2 填寫 Telegram 憑證
 
 在憑證設定頁面中，你只需要填入`Access Token`：
 
-![n8n Telegram 憑證設定頁面顯示 Access Token 輸入欄位](./images/img-7.webp)
+![n8n Telegram 憑證設定頁面顯示 Access Token 輸入欄位](./images/n8n-telegram-credential-access-token-field.webp)
 
 **欄位說明：**
 
@@ -279,7 +279,7 @@ Id: -5228947698
 3.  加入一個「Manual Trigger」節點（手動觸發）
 4.  加入一個「Telegram」節點，選擇「Send a text message」
 
-![n8n 工作流程編輯器顯示手動觸發連接 Telegram 發送訊息節點](./images/img-8.webp)
+![n8n 工作流程編輯器顯示手動觸發連接 Telegram 發送訊息節點](./images/n8n-workflow-manual-trigger-telegram-node.webp)
 
 ### 4.2 使用 Send a Message 測試
 
@@ -291,7 +291,7 @@ Id: -5228947698
 
 設定完成後，點擊「Execute step」按鈕。
 
-![Telegram 節點設定面板顯示憑證、Chat ID 和訊息內容欄位](./images/img-9.webp)
+![Telegram 節點設定面板顯示憑證、Chat ID 和訊息內容欄位](./images/n8n-telegram-node-settings-panel.webp)
 
 ### 4.3 驗證結果
 
@@ -301,7 +301,7 @@ Id: -5228947698
 -   n8n 節點顯示執行成功（綠色勾勾）
 -   返回訊息的詳細資訊（message\_id、date、text 等）
 
-![Telegram 節點執行成功顯示 JSON 回傳結果 ok: true](./images/img-10.webp)
+![Telegram 節點執行成功顯示 JSON 回傳結果 ok: true](./images/n8n-telegram-node-execution-success-json.webp)
 
 **如果出現錯誤，請檢查：**
 
@@ -459,8 +459,11 @@ Telegram Bot API 有速率限制：個人對話每秒最多 30 則，群組每�
 
 ### 延伸閱讀
 
--   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](https://www.frankchen.tw/n8n-wordpress-api-integration-guide/)
--   [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
--   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](https://www.frankchen.tw/n8n-template-line-bot-upload-system/)
+-   [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議](/n8n-line-discord-telegram-bot-comparison/)
+-   [用 n8n 打造 Discord Bot：不用寫程式的完整設定教學](/n8n-discord-bot-setup-tutorial/)
+-   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
+-   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
+-   [n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例](/n8n-notion-api-integration-tutorial/)
+-   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

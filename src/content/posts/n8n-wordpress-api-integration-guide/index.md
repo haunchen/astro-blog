@@ -75,7 +75,7 @@ WordPress 比較特別，需要先進到後台申請一組「應用程式密碼�
 
 在設定頁面的最下方，你會看到「應用程式密碼」區塊。
 
-![WordPress 使用者設定頁面中的應用程式密碼區塊](./images/img-1.webp)
+![WordPress 使用者設定頁面底部的應用程式密碼區塊，顯示名稱輸入欄位與新增按鈕](./images/wordpress-application-password-section.webp)
 
 **操作步驟：**
 
@@ -83,7 +83,7 @@ WordPress 比較特別，需要先進到後台申請一組「應用程式密碼�
 2.  點擊「新增應用程式密碼」按鈕
 3.  系統會立即產生一組密碼，如下圖所示
 
-![WordPress 成功產生應用程式密碼的顯示畫面](./images/img-2.webp)
+![WordPress 成功產生應用程式密碼後的彈出視窗，顯示格式為四組字元的一次性密碼](./images/wordpress-application-password-generated.webp)
 
 **重要提醒：**
 
@@ -108,13 +108,13 @@ WordPress 比較特別，需要先進到後台申請一組「應用程式密碼�
 3.  點擊「Add Credential」（新增憑證）
 4.  在搜尋框中輸入「WordPress」，選擇「WordPress」
 
-![n8n 憑證新增頁面搜尋 WordPress 選項](./images/img-3.webp)
+![n8n 新增憑證頁面，搜尋框輸入 WordPress 並顯示可選的 WordPress 憑證類型](./images/n8n-add-credential-search-wordpress.webp)
 
 ### 2.2 填寫憑證資訊
 
 在憑證設定頁面中，你需要填入以下三個欄位：
 
-![n8n WordPress 憑證設定表單填寫欄位](./images/img-4.webp)
+![n8n WordPress 憑證設定表單，顯示 Username、Password、WordPress URL 三個必填欄位](./images/n8n-wordpress-credential-form-fields.webp)
 
 **欄位說明：**
 
@@ -146,13 +146,13 @@ WordPress 比較特別，需要先進到後台申請一組「應用程式密碼�
 3.  加入一個「Trigger Manually」節點
 4.  加入一個「WordPress」節點
 
-![n8n 工作流程編輯器顯示 WordPress 測試節點](./images/img-5.webp)
+![n8n 工作流程編輯器，顯示 Trigger Manually 與 WordPress 節點串接的測試工作流](./images/n8n-workflow-wordpress-test-node.webp)
 
 ### 3.2 使用 Get Many Posts 測試
 
 在 WordPress 節點中進行以下設定：
 
-![n8n WordPress 節點設定 Get Many Posts 操作選項](./images/img-6.webp)
+![n8n WordPress 節點設定畫面，Resource 選 Post、Operation 選 Get Many，用於測試憑證連線](./images/n8n-wordpress-node-get-many-posts.webp)
 
 1.  **Credential**（憑證）：選擇剛剛建立的 WordPress 憑證
 2.  **Resource**（資源）：選擇「Post」
@@ -276,7 +276,7 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
     -   執行節點後，WordPress 會返回圖片的 ID 和 URL
     -   記下這個 ID，可以用來設定為文章的精選圖片
 
-![n8n HTTP Request 節點設定圖片上傳至 WordPress 媒體庫](./images/img-7.webp)
+![n8n HTTP Request 節點設定，使用 POST 方法搭配 WordPress API 憑證將圖片上傳至媒體庫](./images/n8n-http-request-upload-image-wordpress.webp)
 
 ### 從 Notion 自動上傳圖片的案例
 
@@ -327,7 +327,7 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 **適用情境：**  
 內容創作自動化、多平台發布、團隊協作
 
-詳細的工作流程設定，請參考 [Notion 轉 WordPress 自動化](https://www.frankchen.tw/n8n-notion-wordpress-publish-automation/)完整教學文章。
+詳細的工作流程設定，請參考 [Notion 轉 WordPress 自動化](/n8n-notion-wordpress-publish-automation/)完整教學文章。
 
 ## 常見問題 FAQ
 
@@ -383,8 +383,9 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 
 想了解更多 n8n 自動化應用嗎？推薦你閱讀以下文章：
 
--   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://blog.frankchen.tw/n8n-notion-wordpress-publish-automation/)
--   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](https://www.frankchen.tw/n8n-notion-api-integration-tutorial/)
--   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](https://www.frankchen.tw/n8n-template-line-bot-upload-system/)
+-   [不用再當搬運工！n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
+-   [n8n x Notion 完整攻略：從憑證設定到 Database 操作實戰](/n8n-notion-api-integration-tutorial/)
+-   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
+-   [n8n 憑證設定懶人包：常用服務快速導覽](/n8n-credentials-setup-complete-guide/)
 
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！

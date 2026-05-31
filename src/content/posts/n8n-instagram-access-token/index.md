@@ -32,7 +32,7 @@ draft: false
 -   左邊欄位找到「已連結帳號」→ 連結你的 Instagram
 -   連結完成，會看到下圖的畫面
 
-![Instagram 連結 Facebook 粉絲專頁](./images/img-1.webp)
+![Instagram 帳號已成功連結 Facebook 粉絲專頁的確認畫面](./images/instagram-linked-facebook-page.webp)
 
 ## 手把手教學：取得 Instagram Access Token (2025 最新版)
 
@@ -42,47 +42,47 @@ draft: false
 
 -   點擊右上角「建立應用程式」
 
-![Meta App 建立](./images/img-2.webp)
+![Meta for Developers 後台點擊建立應用程式按鈕](./images/meta-app-create-new.webp)
 
 -   輸入應用程式名稱，這裡注意要避開「facebook」、「instagram」等字眼，輸入後點擊「繼續」
 
-![Meta App 建立 - 輸入名稱](./images/img-3.webp)
+![輸入 Meta 應用程式名稱（避開 facebook、instagram 等字眼）](./images/meta-app-enter-name.webp)
 
 -   左側欄位「內容管理」，將`管理 Instagram 的訊息和內容`勾選。 如果之後也有 Threads 內容自動化的話，你也可以一併把「存取 Threads API」打勾
 
-![Meta App 建立 - 選擇使用案例](./images/img-4.webp)
+![選擇「管理 Instagram 的訊息和內容」使用案例](./images/meta-app-select-use-case.webp)
 
 -   選擇`我還不想連結商家資產管理組合`，但如果你要統一管理的話，也可以選擇你常用的商家資產
 
-![Meta App 建立 - 選擇商家](./images/img-5.webp)
+![選擇「不連結商家資產管理組合」或選擇現有商家](./images/meta-app-select-business.webp)
 
 -   如果你只有選擇`管理 Instagram 的訊息和內容`或是`存取 Threads API`，那這邊可以直接點擊「下一步」
 
-![Meta App 建立 - 發布條件](./images/img-6.webp)
+![Meta 應用程式建立發布條件確認頁面](./images/meta-app-publish-conditions.webp)
 
 -   最後，確認「應用程式名稱」及「使用案例」是否正確，沒問題就點擊「前往主控台」。建立過程中系統可能會跟你索取密碼，這裡輸入你當初用來登入 Facebook 的密碼
 
-![Meta App 建立 - 最後確認](./images/img-7.webp)
+![確認應用程式名稱與使用案例後前往主控台](./images/meta-app-final-confirm.webp)
 
 ### 第二步：設定應用程式權限
 
 -   點擊『自訂「管理 Instagram 的訊息和內容」的使用案例』
 
-![自訂使用案例權限](./images/img-8.webp)
+![點擊自訂「管理 Instagram 的訊息和內容」使用案例](./images/meta-app-customize-permissions.webp)
 
 -   確認左側邊欄是「權限和功能」，先新增 `Instagram Public Content Access`，再來這個頁面往下捲，找到有包含 `instagram` 的案例，全部點擊新增，這樣以後就不需再回來這邊開權限。
 
-![自訂使用案例權限 - 開啟與 Instagram 有關的權限](./images/img-9.webp)
+![在「權限和功能」頁面新增所有包含 instagram 的權限](./images/meta-app-enable-instagram-permissions.webp)
 
 ### 第三步：建立 Instagram 測試用戶
 
 -   接著點開左側邊欄，畫面下方找到「應用程式角色」→「角色」，點擊左上角「新增用戶」
 
-![建立測試人員](./images/img-10.webp)
+![在應用程式角色頁面點擊新增用戶按鈕](./images/meta-app-add-test-user.webp)
 
 -   選擇「Instagram 測試人員」，並在下方輸入你的 Instagram 帳號，找到你的帳號後，點擊「新增」。
 
-![建立測試人員 - 選擇 Instagram 帳號](./images/img-11.webp)
+![選擇「Instagram 測試人員」並輸入 Instagram 帳號搜尋新增](./images/meta-app-select-instagram-tester.webp)
 
 ### 第四步：Instagram 帳號端確認：接受測試邀請
 
@@ -92,35 +92,35 @@ draft: false
     -   如果是，那請點擊「測試員邀請」，就會看到接受的按鈕，點擊下去即可完成邀請。
     -   如果不是，請在中間的清單找到「網站權限」→「應用程式和網路」→「測試員邀請」→「接受」。
 
-![到 Instagram 同意 Meta App 測試員邀請](./images/img-12.webp)
+![在 Instagram 應用程式和網路頁面接受 Meta App 測試員邀請](./images/instagram-accept-tester-invitation.webp)
 
 ### 第五步：產生存取權杖 (Access Token)
 
 -   左側欄找到「測試」→「開始圖形 API 測試工具」，點下去會開啟新的視窗
 
-![開啟圖形 API 測試工具](./images/img-13.webp)
+![在 Meta 開發者後台開啟圖形 API 測試工具](./images/meta-open-graph-api-explorer.webp)
 
 -   開啟後，最右邊欄的「用戶或粉絲專頁」選擇「取得權杖」，底下權限把「新增權限」點開，選擇「Other」
 
-![圖形 API 測試工具 - 設定權限](./images/img-14.webp)
+![圖形 API 測試工具選擇「取得權杖」並展開新增權限選單](./images/graph-api-explorer-set-permissions.webp)
 
 -   「Other」底下的有包含 `instagram` 的都勾選，如果都勾選會有 9 個選項
 
-![圖形 API 測試工具 - 開啟與 Instagram 有關的權限](./images/img-15.webp)
+![勾選 Other 分類下所有包含 instagram 的 9 個權限](./images/graph-api-explorer-enable-instagram-permissions.webp)
 
 -   接著，點擊上方的「Generate Access Token」，系統會跳出 Facebook 登入驗證
 
-![圖形 API 測試工具 - 產生權杖](./images/img-16.webp)
+![點擊 Generate Access Token 按鈕觸發 Facebook 登入驗證](./images/graph-api-explorer-generate-token.webp)
 
 -   選擇你第三步新增的 Instagram 測試人員帳號，點擊「繼續」，會看到有哪些帳號操作權限會授權給這個 API，確認沒問題後，按下「儲存」
 
-![圖形 API 測試工具 - 登入 Instagram](./images/img-17.webp)
+![選擇 Instagram 測試人員帳號並點擊繼續以授權 API](./images/graph-api-explorer-login-instagram.webp)
 
-![圖形 API 測試工具 - 確認權限](./images/img-18.webp)
+![確認授權給 API 的帳號操作權限清單後儲存](./images/graph-api-explorer-confirm-permissions.webp)
 
 -   回到原本的頁面，就可以看到「存取權杖」已經產生出來了，點擊右邊按鈕可以複製 Token
 
-![圖形 API 測試工具 - 複製權杖](./images/img-19.webp)
+![圖形 API 測試工具顯示已產生的短期存取權杖並複製](./images/graph-api-explorer-copy-token.webp)
 
 這裡取得的 Token 已經可以使用了，但 … 期限很短，很快就過期了，下一章節，將帶你**延長 Token 的有效期**。
 
@@ -134,19 +134,19 @@ draft: false
 
 -   圖形 API 測試工具畫面最上方的「工具」→「存取權杖偵錯工具」
 
-![開啟存取權杖偵錯工具](./images/img-20.webp)
+![從圖形 API 測試工具上方工具選單開啟存取權杖偵錯工具](./images/meta-open-access-token-debugger.webp)
 
 -   先確認版本為「v23.0」，之後把短期的 Access Token 填入欄位中，按下「偵錯」
 
-![存取權杖偵錯工具 - 貼上權杖](./images/img-21.webp)
+![在存取權杖偵錯工具貼上短期 Access Token 並選擇 v23.0 版本後偵錯](./images/access-token-debugger-paste-token.webp)
 
 -   會出現存取權杖的相關資料，其中，精細範圍裡的數字組就是你的「Instagram ID」，這組 ID 之後上傳貼文時會用到。接著按下最底下的「延伸存取權杖」
 
-![存取權杖偵錯工具 - 取得 Instagram ID](./images/img-22.webp)
+![存取權杖偵錯工具顯示精細範圍中的 Instagram ID 數字組](./images/access-token-debugger-get-instagram-id.webp)
 
 -   按下「延伸存取權杖」後，就會出現效期 60 天的長效權杖了，這組權杖就能拿到自動化流程中使用
 
-![存取權杖偵錯工具 - 取得長效權杖](./images/img-23.webp)
+![點擊「延伸存取權杖」後取得有效期 60 天的長效 Access Token](./images/access-token-debugger-get-long-lived-token.webp)
 
 ## 打造你的自動化引擎：n8n 工作流程建立
 
@@ -171,13 +171,13 @@ draft: false
 
 需要兩個「Facebook Graph API」是因為要先把圖片上傳 (建立容器)，之後再把這個建立好的容器發佈出去 (發佈內容)。
 
-![n8n 工作流程全貌](./images/img-24.webp)
+![n8n Instagram 自動發文工作流程：手動觸發→Edit Fields→Facebook Graph API×2](./images/n8n-workflow-overview.webp)
 
 ### 第三步：設定 Facebook Graph API 憑證
 
 隨機點開其中一個「Facebook Graph API」節點，最上方新增憑證，並把在上一個章節拿到的 Instagram Access Token 貼上「Access Token」欄位，按下「Save」，畫面會出現成功的提示。代表此憑證可以在 n8n 上使用了，如果顯示失敗，請回到上一個章節重新取得 Instagram Access Token。
 
-![Facebook 憑證設定](./images/img-25.webp)
+![n8n 中新增 Facebook Graph API 憑證並貼上 Instagram Access Token](./images/n8n-facebook-credential-setup.webp)
 
 ### 第四步：節點設定
 
@@ -186,9 +186,9 @@ draft: false
     -   **圖片說明 (caption)**：圖片說明就是在 Instagram 上看到的文字內容，中英文皆可，也可以加入 hashtag。例如：`n8n Auto Post Test n8n 排程發文測試 #n8n #autopost`。如果要多行編輯，可以在輸入欄位的右下角找到一個小箭頭，打開編輯視窗，就可以依照你的需求排版。
     -   **Instagram ID (nodeID)**：輸入 `Instagram ID`。
 
-![Instagram 貼文內容編輯](./images/img-26.webp)
+![Edit Fields 節點設定圖片 URL、圖片說明與 Instagram ID](./images/n8n-edit-fields-post-content.webp)
 
-![Set 節點設置](./images/img-27.webp)
+![n8n Set 節點完整欄位設定：imageUrl、caption、nodeID](./images/n8n-set-node-config.webp)
 
 -   第一個「Facebook Graph API」節點要先在 Meta 伺服器上建立一個容器，並把圖片及文字內容一併放在容器中。
     -   **HTTP Request Method**：選擇 `POST`。
@@ -199,7 +199,7 @@ draft: false
         -   **image\_url**：將前一個節點的 `imageUrl` 拖入即可。
         -   **caption**：將前一個節點的 `caption` 拖入即可。
 
-![第一個 Facebook Graph API 節點設定](./images/img-28.webp)
+![第一個 Facebook Graph API 節點設定：POST media 端點建立 Instagram 圖片容器](./images/n8n-graph-api-first-node-config.webp)
 
 按下「Execute step」，如果沒有報錯，代表容器已建立成功，而黃框回傳的就是已經建立好的容器 ID，等一下就是透過這組 ID 將容器發佈出去。
 
@@ -213,7 +213,7 @@ draft: false
     -   「Options」→「Query Parameters」
         -   **creation\_id**：就是容器 ID，將前一個節點的 `id` 拖入即可。
 
-![第二個 Facebook Graph API 節點設定](./images/img-29.webp)
+![第二個 Facebook Graph API 節點設定：POST media_publish 端點將容器發布到 Instagram 動態](./images/n8n-graph-api-second-node-config.webp)
 
 按下「Execute step」，如果沒有報錯，代表已經成功發文了，可以前往你的 Instagram 上看看有沒有出現貼文。而黃框回傳的 ID 就是該貼文的 ID，後續可以使用這組 ID 持續追蹤貼文成效或管理貼文。
 
@@ -265,8 +265,12 @@ Allow: /wp-content/uploads/
 -   [How to Post to Instagram with n8n (Updated 2025)](https://www.youtube.com/watch?v=AGSyWdjN5A4)
 -   [如何取得 Instagram API Token 並自動更新：完整教學指南](https://charlsondou.com/get-instagram-api-token-auto-update/#Token_yan_zhang_yu_zi_dong_shua_xin)
 
-延伸閱讀：[不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](https://www.frankchen.tw/n8n-notion-wordpress-publish-automation/)
+延伸閱讀：[不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
 
-延伸閱讀：[n8n 憑證 設定攻略：n8n 憑證 設定問題一次解決 (持續更新)](https://www.frankchen.tw/n8n-integrations-credentials-guide/)
+延伸閱讀：[n8n 憑證設定懶人包：常用服務快速導覽（持續更新）](/n8n-credentials-setup-complete-guide/)
 
-延伸閱讀：[n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](https://www.frankchen.tw/n8n-google-credentials-setup-guide/)
+延伸閱讀：[n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
+
+延伸閱讀：[n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
+
+延伸閱讀：[【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)

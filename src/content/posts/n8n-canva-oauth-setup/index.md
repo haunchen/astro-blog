@@ -10,12 +10,12 @@ draft: false
 
 本篇教學將帶你一步步完成 n8n Canva 整合的 OAuth 2.0 憑證設定。想要透過 n8n 自動化處理 Canva 設計稿嗎？從開啟 Canva 多重要素驗證 (MFA)、建立 Canva integration、設定 API 權限、到完成憑證測試，只需 20-25 分鐘就能完成 n8n Canva 整合，開始打造你的設計自動化工作流。
 
-> 本文是「n8n x Canva 自動化系列」的基礎設定教學。完成本文設定後，可接續閱讀實際應用教學。
+> 本文是「n8n x Canva 自動化系列」的基礎設定教學。完成本文設定後，可接續閱讀實際應用教學。如果你需要設定其他服務的 n8n 憑證，可以參考 [n8n 憑證設定懶人包](/n8n-credentials-setup-complete-guide/)，或參考 [n8n 串接 Google Cloud 服務的詳細步驟](/n8n-google-credentials-setup-guide/)。
 
 ## 系列文章
 
 -   【你正在閱讀】OAuth 2.0 憑證設定步驟
--   [LINE 觸發自動匯出到 WordPress](https://www.frankchen.tw/n8n-template-line-bot-upload-system/)（手動設計 → LINE 指令 → 自動發布）
+-   [LINE 觸發自動匯出到 WordPress](/n8n-template-line-bot-upload-system/)（手動設計 → LINE 指令 → 自動發布）
 -   【規劃中】定期自動匯出社群媒體貼文
 
 本系列聚焦在一般用戶可使用的 **Export API**，強調「**手動設計 + 自動匯出發布**」的實用模式。
@@ -80,15 +80,15 @@ draft: false
 3.  在左側選單中點擊「登入與安全性」
 4.  找到「多重要素驗證 (MFA)」區塊
 
-![Canva 帳號設定畫面](./images/img-1.webp)
+![Canva 帳號右上角選單，進入「設定」頁面](./images/canva-account-settings-page.webp)
 
-![Canva 設定頁面-登入設定](./images/img-2.webp)
+![Canva 設定左側選單，點選「登入與安全性」](./images/canva-login-security-settings.webp)
 
 #### 2\. 啟用 MFA 多重要素驗證
 
 1.  在多重要素驗證區塊中，點擊「啟用」按鈕
 
-![Canva 開啟 MFA 安全防護](./images/img-3.webp)
+![Canva 多重要素驗證區塊，點擊「啟用」按鈕](./images/canva-enable-mfa-button.webp)
 
 2.  Canva 會顯示一個 QR Code
 3.  開啟手機上的 Google Authenticator App
@@ -100,7 +100,7 @@ draft: false
 9.  在 Canva 網頁的輸入欄位中填入這組 6 位數驗證碼
 10.  點擊「啟用驗證應用程式」按鈕
 
-![使用 Google Authenticator 綁定 Canva MFA](./images/img-4.webp)
+![使用 Google Authenticator 掃描 Canva QR Code 完成 MFA 綁定](./images/canva-mfa-google-authenticator-qr-scan.webp)
 
 #### 3\. 備份救援代碼
 
@@ -113,13 +113,13 @@ draft: false
 -   這組代碼等同於你的驗證碼，請勿外流或分享給他人
 -   建議將救援代碼儲存在密碼管理器中
 
-![Canva 備份代碼記得保存](./images/img-5.webp)
+![Canva MFA 啟用後顯示的一次性救援代碼，務必妥善保存](./images/canva-mfa-recovery-codes-backup.webp)
 
 #### 4\. 確認 MFA 已成功啟用
 
 設定完成後，你會看到多重要素驗證狀態顯示為「已啟用」。
 
-![Canva MFA 開啟成功畫面](./images/img-6.webp)
+![Canva 安全設定頁面顯示多重要素驗證狀態為「已啟用」](./images/canva-mfa-enabled-confirmation.webp)
 
 之後每次登入 Canva 時，除了輸入帳號密碼外，還需要開啟 Google Authenticator 取得當下的 6 位數驗證碼。
 
@@ -141,14 +141,14 @@ draft: false
 2.  登入後，點擊上方導航列的「Your Integrations」選項
 3.  點擊「Create an integration」按鈕開始建立新的整合應用
 
-![建立 Canva integration](./images/img-7.webp)
+![Canva 開發者平台 Your Integrations 頁面，點擊「Create an integration」](./images/canva-developers-create-integration.webp)
 
 4.  在 Integration type 選擇畫面：
     -   一般用戶只能選擇「Public」選項 (企業用戶可選擇 Private 選項)
     -   勾選「I agree」同意服務條款
     -   點擊「Create integration」完成建立
 
-![aCanva 免費版/Pro 只能使用 Public](./images/img-8.webp)
+![Canva integration 類型選擇畫面，免費版與 Pro 方案只能選 Public](./images/canva-integration-type-public-selection.webp)
 
 完成後系統會自動導向到你的 integration 設定頁面，接下來進行詳細設定。
 
@@ -167,7 +167,7 @@ Integration 建立完成後，需要進行三個重要設定：**取得憑證資
 3.  在這個區塊中會顯示「Client ID」，請先記錄下來
 4.  點擊「Generate secret」按鈕產生密鑰，請先記錄下來
 
-![為 Canva integration 命名及取得金鑰](./images/img-9.webp)
+![Canva integration 設定頁面，填入名稱並在 Authentication 區塊取得 Client ID 與 Secret](./images/canva-integration-name-client-id-secret.webp)
 
 重要提醒：
 
@@ -189,7 +189,7 @@ Scope 決定了你的 integration 能夠存取哪些 Canva 資料和功能。
     -   `design:content:read`
     -   `design:meta:read`
 
-![設定 Canva integration 的授權範圍](./images/img-10.webp)
+![Canva integration Scopes 設定，勾選 design:content:read 與 design:meta:read](./images/canva-integration-scope-permissions.webp)
 
 **如何確認需要哪些權限？**
 
@@ -197,7 +197,7 @@ Scope 決定了你的 integration 能夠存取哪些 Canva 資料和功能。
 
 以「List Designs」API 為例：
 
-![Canva List Design API](./images/img-11.webp)
+![Canva 官方 API 文件顯示 List Designs 端點所需的 scope 權限](./images/canva-list-designs-api-scope-reference.webp)
 
 文件會清楚標示該 API 需要的 scope 權限。
 
@@ -212,13 +212,13 @@ Scope 決定了你的 integration 能夠存取哪些 Canva 資料和功能。
     -   如果你的 n8n 網址是 `https://n8n-test.zeabur.app/`
     -   則填入 `https://n8n-test.zeabur.app/rest/oauth2-credential/callback`
 
-![設定 Canva integration 重定向網址](./images/img-12.webp)
+![Canva integration Redirect URIs 欄位，填入 n8n OAuth 回調網址](./images/canva-integration-redirect-uri-setup.webp)
 
 4.  填入重定向網址後，右側會出現「Authorization URL generator」工具
 5.  在下拉選單中選擇你剛剛填入的重定向網址
 6.  複製下方產生的完整 URL
 
-![取得 Canva integration 授權網址](./images/img-13.webp)
+![Canva integration 頁面的 Authorization URL generator 工具，選取重定向網址並複製完整授權 URL](./images/canva-integration-authorization-url.webp)
 
 7.  複製的內容應該類似這樣：
 
@@ -260,7 +260,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 4.  在搜尋框輸入「OAuth2」,找到「OAuth2 API」選項
 5.  點擊「Continue」繼續
 
-![在 n8n 建立 OAuth2 API 憑證](./images/img-14.webp)
+![n8n Credentials 頁面，搜尋並選擇「OAuth2 API」建立新憑證](./images/n8n-create-oauth2-api-credential.webp)
 
 ### 填入憑證資訊
 
@@ -271,7 +271,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 -   **Access Token URL**：`https://api.canva.com/rest/v1/oauth/token`
 -   **Client ID**：`<your-client-id>`
 
-![設定 OAuth2 API 憑證設定-2](./images/img-15.webp)
+![n8n OAuth2 API 憑證設定上半部，填入 Grant Type、Authorization URL、Access Token URL 與 Client ID](./images/n8n-oauth2-credential-settings-part1.webp)
 
 重要提醒：
 
@@ -282,7 +282,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 -   Client Secret：`<your-secret>`
 -   Scope：`<your-scope>`
 
-![設定 OAuth2 API 憑證設定-1](./images/img-16.webp)
+![n8n OAuth2 API 憑證設定下半部，填入 Client Secret 與 Scope](./images/n8n-oauth2-credential-settings-part2.webp)
 
 ### 授權連接
 
@@ -293,7 +293,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
     -   選擇要授權的 Canva 帳號
     -   點擊「允許」(Allow) 按鈕
 
-![Canva 授權畫面](./images/img-17.webp)
+![Canva OAuth 授權彈出視窗，確認權限範圍後點擊「Allow」完成授權](./images/canva-oauth-authorization-window.webp)
 
 4.  授權成功後，視窗會顯示授權成功
 5.  你會看到憑證狀態顯示為「已連接」(Connected)
@@ -332,7 +332,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 
 完整設定畫面：
 
-![n8n 使用 HTTP Request 測試 Canva API](./images/img-18.webp)
+![n8n HTTP Request 節點設定，呼叫 Canva List Designs API 測試 OAuth 憑證](./images/n8n-http-request-canva-api-test.webp)
 
 ### 執行測試
 
@@ -363,7 +363,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 }
 ```
 
-![Canva API 測試成功畫面](./images/img-19.webp)
+![n8n 執行結果顯示 Canva API 回傳設計稿清單，整合測試成功](./images/canva-api-test-success-response.webp)
 
 如果看到設計稿清單代表整合成功！
 
@@ -492,7 +492,7 @@ Scope 應該根據你的實際需求選擇：
 -   🔜 LINE 指令匯出到 WordPress
 -   🔜 定期社群貼文自動化
 
-完成憑證設定後，你就可以開始打造各種自動化工作流了！
+完成憑證設定後，你就可以開始打造各種自動化工作流了！如果你也需要串接 WordPress，可以參考 [n8n x WordPress 整合指南](/n8n-wordpress-api-integration-guide/)，從 API 設定到自動發文都有詳細說明。
 
 ### 重要提醒：Canva API 功能範圍
 

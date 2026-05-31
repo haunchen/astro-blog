@@ -29,13 +29,13 @@ draft: false
 
 之前在 Zeabur 上採用的是**分散式子網域架構**，每個專案獨立使用一個子網域（如 `blog.frankchen.tw`、`personal.frankchen.tw`），雖然部署很直覺，但就是上面說的，SEO 權重分散、管理麻煩！
 
-![網站舊的架構圖](./images/img-1.webp)
+![舊架構：各服務獨立使用子網域（blog.frankchen.tw、personal.frankchen.tw），SEO 權重分散](./images/old-subdomain-architecture-diagram.webp)
 
 ### 新架構：Nginx 反向代理 + 子目錄整合
 
 現在所有流量都先進到一個 **Nginx 反向代理服務**，再由它根據 URL 路徑（如 `/blog`、`/personal`）透過子目錄路由機制轉發到後端對應的服務，實現子目錄架構。
 
-![網站搬到 Zeabur 後新的架構圖](./images/img-2.webp)
+![新架構：所有流量先進入 Nginx 反向代理，再依 URL 路徑分流到後端服務](./images/nginx-reverse-proxy-subdirectory-architecture-diagram.webp)
 
 ### 架構對比一覽表
 
@@ -92,11 +92,11 @@ DNS 設定
 
 在 **Zeabur 專案架構**中，每個服務都會自動分配一組 **Internal URL（內部連結）**，讓同專案內的服務可以透過這個內部連結互相溝通，而不需要經過公有網路。
 
-![Zeabur 專案中的內部網址](./images/img-3.webp)
+![Zeabur 專案內每個服務自動分配的 Internal URL，供同專案服務互相溝通](./images/zeabur-service-internal-url.webp)
 
 如果要從外面使用服務的話，就必須設定一組 **External URL (外部連結)**，也就是公有網路。讓公有網路映射到你指定的服務。
 
-![Zeabur 專案中的外部網址，可自訂也可使用內建](./images/img-4.webp)
+![Zeabur 專案的 External URL 設定頁面，可綁定自訂網域或使用內建免費網域](./images/zeabur-service-external-url.webp)
 
 Zeabur 有提供內建的免費網域 (`xxxxx.zeabur.app`)，你也可以綁定自訂網域，只要設定好 DNS 記錄，就能將你的網域映射到 Zeabur 服務上。
 
@@ -106,22 +106,22 @@ Zeabur 有提供內建的免費網域 (`xxxxx.zeabur.app`)，你也可以綁定�
 
 在控制台中，點擊右上角「建立專案」。
 
-![建立 Zeabur 新專案](./images/img-5.webp)
+![在 Zeabur 控制台右上角點擊「建立專案」新增專案](./images/zeabur-create-new-project.webp)
 
 ### 步驟二：在專案中部署 Nginx 反向代理服務
 
 接著，在新增服務中搜尋「`nginx`」，然後從模板市集找到 Nginx，點擊「Deploy」。
 
-![搜尋 Nginx 模板](./images/img-6.webp)
+![在 Zeabur 新增服務中搜尋「nginx」並從模板市集選擇 Nginx 部署](./images/zeabur-search-nginx-template.webp)
 
 會需要你先輸入 Domain，設定完後，後續就是從這組設定好的網址進入。  
 如果你是有自己的 Domian，放心，之後可以再進行設定。
 
-![設定 Nginx 服務的 Domain](./images/img-7.webp)
+![部署 Nginx 時輸入初始 Domain 設定，後續可在「網路」標籤更換自訂網域](./images/zeabur-nginx-domain-setup.webp)
 
 輸入好網址後，就按「Deploy」，就會看到 Nginx 服務已經啟動。
 
-![Nginx 服務部署成功畫面](./images/img-8.webp)
+![Nginx 服務部署成功，訪問設定的網址會顯示「Hello from Nginx deployed on Zeabur!」](./images/zeabur-nginx-deploy-success.webp)
 
 訪問你設定的網址，會看到一串文字：`Hello from Nginx deployed on Zeabur!`，那就代表 Nginx 部署成功了！
 
@@ -133,13 +133,13 @@ Zeabur 有提供內建的免費網域 (`xxxxx.zeabur.app`)，你也可以綁定�
 
 全部服務部署完後，去每個服務的「網路」分頁，就可以看到內網存取的內容，那組網址就是下一步會使用到的，以及後面的連接埠也需要記錄下來，不同的服務會用到的連接埠會不相同。
 
-![以 WordPress 為例，它的內部網址為 wordpress.zeabur.internal](./images/img-9.webp)
+![WordPress 服務的「網路」分頁，顯示內部網址 wordpress.zeabur.internal 與連接埠 80](./images/zeabur-wordpress-internal-url.webp)
 
 以 WordPress 為例，內部網址是 `wordpress.zeabur.internal`，連接埠是 `80`。
 
 > ⚠️ **重要提醒**：這裡取得的內部網址只適用於同一個專案內互相使用，無法跨專案調用內部網址。
 
-如果你的 WordPress 需要搬家到 Zeabur 上，可以參考[這篇文章](https://www.frankchen.tw/wordpress-migrate-to-zeabur/)。
+如果你的 WordPress 需要搬家到 Zeabur 上，可以參考[這篇文章](/wordpress-migrate-to-zeabur/)。
 
 ### 步驟四：設定 nginx.conf 反向代理規則
 
@@ -149,7 +149,7 @@ Nginx 及其他服務部署好之後，最重要的就是告訴它流量要怎�
 
 選擇 Nginx 服務，點擊「設定」標籤，底下會有「Open Config Editor」，點擊下去，就可以看到 `nginx.conf`的檔案內容。
 
-![開啟 Nginx 設定檔](./images/img-10.webp)
+![在 Zeabur Nginx 服務的「設定」標籤中點擊「Open Config Editor」開啟 nginx.conf 編輯器](./images/zeabur-nginx-open-config-editor.webp)
 
 這是我設定的核心程式碼，我把它簡化了一下：
 
@@ -201,7 +201,7 @@ server {
 
 設定好後，記得回到「服務狀態」標籤，重啟 Nginx 服務，讓 Nginx 重新載入剛剛寫好的設定檔。
 
-![重啟 Nginx 服務](./images/img-11.webp)
+![在 Zeabur「服務狀態」標籤中重啟 Nginx，讓修改後的 nginx.conf 設定生效](./images/zeabur-nginx-service-restart.webp)
 
 ### 步驟五：設定自訂網域與 SEO 301 轉址
 
@@ -244,8 +244,8 @@ location /personal/ {
 
 反向代理會增加一層轉發，理論上會有些微延遲（通常 < 10ms），但對於一般個人網站來說影響不大。如果你的網站流量很大，可以考慮：
 
--   啟用 Nginx 快取機制
--   使用 CDN 服務
+-   啟用 [Nginx 快取機制](/nginx-cache-wordpress/)
+-   搭配 [Cloudflare Cache Rules](/cloudflare-cache-rules-wordpress/) 做多層快取
 -   監控 Nginx 的資源使用狀況
 
 ### 4\. SSL/HTTPS 設定
@@ -350,4 +350,4 @@ Zeabur 會自動處理 SSL 憑證，但要確保：
 
 ### 延伸閱讀
 
--   [網站搬家超簡單：WordPress 無痛 轉移 Zeabur 完整教學](https://www.frankchen.tw/wordpress-migrate-to-zeabur/) - 手把手教你如何將現有的 WordPress 網站搬到 Zeabur 平台
+-   [網站搬家超簡單：WordPress 無痛 轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 手把手教你如何將現有的 WordPress 網站搬到 Zeabur 平台
