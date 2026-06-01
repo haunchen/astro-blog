@@ -1,8 +1,8 @@
 ---
 domain: content-migration
-status: draft
+status: active
 created: 2026-05-31
-last_modified: 2026-05-31
+last_modified: 2026-06-01
 ---
 
 # Content Migration
@@ -145,7 +145,3 @@ last_modified: 2026-05-31
 - **Decision**: Phase 1 內文圖一律以 `img-N` 流水號暫名（捨棄 WP 中文檔名），Phase 2 才改語意英文
 - **Rationale**: WP 原檔名為中文+時間戳（如「截圖-2025-05-28-11.08.22.png」），有 import/路徑風險；流水號穩定且與 Phase 2 語意命名解耦
 - **Date**: 2026-05-31
-
-## Pending Changes
-
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
