@@ -61,7 +61,7 @@ for (const post of posts) {
     continue;
   }
   const outDir = path.resolve(POSTS_DIR, slug);
-  if (outDir !== postsRoot && !outDir.startsWith(postsRoot + path.sep)) {
+  if (outDir === postsRoot || !outDir.startsWith(postsRoot + path.sep)) {
     console.error(`[SKIP] 偵測到不安全的 slug（路徑穿越）: ${slug}`);
     continue;
   }
