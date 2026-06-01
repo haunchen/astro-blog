@@ -45,7 +45,7 @@ export function planImageNames(coverUrl, contentUrls) {
  */
 export async function downloadAndConvert(url, destPath, fetchImpl = fetch) {
   try {
-    const res = await fetchImpl(url);
+    const res = await fetchImpl(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const buf = Buffer.from(await res.arrayBuffer());
     await mkdir(path.dirname(destPath), { recursive: true });

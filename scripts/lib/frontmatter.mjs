@@ -7,6 +7,10 @@ export function mapCategory(nicename) {
 
 export function toIsoDate(pubDate) {
   const d = new Date(pubDate);
+  if (isNaN(d.getTime())) {
+    console.warn(`⚠️ 無效的日期格式: "${pubDate}"，改用當前日期`);
+    return new Date().toISOString().slice(0, 10);
+  }
   return d.toISOString().slice(0, 10);
 }
 
