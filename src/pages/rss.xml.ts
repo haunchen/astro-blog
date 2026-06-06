@@ -1,31 +1,32 @@
 import type { APIContext } from 'astro';
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
-import MarkdownIt from 'markdown-it';
+import { getCollection, render } from 'astro:content';
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { loadRenderers } from 'astro:container';
 import sanitizeHtml from 'sanitize-html';
 import { SITE } from '../utils/site-meta';
-
-const md = new MarkdownIt({ html: true, linkify: true });
 
 export async function GET(context: APIContext) {
   const posts = (await getCollection('posts', ({ data }) => !data.draft))
     .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
     .slice(0, 20);
 
-  return rss({
-    title: SITE.name,
-    description: SITE.tagline,
-    site: context.site ?? SITE.url,
-    customData: '<language>zh-TW</language>',
-    items: posts.map((p) => {
-      let html = md.render(p.body ?? '');
-      // 相對路徑改絕對
-      html = html.replace(/(src|href)="(?!https?:|\/\/|mailto:|#)([^"]+)"/g, (_m, attr, p2) => {
-        const abs = p2.startsWith('/') ? `${SITE.url}${p2}` : `${SITE.url}/${p.id}/${p2}`;
-        return `${attr}="${abs}"`;
-      });
+  // 純 markdown 內容不需 framework renderer
+  const renderers = await loadRenderers([]);
+  const container = await AstroContainer.create({ renderers });
+
+  const items = await Promise.all(
+    posts.map(async (p) => {
+      // 渲染真正的 Content，內文圖循 image pipeline 解析為 /_astro/<hash>.webp
+      const { Content } = await render(p);
+      let html = await container.renderToString(Content);
+      // Content render 後 img src 與內連 href 皆 root-relative（/_astro/...、/<slug>/），改寫為絕對 URL
+      html = html.replace(
+        /(src|href)="(\/[^"]*)"/g,
+        (_m, attr, path) => `${attr}="${SITE.url}${path}"`,
+      );
       const safe = sanitizeHtml(html, {
-        allowedTags: ['img','a','h2','h3','h4','h5','p','ul','ol','li','code','pre','blockquote','strong','em','br','hr','table','thead','tbody','tr','th','td'],
+        allowedTags: ['img', 'a', 'h2', 'h3', 'h4', 'h5', 'p', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote', 'strong', 'em', 'br', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td'],
         allowedAttributes: {
           a: ['href', 'title'],
           img: ['src', 'alt', 'title'],
@@ -42,5 +43,13 @@ export async function GET(context: APIContext) {
         content: safe,
       };
     }),
+  );
+
+  return rss({
+    title: SITE.name,
+    description: SITE.tagline,
+    site: context.site ?? SITE.url,
+    customData: '<language>zh-TW</language>',
+    items,
   });
 }
