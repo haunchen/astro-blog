@@ -1,4 +1,5 @@
 import TurndownService from 'turndown';
+import { tables } from 'turndown-plugin-gfm';
 
 function htmlDecode(s) {
   return s
@@ -71,6 +72,9 @@ function makeTurndown() {
     emDelimiter: '*',
   });
 
+  // GFM 表格支援（turndown 內建不處理 <table>，會把儲存格打平成逐行段落）
+  td.use(tables);
+
   // figure > img (+figcaption) → ![caption](src)
   td.addRule('wpImage', {
     filter: (node) =>
@@ -102,10 +106,26 @@ function stripWpComments(html) {
   return html.replace(/<!--\s*\/?wp:[\s\S]*?-->/g, '');
 }
 
+// turndown-plugin-gfm 只轉「有表頭列」的表格（首列全為 <th>），否則保留原始 HTML。
+// 無 <th> 的表格將首列 <td> 升為 <th>，讓它一致轉成 GFM pipe table。
+function promoteHeaderlessTables(html) {
+  return html.replace(/<table[\s\S]*?<\/table>/gi, (table) => {
+    if (/<th[\s>]/i.test(table)) return table; // 已有表頭，不動
+    let promoted = false;
+    return table.replace(/<tr[\s\S]*?<\/tr>/i, (firstRow) => {
+      if (promoted) return firstRow;
+      promoted = true;
+      return firstRow
+        .replace(/<td(\s[^>]*)?>/gi, '<th>')
+        .replace(/<\/td>/gi, '</th>');
+    });
+  });
+}
+
 export function htmlToMarkdown(html) {
   const { replaced: replacedPro, blocks: blocksPro } = extractCodeBlocksPro(html || '');
   const { replaced: replacedWp, blocks: blocksWp } = extractWpCodeBlocks(replacedPro);
-  const cleaned = stripWpComments(replacedWp);
+  const cleaned = promoteHeaderlessTables(stripWpComments(replacedWp));
   const td = makeTurndown();
   let md = td.turndown(cleaned).replace(/\n{3,}/g, '\n\n').trim();
   blocksPro.forEach((b, i) => {

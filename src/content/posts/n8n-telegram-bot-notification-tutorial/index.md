@@ -48,45 +48,12 @@ Telegram Bot 是 Telegram 提供的自動化帳號，可以接收訊息、發送
 
 ### Telegram Bot vs LINE Bot vs Discord Bot
 
-特性
-
-Telegram Bot
-
-LINE Bot
-
-Discord Bot
-
-設定難度
-
-⭐（超簡單）
-
-⭐⭐⭐（需要 LINE Developer 帳號）
-
-⭐⭐⭐⭐（需要 OAuth 設定）
-
-費用
-
-完全免費
-
-免費方案有限制
-
-完全免費
-
-訊息限制
-
-無限制
-
-有推播數量限制
-
-無限制
-
-適合場景
-
-個人通知、小團隊
-
-台灣用戶多的商業應用
-
-社群管理、遊戲伺服器
+| 特性 | Telegram Bot | LINE Bot | Discord Bot |
+| --- | --- | --- | --- |
+| 設定難度 | ⭐（超簡單） | ⭐⭐⭐（需要 LINE Developer 帳號） | ⭐⭐⭐⭐（需要 OAuth 設定） |
+| 費用 | 完全免費 | 免費方案有限制 | 完全免費 |
+| 訊息限制 | 無限制 | 有推播數量限制 | 無限制 |
+| 適合場景 | 個人通知、小團隊 | 台灣用戶多的商業應用 | 社群管理、遊戲伺服器 |
 
 對於 n8n 自動化通知來說，Telegram Bot 是最推薦的選擇！
 

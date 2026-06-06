@@ -74,71 +74,18 @@ draft: false
 
 ## 比較表格
 
-**特性**
-
-MaterialApp
-
-CupertinoApp
-
-**風格**
-
-Material Design 風格
-
-iOS Human Interface Guidelines 風格
-
-**設計哲學**
-
-Google Material Design (物理隱喻、大膽、現在、跨平台)
-
-**Apple iOS Human Interface Guidelines** (簡潔、流暢、半透明、原生 iOS)
-
-**平台傾向**
-
-Android (但通常用於跨平台)
-
-iOS
-
-**外觀風格**
-
-預設像 **Android App**，高度可客製化
-
-預設像 **原生 iOS App**，較少客製化選項
-
-**主要 UI 元件**
-
-`Scaffold`, `AppBar`, `ElevatedButton`, `Card`, `SnackBar`, `TextField` 等
-
-`CupertinoNavigationBar`, `CupertinoButton`, `CupertinoSlider`, `CupertinoAlertDialog` 等
-
-**頁面過渡**
-
-標準的 Material 過渡（例如從底部滑入，或淡入淡出）
-
-**iOS 風格**的過渡（例如從右側滑入，支援邊緣滑動返回）
-
-**主題系統**
-
-`ThemeData` (全面且靈活)
-
-`CupertinoThemeData` (較為簡潔)
-
-**適用場景**
-
-創建**跨平台**且具**統一 Material 設計**的應用程式
-
-創建**專為 iOS** 設計，追求**原生 iOS 外觀和體驗**的應用程式
-
-**偵錯橫幅**
-
-有 (`debugShowCheckedModeBanner`)
-
-有 (`debugShowCheckedModeBanner`)
-
-**國際化支援**
-
-有 (`localizationsDelegates`, `supportedLocales`)
-
-有 (`localizationsDelegates`, `supportedLocales`)
+| **特性** | MaterialApp | CupertinoApp |
+| --- | --- | --- |
+| **風格** | Material Design 風格 | iOS Human Interface Guidelines 風格 |
+| **設計哲學** | Google Material Design (物理隱喻、大膽、現在、跨平台) | **Apple iOS Human Interface Guidelines** (簡潔、流暢、半透明、原生 iOS) |
+| **平台傾向** | Android (但通常用於跨平台) | iOS |
+| **外觀風格** | 預設像 **Android App**，高度可客製化 | 預設像 **原生 iOS App**，較少客製化選項 |
+| **主要 UI 元件** | `Scaffold`, `AppBar`, `ElevatedButton`, `Card`, `SnackBar`, `TextField` 等 | `CupertinoNavigationBar`, `CupertinoButton`, `CupertinoSlider`, `CupertinoAlertDialog` 等 |
+| **頁面過渡** | 標準的 Material 過渡（例如從底部滑入，或淡入淡出） | **iOS 風格**的過渡（例如從右側滑入，支援邊緣滑動返回） |
+| **主題系統** | `ThemeData` (全面且靈活) | `CupertinoThemeData` (較為簡潔) |
+| **適用場景** | 創建**跨平台**且具**統一 Material 設計**的應用程式 | 創建**專為 iOS** 設計，追求**原生 iOS 外觀和體驗**的應用程式 |
+| **偵錯橫幅** | 有 (`debugShowCheckedModeBanner`) | 有 (`debugShowCheckedModeBanner`) |
+| **國際化支援** | 有 (`localizationsDelegates`, `supportedLocales`) | 有 (`localizationsDelegates`, `supportedLocales`) |
 
 ## 小結
 

@@ -88,37 +88,15 @@ http {
 
 ### 參數說明
 
-參數
-
-說明
-
-`proxy_cache_path`
-
-快取儲存的實體路徑
-
-`levels=1:2`
-
-目錄層級結構，避免單一目錄檔案過多
-
-`keys_zone=my_cache:10m`
-
-共享記憶體區域名稱和大小（10MB 約可存 8 萬個快取 key）
-
-`max_size=1g`
-
-快取最大總容量
-
-`inactive=60m`
-
-60 分鐘內未被存取的快取會被刪除
-
-`proxy_cache_valid`
-
-針對不同 HTTP 狀態碼設定快取時間
-
-`proxy_cache_use_stale`
-
-後端故障時，繼續使用過期的快取
+| 參數 | 說明 |
+| --- | --- |
+| `proxy_cache_path` | 快取儲存的實體路徑 |
+| `levels=1:2` | 目錄層級結構，避免單一目錄檔案過多 |
+| `keys_zone=my_cache:10m` | 共享記憶體區域名稱和大小（10MB 約可存 8 萬個快取 key） |
+| `max_size=1g` | 快取最大總容量 |
+| `inactive=60m` | 60 分鐘內未被存取的快取會被刪除 |
+| `proxy_cache_valid` | 針對不同 HTTP 狀態碼設定快取時間 |
+| `proxy_cache_use_stale` | 後端故障時，繼續使用過期的快取 |
 
 ### 方式二：FastCGI Cache（直接快取 PHP）
 
@@ -261,33 +239,14 @@ curl -I https://your-site.com/
 
 在回應標頭中找到 `X-Cache-Status`，可能的值有：
 
-狀態
-
-說明
-
-`HIT`
-
-快取命中，從 Nginx 快取回傳
-
-`MISS`
-
-快取未命中，從後端取得後已快取
-
-`BYPASS`
-
-被規則跳過，沒有快取
-
-`EXPIRED`
-
-快取已過期
-
-`STALE`
-
-使用過期快取（後端故障時）
-
-`UPDATING`
-
-背景正在更新快取
+| 狀態 | 說明 |
+| --- | --- |
+| `HIT` | 快取命中，從 Nginx 快取回傳 |
+| `MISS` | 快取未命中，從後端取得後已快取 |
+| `BYPASS` | 被規則跳過，沒有快取 |
+| `EXPIRED` | 快取已過期 |
+| `STALE` | 使用過期快取（後端故障時） |
+| `UPDATING` | 背景正在更新快取 |
 
 ### 驗證雙層快取
 

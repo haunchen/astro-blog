@@ -52,29 +52,11 @@ draft: false
 
 經過調查，我發現許多 CDN 和雲端平台會在 HTTP headers 中提供訪客的地理位置資訊（CDN geolocation headers）：
 
-平台
-
-Header 名稱
-
-提供資訊
-
-Zeabur
-
-`x-zeabur-ip-country`
-
-國家代碼
-
-Cloudflare
-
-`CF-IPCountry`
-
-國家代碼
-
-Vercel
-
-`x-vercel-ip-country`
-
-國家代碼
+| 平台 | Header 名稱 | 提供資訊 |
+| --- | --- | --- |
+| Zeabur | `x-zeabur-ip-country` | 國家代碼 |
+| Cloudflare | `CF-IPCountry` | 國家代碼 |
+| Vercel | `x-vercel-ip-country` | 國家代碼 |
 
 這些 header 是由 CDN 在邊緣節點解析的，不需要消耗應用程式的記憶體。
 
@@ -82,45 +64,11 @@ Vercel
 
 除了 CDN headers 之外，社群也開發了針對 serverless 環境優化的 GeoIP 套件：
 
-套件
-
-記憶體佔用
-
-啟動時間
-
-查詢時間
-
-適用場景
-
-[geoip-lite](https://github.com/geoip-lite/node-geoip)
-
-~100MB
-
-~200ms
-
-~0.02ms
-
-高頻查詢的傳統伺服器
-
-[fast-geo](https://github.com/onramper/fast-geoip)[ip](https://github.com/onramper/fast-geoip)
-
-<1MB
-
-極低
-
-0.7-9ms
-
-Lambda、Serverless 環境
-
-[geoip-country](https://github.com/sapics/geoip-country)
-
-~20MB
-
-較快
-
-快速
-
-只需國家資訊的場景
+| 套件 | 記憶體佔用 | 啟動時間 | 查詢時間 | 適用場景 |
+| --- | --- | --- | --- | --- |
+| [geoip-lite](https://github.com/geoip-lite/node-geoip) | ~100MB | ~200ms | ~0.02ms | 高頻查詢的傳統伺服器 |
+| [fast-geo](https://github.com/onramper/fast-geoip)[ip](https://github.com/onramper/fast-geoip) | <1MB | 極低 | 0.7-9ms | Lambda、Serverless 環境 |
+| [geoip-country](https://github.com/sapics/geoip-country) | ~20MB | 較快 | 快速 | 只需國家資訊的場景 |
 
 `fast-geoip` 採用預建索引樹結構，直接在檔案上執行 O(log n) 查詢，不需將整個資料庫載入記憶體。這個套件最初就是為了解決 AWS Lambda 的 126MB 記憶體限制而開發的。
 
@@ -273,29 +221,11 @@ ENABLE_GEOIP_LOOKUP=false
 
 ### 功能影響評估
 
-功能
-
-啟用 geoip-lite
-
-關閉 geoip-lite（Zeabur）
-
-國家資訊
-
-✅ 可取得
-
-✅ 可取得（透過 CDN header）
-
-城市資訊
-
-✅ 可取得
-
-❌ 無法取得
-
-記憶體佔用
-
-高（+100MB）
-
-低
+| 功能 | 啟用 geoip-lite | 關閉 geoip-lite（Zeabur） |
+| --- | --- | --- |
+| 國家資訊 | ✅ 可取得 | ✅ 可取得（透過 CDN header） |
+| 城市資訊 | ✅ 可取得 | ❌ 無法取得 |
+| 記憶體佔用 | 高（+100MB） | 低 |
 
 對於大多數短網址追蹤的場景，國家層級的資訊已經足夠，城市資訊的實用性有限。
 

@@ -74,47 +74,14 @@ draft: false
 
 模板需要以下 6 個欄位，請依序建立：
 
-Name
-
-Type
-
-說明
-
-none
-
-boolean
-
-初始狀態（模板會自動管理）
-
-check\_page
-
-boolean
-
-確認階段（模板會自動管理）
-
-upload\_wp
-
-boolean
-
-上傳階段（模板會自動管理）
-
-design\_id
-
-string
-
-儲存 Canva 設計 ID（模板會自動填入）
-
-design\_title
-
-string
-
-儲存 Canva 設計標題（模板會自動填入）
-
-image\_drive\_id
-
-string
-
-儲存 Google Drive 檔案 ID（模板會自動填入）
+| Name | Type | 說明 |
+| --- | --- | --- |
+| none | boolean | 初始狀態（模板會自動管理） |
+| check\_page | boolean | 確認階段（模板會自動管理） |
+| upload\_wp | boolean | 上傳階段（模板會自動管理） |
+| design\_id | string | 儲存 Canva 設計 ID（模板會自動填入） |
+| design\_title | string | 儲存 Canva 設計標題（模板會自動填入） |
+| image\_drive\_id | string | 儲存 Google Drive 檔案 ID（模板會自動填入） |
 
 你只需要照著上表建立這些欄位即可，每個欄位的用途和數值都由模板自動處理。
 

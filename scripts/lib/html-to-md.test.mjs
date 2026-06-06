@@ -67,3 +67,21 @@ test('code-block-pro 轉乾淨 fenced block（entity 解碼、無孤立語言標
   const echoCount = (md.match(/echo a/g) || []).length;
   assert.equal(echoCount, 1);
 });
+
+test('table 轉 GFM pipe table（含 inline code、不被打平成逐行）', () => {
+  const html = `<figure class="wp-block-table"><table class="has-fixed-layout"><thead><tr><th>特性</th><th>StatefulWidget</th></tr></thead><tbody><tr><td>重建</td><td>透過 <code>setState</code> 重建</td></tr></tbody></table></figure>`;
+  const md = htmlToMarkdown(html);
+  assert.match(md, /^\| 特性 \| StatefulWidget \|$/m);
+  assert.match(md, /^\| --- \| --- \|$/m);
+  assert.match(md, /^\| 重建 \| 透過 `setState` 重建 \|$/m);
+  // 儲存格沒有被打平成獨立段落
+  assert.doesNotMatch(md, /^特性$/m);
+});
+
+test('table 缺 thead 時首列升為表頭', () => {
+  const html = `<table><tbody><tr><td>欄一</td><td>欄二</td></tr><tr><td>值一</td><td>值二</td></tr></tbody></table>`;
+  const md = htmlToMarkdown(html);
+  assert.match(md, /^\| 欄一 \| 欄二 \|$/m);
+  assert.match(md, /^\| --- \| --- \|$/m);
+  assert.match(md, /^\| 值一 \| 值二 \|$/m);
+});

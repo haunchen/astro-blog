@@ -83,35 +83,12 @@ n8n-skills 採用四層式的 Pipeline 架構，每一層只負責一件事，�
 
 用一句話來描述每層的角色：
 
-層級
-
-比喻
-
-職責
-
-Collectors
-
-系統的眼睛
-
-從各種來源收集原始資料
-
-Parsers
-
-系統的翻譯官
-
-把雜亂的原始資料轉成結構化格式
-
-Organizers
-
-系統的大腦
-
-分類、排序、決定優先級
-
-Generators
-
-系統的雙手
-
-產出最終的檔案
+| 層級 | 比喻 | 職責 |
+| --- | --- | --- |
+| Collectors | 系統的眼睛 | 從各種來源收集原始資料 |
+| Parsers | 系統的翻譯官 | 把雜亂的原始資料轉成結構化格式 |
+| Organizers | 系統的大腦 | 分類、排序、決定優先級 |
+| Generators | 系統的雙手 | 產出最終的檔案 |
 
 資料就像水流一樣，從 Collectors 流入，經過 Parsers 翻譯、Organizers 整理，最後由 Generators 輸出成檔案。每一層都只專注在自己的工作，不用管上游是怎麼取得資料的，也不用管下游要怎麼使用。
 
@@ -180,29 +157,11 @@ PriorityRanker 採用多維度評分系統，計算每個節點的重要程度�
 
 根據分數，節點會被分成三個等級：
 
-等級
-
-說明
-
-數量
-
-Essential
-
-核心節點，幾乎每個工作流都會用到
-
-約 10 個
-
-Common
-
-常用節點，特定場景會用到
-
-約 50 個
-
-Specialized
-
-專門用途節點，較少使用
-
-其餘節點
+| 等級 | 說明 | 數量 |
+| --- | --- | --- |
+| Essential | 核心節點，幾乎每個工作流都會用到 | 約 10 個 |
+| Common | 常用節點，特定場景會用到 | 約 50 個 |
+| Specialized | 專門用途節點，較少使用 | 其餘節點 |
 
 ![PriorityRanker 的 calculateScore 函式，展示多維度評分邏輯](./images/priority-ranker-calculate-score.webp)
 
