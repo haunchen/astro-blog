@@ -1,6 +1,6 @@
 ---
 domain: pre-launch-infra
-status: draft
+status: active
 created: 2026-05-16
 last_modified: 2026-06-06
 ---
@@ -29,7 +29,7 @@ last_modified: 2026-06-06
 
 ### R5: RSS Feed
 - **Level**: MUST
-- **Description**: `/rss.xml` 提供最新 20 篇非草稿文章的 RSS 2.0 feed，內含 sanitize 過的全文 HTML，圖片路徑改寫為絕對 URL，含 `<language>zh-TW</language>`。
+- **Description**: `/rss.xml` 提供最新 20 篇非草稿文章的 RSS 2.0 feed，全文 HTML 由 Astro Container API 渲染文章 `<Content/>` 元件產生，內文圖片解析為 image pipeline 的 `/_astro/` 最佳化資源後改寫為絕對 URL，內連同樣改寫為絕對 URL，sanitize 後輸出，含 `<language>zh-TW</language>`。
 
 ### R6: llms.txt
 - **Level**: MUST
@@ -103,6 +103,12 @@ last_modified: 2026-06-06
 - **Then**: CF Pages 自動觸發 build、成功後部署到 `*.pages.dev`
 - **Implements**: #R9
 
+### S10: RSS 內文圖指向最佳化資源
+- **Given**: 一篇含內文圖的非草稿文章
+- **When**: reader 拉取 `/rss.xml`
+- **Then**: 該篇 `content` 內 img `src` 為 `https://frankchen.tw/_astro/<hash>.webp`，且對應檔案實際存在於建置輸出
+- **Implements**: #R5
+
 ## Design Decisions
 
 ### D1: All-in-one PR、最後一次部署
@@ -145,22 +151,7 @@ last_modified: 2026-06-06
 - **Rationale**: 下限會迫使作者為了過 schema 而灌水描述，傷害品質；上限是 SERP 截斷的硬約束才需要強制
 - **Date**: 2026-05-16
 
-## Pending Changes
-
-> 2026-06-06，分支 feat/rss-container-images。修 Issue #2 第一項：RSS 內文圖 404。
-
-### MODIFIED R5: RSS Feed
-- **Level**: MUST
-- **Description**: `/rss.xml` 提供最新 20 篇非草稿文章的 RSS 2.0 feed，全文 HTML 由 Astro Container API 渲染文章 `<Content/>` 元件產生，內文圖片解析為 image pipeline 的 `/_astro/` 最佳化資源後改寫為絕對 URL，內連同樣改寫為絕對 URL，sanitize 後輸出，含 `<language>zh-TW</language>`。
-- **Change**: 原以 markdown-it 渲染 `post.body` 並把相對圖片拼為 `${SITE.url}/<slug>/<相對路徑>`，產生指向不存在位置的 404 圖片 URL。改走 Container API 後內文圖循真正 image pipeline 解析。
-
-### ADDED S10: RSS 內文圖指向最佳化資源
-- **Given**: 一篇含內文圖的非草稿文章
-- **When**: reader 拉取 `/rss.xml`
-- **Then**: 該篇 `content` 內 img `src` 為 `https://frankchen.tw/_astro/<hash>.webp`，且對應檔案實際存在於建置輸出
-- **Implements**: #R5
-
-### ADDED D9: RSS 渲染引擎改用 Container API
+### D9: RSS 渲染引擎改用 Container API
 - **Decision**: RSS 全文改以 Astro experimental Container API（`render(post)` + `renderToString(Content)`）渲染，取代 markdown-it；連帶移除 `markdown-it` / `@types/markdown-it` 依賴
 - **Rationale**: markdown-it 不認得 content collection 的相對圖片，不會觸發 image pipeline，導致 RSS 內文圖 URL 指向不存在的 `/<slug>/images/...`（404）。Container API 渲染真正的 `<Content/>`，內文圖經 image pipeline 解析為 `/_astro/<hash>.webp`，再前綴 `SITE.url` 即為可正確抓取的絕對 URL。純 markdown 無需 framework renderer（`loadRenderers([])`）
 - **Date**: 2026-06-06
