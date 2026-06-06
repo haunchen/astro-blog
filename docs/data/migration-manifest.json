@@ -1,0 +1,746 @@
+[
+  {
+    "slug": "cloudflare-cache-rules-wordpress",
+    "title": "Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南",
+    "description": "學習如何設定 Cloudflare Cache Rules 加速 WordPress 網站，包含後台排除、靜態資源、頁面快取等四條核心規則，實測省下 30% 主機費用。",
+    "category": "devops",
+    "tags": [
+      "Cache",
+      "Cloudflare",
+      "WordPress",
+      "快取設定",
+      "網站優化"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp"
+    ]
+  },
+  {
+    "slug": "create-free-ssl-domain-certificates-using-certbot",
+    "title": "如何使用 Certbot 建立免費的 SSL 網域憑證",
+    "description": "現今網路傳輸服務普遍要求使用 HTTPS，以確保安全性。然而，SSL 憑證 每年需支付維護費用，對個人使用者來說負擔較重。本文將引導讀者如何在 Ubuntu 上搭配 Nginx 使用 Certbot 申請免費 SSL 憑證及設置自動續期。",
+    "category": "devops",
+    "tags": [
+      "Certbot",
+      "Let's Encrypt",
+      "Nginx",
+      "SSL",
+      "Ubuntu"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp"
+    ]
+  },
+  {
+    "slug": "flutter-firebase-google-authentication-tutorial",
+    "title": "Flutter x Firebase 身份驗證超簡單！手把手教你串接 Google 登入功能",
+    "description": "在學習 Flutter 串接 Firebase Authentication 服務，記錄一下操作過程。",
+    "category": "flutter",
+    "tags": [
+      "Firebase",
+      "Flutter",
+      "google"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "flutter-secure-storage-android-key-problem",
+    "title": "Flutter App 在 Android 系統啟動卡死問題：完整除錯與解決指南",
+    "description": "本文探討了Flutter應用在Google Play上啟動卡死的問題，經測試發現是flutter_secure_storage套件導致的。通過重設錯誤選項來解決此問題，並強調了錯誤處理及多方測試的重要性，以避免類似過程中的潛在問題。",
+    "category": "flutter",
+    "tags": [
+      "Flutter",
+      "GooglePlay",
+      "Secure"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "flutter-study-materialapp-vs-cupertinoapp",
+    "title": "【 Flutter 學習筆記 】 MaterialApp vs CupertinoApp",
+    "description": "MaterialApp 和 CupertinoApp 是 Flutter 的根 Widget，分別遵循 Google Material Design 和 Apple iOS Human Interface Guidelines。兩者各自定義了應用程式的外觀、行為和導航，並提供應用級服務。…",
+    "category": "flutter",
+    "tags": [
+      "Flutter"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "flutter-study-writing-statefulwidget-vs-statelesswidget",
+    "title": "【 Flutter 學習筆記 】 StatefulWidget vs StatelessWidget",
+    "description": "在 Flutter 中，StatefulWidget 是需要管理內部狀態的動態頁面，適用於用戶交互和數據變化；而 StatelessWidget 是靜態頁面，不會改變內容。這兩者在性能和使用場景上有所不同，應根據需求合理選擇。",
+    "category": "flutter",
+    "tags": [
+      "Flutter"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "google-new-opensource-too-gemini-cli-providing-a-large-amount-of-free-quota",
+    "title": "Google 推出全新開源工具 Gemini CLI 提供大量免費額度",
+    "description": "Google 推出了免費的 Gemini CLI 工具，提供安裝教學及多種指令選項。用戶需安裝 Node.js 18 以上版本，並可選用多種登入方法。工具包括對話管理、API 設定、主題變更等功能，使用額度為每分鐘 60 次，每天 1000 次。",
+    "category": "tools",
+    "tags": [
+      "AI",
+      "Gemini"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-canva-oauth-setup",
+    "title": "n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南",
+    "description": "教你設定 n8n x Canva OAuth 2.0 憑證，含 MFA、API 權限與測試步驟，20 分鐘完成整合！圖文教學帶你一步步建立自動化工作流。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "Canva",
+      "Credential",
+      "n8n"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-17.webp",
+      "img-18.webp",
+      "img-19.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-credentials-setup-complete-guide",
+    "title": "n8n 憑證設定懶人包：常用服務快速導覽（持續更新）",
+    "description": "n8n 憑證設定是自動化的第一步！這篇懶人包整理所有常用服務的設定方法，並提供快速導覽連結，讓你快速找到需要的教學。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "n8n",
+      "憑證"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "n8n-data-table-csv-export-import",
+    "title": "【 n8n 功能更新 】Data Table 終於支援 CSV 匯出匯入功能！模板分享更方便",
+    "description": "n8n 1.122.2 版本新增 Data Table CSV 匯出匯入功能，讓模板分享更方便。本文詳解操作步驟、系統欄位處理、資料型態辨識機制及常見問題排解。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "DataTable",
+      "n8n"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp"
+    ]
+  },
+  {
+    "slug": "n8n-discord-bot-setup-tutorial",
+    "title": "用 n8n 打造 Discord Bot：不用寫程式的完整設定教學",
+    "description": "想用 Discord Bot 做自動化但不會寫程式？這篇教學用 n8n 帶你從零完成設定，實現自動通知、社群管理等功能。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "discord",
+      "n8n"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-google-credentials-setup-guide",
+    "title": "n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手",
+    "description": "這篇教學詳細介紹了如何在 n8n 中設定 Google 的憑證，分步驟說明了從創建 Google Cloud 專案到建立 OAuth 2.0 客戶端及開啟 API 服務的過程。完成後可實現 Gmail、Google Sheets 等服務的順利連動。",
+    "category": "n8n",
+    "tags": [
+      "Google Cloud",
+      "n8n",
+      "工作流程"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-17.webp",
+      "img-18.webp",
+      "img-19.webp",
+      "img-2.webp",
+      "img-20.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-instagram-access-token",
+    "title": "【2025 最新】n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文",
+    "description": "這篇教學旨在指導讀者如何使用 n8n 來獲取 Instagram Access Token，進而提高 Instagram 經營效率。文章詳述了從建立 Meta 應用程序、設定權限、創建測試用戶，到產生及延長 Access Token 的全過程，並介紹了自動發文的工作流程。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "Instagram",
+      "n8n",
+      "工作流程"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-17.webp",
+      "img-18.webp",
+      "img-19.webp",
+      "img-2.webp",
+      "img-20.webp",
+      "img-21.webp",
+      "img-22.webp",
+      "img-23.webp",
+      "img-24.webp",
+      "img-25.webp",
+      "img-26.webp",
+      "img-27.webp",
+      "img-28.webp",
+      "img-29.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-line-api-integration-tutorial",
+    "title": "n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹",
+    "description": "完整教學如何在 n8n 中整合 Line Bot，從建立 Line Messaging API、設定憑證、安裝社群節點到實際測試互動功能。包含 Webhook 設定、Reply vs Push 差異解析、常見問題排查及實用應用情境,幫助你快速打造 Line 自動化工作流。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "LineBot",
+      "n8n"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-13.webp",
+      "img-14.webp",
+      "img-15.webp",
+      "img-16.webp",
+      "img-17.webp",
+      "img-18.webp",
+      "img-19.webp",
+      "img-2.webp",
+      "img-20.webp",
+      "img-21.webp",
+      "img-22.webp",
+      "img-23.webp",
+      "img-24.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-line-discord-telegram-bot-comparison",
+    "title": "n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議",
+    "description": "想用 n8n 打造 Line Bot 自動化工作流嗎？本文從零開始教你建立 Line Messaging API、完成 n8n 憑證設定、使用社群節點，並深入解析 Reply Message 與 Push Message 的差異。附常見問題排查及實際應用範例，30 分鐘完成第一個 Line 自動化助理。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "discord",
+      "LineBot",
+      "n8n",
+      "Telegram"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp"
+    ]
+  },
+  {
+    "slug": "n8n-n8nmanager-introduction",
+    "title": "【 n8nManager App 】隨時隨地掌控您的自動化工作流程！",
+    "description": "n8n 管理工具 App 將於 Google Play 上線，旨在讓用戶隨時隨地監控和管理 n8n 工作流程。具備安全連線、儀表板概覽和工作流程管理等功能，此 App 邀請用戶參加封閉測試並提供意見以改進產品。未來將增加更多功能。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "n8n",
+      "工作流程",
+      "自動化"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp"
+    ]
+  },
+  {
+    "slug": "n8n-notion-api-integration-tutorial",
+    "title": "n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例",
+    "description": "透過 n8n 整合 Notion API，實現內容管理、任務追蹤、資料備份等自動化。這篇教學帶你完成憑證設定，並分享實用的自動化應用。",
+    "category": "n8n",
+    "tags": [
+      "API",
+      "Automation",
+      "n8n",
+      "Notion"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-12.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-notion-wordpress-publish-automation",
+    "title": "不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略 - 基本版",
+    "description": "這篇文章探討如何利用 n8n 自動化工作流程，將 Notion 的內容轉換並上傳到 WordPress。介紹了流程的設計思路，包括對文章區塊的智慧處理、自動化圖片上傳以及錯誤處理機制，有效減少手動搬運的繁瑣，提升內容轉換效率。",
+    "category": "n8n",
+    "tags": [
+      "Automation",
+      "n8n",
+      "Notion",
+      "WordPress",
+      "工作流程",
+      "模板"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp"
+    ]
+  },
+  {
+    "slug": "n8n-skills-claude-ai-skill-pack-tutorial",
+    "title": "從 0 到 1 打造 n8n AI 技能包：讓 Claude 掌握 500+ 個自動化節點的開源專案實戰",
+    "description": "手把手教你打造 n8n AI 技能包，讓 Claude 直接掌握 500+ 個自動化節點的知識。完整分享開源專案從構思到實作的全過程，包含四層式 Pipeline 架構與分層合併策略。",
+    "category": "tools",
+    "tags": [
+      "n8n",
+      "n8n-skills",
+      "skill"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "n8n-skills-four-layer-pipeline-architecture",
+    "title": "n8n-skills 技術解密 (1)：打造可擴展的四層式資料處理 Pipeline",
+    "description": "解析 n8n-skills 的四層式 Pipeline 架構設計：Collectors、Parsers、Organizers、Generators。探討如何實現關注點分離、可擴展性與易測試性。",
+    "category": "n8n",
+    "tags": [],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp"
+    ]
+  },
+  {
+    "slug": "n8n-telegram-bot-notification-tutorial",
+    "title": "n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學",
+    "description": "Telegram Bot 是 n8n 自動化通知的最佳選擇！這篇教學帶你從零開始建立 Bot，設定憑證，並實現即時通知和互動功能。",
+    "category": "n8n",
+    "tags": [
+      "n8n",
+      "Telegram",
+      "教學",
+      "自動化"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-template-line-bot-upload-system",
+    "title": "【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統",
+    "description": "透過 n8n 建立 Line Bot 自動化工作流，只需傳送 Canva 連結即可一鍵匯出 PNG 並上傳到 WordPress   媒體庫。完整教學包含 Data table 設定、憑證準備與工作流程說明，讓你告別繁瑣的轉檔上傳步驟。",
+    "category": "n8n",
+    "tags": [
+      "Canva",
+      "LineBot",
+      "n8n",
+      "WordPress",
+      "模板"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  },
+  {
+    "slug": "n8n-template-store-wish-list",
+    "title": "【 n8n 模板分享 】探店心願助手",
+    "description": "這篇文章介紹了一個 n8n 模板，可以幫助使用者整理來自社交平台的店家資訊。透過上傳截圖或連結，可迅速獲取店家資料，方便下次打卡。工作流提供新增、查詢、標記、刪除和重置等功能，並附有操作指引。",
+    "category": "n8n",
+    "tags": [
+      "n8n",
+      "工作流程",
+      "模板"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp"
+    ]
+  },
+  {
+    "slug": "n8n-wordpress-api-integration-guide",
+    "title": "n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略",
+    "description": "透過 n8n 串接 WordPress API，實現自動發文、圖片上傳、內容更新等自動化操作。這篇教學帶你從零開始設定憑證，並分享實用的自動化技巧。",
+    "category": "n8n",
+    "tags": [
+      "n8n",
+      "WordPress",
+      "憑證"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp"
+    ]
+  },
+  {
+    "slug": "nextjs-geoip-memory-optimization",
+    "title": "Node.js 記憶體優化實戰：用多層降級策略解決 geoip-lite 的 100MB 記憶體問題",
+    "description": "部署 Next.js 應用到 Zeabur 後發現記憶體使用量高達 300MB，透過分析找出 geoip-lite 套件是主因，最終設計多層降級策略成功減少 100MB 記憶體，PR 已被合併到開源專案。",
+    "category": "devops",
+    "tags": [
+      "Node.js",
+      "記憶體優化"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp"
+    ]
+  },
+  {
+    "slug": "nfs-version-nfs4-nfs3-io-blocking",
+    "title": "NFS 寫入導致應用程式當機？從 NFS4 切換到 NFS3 徹底解決",
+    "description": "本文分析樹莓派系統開機後立即使用 NFS4 寫入會當機，因 NFS4 有狀態設計需 30-120 秒初始化，導致應用程式阻塞於 D 狀態。解決方案為切換至無狀態的 NFS3 協定，徹底消除開機等待時間，確保系統立即可用。",
+    "category": "raspberry-pi",
+    "tags": [
+      "NFS3",
+      "NFS4",
+      "RaspberryPi"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp"
+    ]
+  },
+  {
+    "slug": "nginx-cache-wordpress",
+    "title": "Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線",
+    "description": "設定 Nginx Proxy Cache 作為 WordPress 第二層快取，當 Cloudflare 失效時自動接手，含完整設定範例與 WordPress 排除規則。",
+    "category": "devops",
+    "tags": [
+      "Cache",
+      "Nginx",
+      "WordPress"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "nodejs-docker-ubuntu-containerization-tutorial",
+    "title": "讓你的 Node.js 專案無痛部署！Ubuntu 上手把手教你容器化 Node.js",
+    "description": "本篇文章介紹了如何在 Ubuntu 系統上使用 Docker 容器化 Node.js 應用程式，特別是 Next.js 專案。包括 Docker 的安裝步驟、設定 Dockefile、建置映像檔和運行容器的指令，還提到如何確保容器在崩潰後自動重啟和後台運行。",
+    "category": "devops",
+    "tags": [
+      "Docker",
+      "Node.js"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp"
+    ]
+  },
+  {
+    "slug": "raspberry-pi-gpio-high-frequency-noise",
+    "title": "樹莓派 GPIO 雜訊筆記系列：硬體篇，用電路解決干擾問題",
+    "description": "本文探討樹莓派 GPIO 訊號遭受高頻雜訊影響的問題，尤其在醫療環境中遇到的困難。藉由使用上拉電阻和下拉電阻，以及實施低通濾波器來過濾雜訊，作者提出了有效的解決方案，提升產品穩定性。",
+    "category": "raspberry-pi",
+    "tags": [
+      "RaspberryPi",
+      "硬體",
+      "高頻雜訊"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp"
+    ]
+  },
+  {
+    "slug": "raspberry-pi-gpio-software-debounce-guide",
+    "title": "樹莓派 GPIO 雜訊筆記系列：軟體篇，實作 Debounce 演算法消除惱人抖動訊號",
+    "description": "這篇文章探討了「機械彈跳」對於按鈕開關的影響，並介紹三種解決方案：簡單延遲法、狀態機計時法及中斷驅動法。選擇合適的方法需依據專案需求，最終旨在提升 GPIO 訊號的穩定性和品質。",
+    "category": "raspberry-pi",
+    "tags": [
+      "RaspberryPi",
+      "彈跳",
+      "軟體"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp"
+    ]
+  },
+  {
+    "slug": "samsung-wallet-nfc-access-card-function-unlocked-supported-devices-and-complete-setup-guide",
+    "title": "Samsung Wallet NFC 門禁卡功能解禁！支援裝置及設定步驟完整攻略",
+    "description": "Samsung Wallet 現已支援 NFC 門禁卡功能，用戶可將實體門禁卡綁定於某些三星手機，方便進出辦公室或家中。支援設備需更新至 Android 15 及更新的 Samsung Wallet 版本。提供了綁定及使用方法，讓生活更便利。",
+    "category": "tools",
+    "tags": [
+      "NFC門禁卡",
+      "Samsung",
+      "Wallet"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp"
+    ]
+  },
+  {
+    "slug": "threads-data-export-tutorial",
+    "title": "Threads 資料匯出教學 - 完整圖文步驟指南",
+    "description": "完整圖文教學，教你如何從 Instagram 帳號管理中心匯出 Threads 資料，用於 Threads Wrapped 年度回顧分析。",
+    "category": "tools",
+    "tags": [
+      "threads",
+      "教學",
+      "資料匯出"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp"
+    ]
+  },
+  {
+    "slug": "vercel-v0-dev-ubuntu-deploy-web-app",
+    "title": "私密資料不上傳！將 v0.dev 生成的 Web 應用程式部署到你自己的 Ubuntu 伺服器",
+    "description": "本篇文章介紹了如何在自己的伺服器上執行由 Vercel 的 v0.dev 生成的 Web 應用，特別針對 Ubuntu 系統提供安裝 Node.js 和 pnpm 的步驟，並指導用戶如何啟動本地開發及正式環境伺服器，以便私有資料不需上傳到網絡平台。",
+    "category": "devops",
+    "tags": [
+      "Node.js",
+      "Ubuntu",
+      "v0.dev",
+      "Vercel"
+    ],
+    "images": [
+      "cover.webp"
+    ]
+  },
+  {
+    "slug": "wordpress-migrate-to-zeabur",
+    "title": "網站搬家超簡單：WordPress 無痛 轉移 Zeabur 完整教學（新手友善）",
+    "description": "這篇內容介紹了如何將自架的 WordPress 轉移到 Zeabur 平台，過程簡單，即使新手也能完成。Zeabur 是一個平台即服務，提供快速部署並支持自訂子網域和 SSL。轉移前需使用外掛備份，然後依步驟初始化並匯入資料。",
+    "category": "devops",
+    "tags": [
+      "WordPress",
+      "Zeabur"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp"
+    ]
+  },
+  {
+    "slug": "zeabur-nginx-subdomain-to-subdirectory",
+    "title": "Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰",
+    "description": "本文分享如何透過 Zeabur 平台部署 Nginx 反向代理，將分散的子網域流量統一導向主網域底下的子目錄，成功集中 SEO 權重，並簡化 SSL 憑證等管理，實現網站架構優化。",
+    "category": "devops",
+    "tags": [
+      "Nginx",
+      "SEO",
+      "WordPress"
+    ],
+    "images": [
+      "cover.webp",
+      "img-1.webp",
+      "img-10.webp",
+      "img-11.webp",
+      "img-2.webp",
+      "img-3.webp",
+      "img-4.webp",
+      "img-5.webp",
+      "img-6.webp",
+      "img-7.webp",
+      "img-8.webp",
+      "img-9.webp"
+    ]
+  }
+]
