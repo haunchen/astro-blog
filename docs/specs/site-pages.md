@@ -1,6 +1,6 @@
 ---
 domain: site-pages
-status: draft
+status: active
 created: 2026-06-26
 last_modified: 2026-06-26
 ---
@@ -128,6 +128,3 @@ last_modified: 2026-06-26
 - **Rationale**: 不留死連結；待有素材再另開設計
 - **Date**: 2026-06-26
 
-## Pending Changes
-
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
