@@ -47,6 +47,10 @@ last_modified: 2026-06-26
 - **Level**: MUST
 - **Description**: 全站 Nav 不含指向未實作頁面的連結（移除 `/n8n-resources/`）；Nav 與 Footer 的其餘連結皆有對應頁面。
 
+### R10: 聯絡頁
+- **Level**: MUST
+- **Description**: `/contact-frank/` 提供站內聯絡頁，列出聯絡 email（`frank@frankchen.tw`，mailto 連結）、地點與社群連結；採無後端靜態頁、不含可送出的表單。`/about/` 的聯絡連結指向此站內頁（非外部 WordPress 頁）。
+
 ## Scenarios
 
 ### S1: 造訪關於我頁
@@ -91,6 +95,12 @@ last_modified: 2026-06-26
 - **Then**: 不含 `/n8n-resources/` 連結，其餘連結皆可達
 - **Implements**: #R9
 
+### S8: 造訪聯絡頁
+- **Given**: 站台已部署
+- **When**: 訪客造訪 `/contact-frank/` 或從 `/about/` 點聯絡連結
+- **Then**: 看到聯絡 email（mailto）、地點與社群連結，無可送出的表單
+- **Implements**: #R10
+
 ## Design Decisions
 
 ### D1: 分類顯示採有序單一來源清單
@@ -126,5 +136,15 @@ last_modified: 2026-06-26
 ### D7: 不做 /n8n-resources/，Nav 移除其連結
 - **Decision**: 本次不實作 `/n8n-resources/`（repo 無現成素材），並從 Nav 移除該連結
 - **Rationale**: 不留死連結；待有素材再另開設計
+- **Date**: 2026-06-26
+
+### D8: 聯絡頁採無後端靜態頁
+- **Decision**: `/contact-frank/` 以 email + 社群 + 地點的靜態頁呈現，不接表單後端（不引入 Web3Forms/Turnstile 等服務與金鑰）
+- **Rationale**: 純靜態 CF Pages 下表單後端需第三方服務與金鑰、Turnstile 還需 server 驗證；現階段以 email 為主聯絡管道即足夠，避免維護負擔。日後若要表單功能再另開設計
+- **Date**: 2026-06-26
+
+### D9: 作品集 n8nManager 維持外部 WordPress 連結
+- **Decision**: `/about/` 作品集的 n8nManager 連結維持指向 `https://www.frankchen.tw/n8nmanager`（外部 WordPress 既有頁），不收斂成 `SITE.url`
+- **Rationale**: 該頁是 WordPress 站既有的產品介紹頁、Astro 站無此路由；`SITE.url`（`https://frankchen.tw`，非 www）改寫會指向不存在的 Astro 路由變死連結。與 /contact-frank/（改建站內頁）刻意做不同處理：contact 頁有等價內容可內建，n8nmanager 無
 - **Date**: 2026-06-26
 
