@@ -37,7 +37,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     font-size: 120px;
     font-weight: 700;
     line-height: 1;
-    color: var(--text-primary);
+    color: var(--color-text-primary);
     letter-spacing: 0.05em;
     margin-bottom: 24px;
     animation: einkGlitch 4s steps(3) infinite;
@@ -48,7 +48,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     display: block;
     width: 80px;
     height: 2px;
-    background: var(--brand-orange);
+    background: var(--color-brand-orange);
     margin: 16px auto 0;
   }
 
@@ -62,7 +62,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .error-desc {
     font-family: var(--font-sans);
     font-size: 15px;
-    color: var(--text-secondary);
+    color: var(--color-text-secondary);
     margin-bottom: 40px;
     max-width: 400px;
   }
@@ -91,18 +91,18 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   }
 
   .btn--primary {
-    background: var(--brand-blue);
-    color: var(--text-primary);
+    background: var(--color-brand-blue);
+    color: var(--color-text-primary);
   }
 
   .btn--primary:hover {
-    background: var(--brand-blue-hover);
+    background: var(--color-brand-blue-hover);
   }
 
   .btn--outline {
     background: transparent;
-    color: var(--brand-blue);
-    border: 1px solid var(--brand-blue);
+    color: var(--color-brand-blue);
+    border: 1px solid var(--color-brand-blue);
   }
 
   .btn--outline:hover {
@@ -112,34 +112,34 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .error-terminal {
     margin-top: 48px;
     padding: 20px 24px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-default);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-default);
     border-radius: var(--radius-md);
     font-family: var(--font-mono);
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--color-text-muted);
     text-align: left;
     display: inline-block;
     line-height: 24px;
   }
 
   .error-terminal .prompt {
-    color: var(--brand-orange);
+    color: var(--color-brand-orange);
   }
 
   .error-terminal .cmd {
-    color: var(--text-primary);
+    color: var(--color-text-primary);
   }
 
   .error-terminal .output {
-    color: var(--state-error);
+    color: var(--color-state-error);
   }
 
   .error-terminal .cursor {
     display: inline-block;
     width: 8px;
     height: 14px;
-    background: var(--text-muted);
+    background: var(--color-text-muted);
     vertical-align: text-bottom;
     animation: blink 1s steps(1) infinite;
   }
