@@ -1,0 +1,36 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import CategoryBar from '../components/CategoryBar.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout
+  title="文章 - 下班後的工程師筆記"
+  description="所有技術文章，涵蓋 n8n 自動化、架站部署、Flutter、樹莓派與開發工具的實戰經驗與踩坑紀錄。"
+>
+  <main class="list-page">
+    <header class="list-head">
+      <h1 class="list-title">文章</h1>
+      <p class="list-sub">共 {posts.length} 篇</p>
+    </header>
+
+    <CategoryBar active="all" />
+
+    <div class="article-grid">
+      {posts.map((post) => (
+        <ArticleCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          category={post.data.category}
+          slug={post.id}
+          cover={post.data.cover}
+        />
+      ))}
+    </div>
+  </main>
+</BaseLayout>
