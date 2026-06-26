@@ -1,0 +1,49 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ArticleCard from '../../components/ArticleCard.astro';
+import CategoryBar from '../../components/CategoryBar.astro';
+import { getCollection } from 'astro:content';
+import { CATEGORIES, categoryLabel } from '../../utils/site-meta';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  return CATEGORIES
+    .map(({ slug }) => {
+      const categoryPosts = posts
+        .filter((p) => p.data.category === slug)
+        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+      return { params: { category: slug }, props: { categoryPosts, slug } };
+    })
+    .filter((entry) => entry.props.categoryPosts.length > 0);
+}
+
+const { categoryPosts, slug } = Astro.props;
+const label = categoryLabel(slug);
+---
+
+<BaseLayout
+  title={`${label} - 下班後的工程師筆記`}
+  description={`所有「${label}」分類的技術文章。`}
+>
+  <main class="list-page">
+    <header class="list-head">
+      <h1 class="list-title">{label}</h1>
+      <p class="list-sub">共 {categoryPosts.length} 篇</p>
+    </header>
+
+    <CategoryBar active={slug} />
+
+    <div class="article-grid">
+      {categoryPosts.map((post) => (
+        <ArticleCard
+          title={post.data.title}
+          description={post.data.description}
+          date={post.data.date}
+          category={post.data.category}
+          slug={post.id}
+          cover={post.data.cover}
+        />
+      ))}
+    </div>
+  </main>
+</BaseLayout>
