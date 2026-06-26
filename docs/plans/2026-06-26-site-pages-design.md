@@ -37,7 +37,7 @@ astro-blog 首頁、Nav、Footer 連到多個尚未實作的頁面，導致全�
 - `src/assets/about/`（avatar + 4 張截圖，走 astro:assets）
 
 修改：
-- `src/utils/site-meta.ts` — `CATEGORY_LABEL` 升級為有序 `CATEGORIES` 清單，當分類顯示與排序的單一來源
+- `src/utils/site-meta.ts` — 新增有序 `CATEGORIES` 清單當導覽/列表/分類頁的顯示與排序單一來源（與既有 `CATEGORY_LABEL` 並存、非替換；`CATEGORY_LABEL` 保留給 OG 圖與文章頁 badge，其用預建 subset 字型，改動會撞缺字）
 - `src/pages/index.astro` — 分類卡改讀 `CATEGORIES` + 即時計數，修掉 `/category/deployment/` 死連結
 - `src/components/Nav.astro` — 移除 `/n8n-resources/` 連結
 

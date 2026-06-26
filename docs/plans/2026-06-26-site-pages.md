@@ -32,8 +32,8 @@ Spec: `docs/specs/site-pages.md`
 Implements: `site-pages.md` #R6
 
 Files:
-- Modify: `src/utils/site-meta.ts`（在 `CATEGORY_LABEL` 之後新增）
-- Modify: `src/components/ArticleCard.astro:1-16,32`
+- Modify: `src/utils/site-meta.ts`（在 `CATEGORY_LABEL` 之後新增，`CATEGORIES` 與 `CATEGORY_LABEL` 並存、非替換）
+- Modify: `src/components/ArticleCard.astro`（加 import、改分類 badge）
 
 Step 1: 在 `src/utils/site-meta.ts` 的 `CATEGORY_LABEL` 區塊之後插入：
 
@@ -64,7 +64,7 @@ Step 2: 在 `src/components/ArticleCard.astro` frontmatter 頂部（`import TagB
 import { categoryLabel } from '../utils/site-meta';
 ```
 
-Step 3: 把 `src/components/ArticleCard.astro:32` 的分類 badge 由原始 slug 改為顯示名稱：
+Step 3: 找到 `src/components/ArticleCard.astro` 中分類 badge 那行（`<TagBadge text={category} size="sm" />`），改為顯示名稱：
 
 ```astro
 <TagBadge text={categoryLabel(category)} size="sm" />
