@@ -13,7 +13,7 @@ last_modified: 2026-06-26
 
 ### R1: 關於我頁
 - **Level**: MUST
-- **Description**: `/about/` 呈現自我介紹、工作經歷、專案經歷、作品集、聯絡資訊五類內容，含 `cover.webp` 主視覺；聯絡 email 為 `frank@frankchen.tw`。
+- **Description**: `/about/` 呈現自我介紹、工作經歷、專案經歷、作品集、聯絡資訊五類內容；聯絡 email 為 `frank@frankchen.tw`。頁面不顯示 cover 橫幅主視覺（cover 僅作 og:image，見 #R2）。
 
 ### R2: 關於我頁結構化資料與社群圖
 - **Level**: SHOULD
@@ -56,7 +56,7 @@ last_modified: 2026-06-26
 ### S1: 造訪關於我頁
 - **Given**: 站台已部署
 - **When**: 訪客造訪 `/about/`
-- **Then**: 看到 cover 主視覺與自我介紹／工作經歷／專案經歷／作品集／聯絡五類內容，聯絡 email 為 frank@frankchen.tw
+- **Then**: 看到自我介紹／工作經歷／專案經歷／作品集／聯絡五類內容，聯絡 email 為 frank@frankchen.tw（頁面不顯示 cover 橫幅）
 - **Implements**: #R1
 
 ### S2: 關於我頁社群分享
@@ -108,9 +108,9 @@ last_modified: 2026-06-26
 - **Rationale**: 消除首頁寫死 label/href（`/category/deployment/`）與 `CATEGORY_LABEL`（'DevOps'）兩套不一致；篇數即時計算避免過時數字
 - **Date**: 2026-06-26
 
-### D2: cover.webp 放 public/ 當 hero 與 OG
-- **Decision**: `cover.webp` 置於 `public/`，直接當 /about/ 主視覺與 /about/、首頁的 og:image，不走 astro:assets
-- **Rationale**: 已是 1200×630 webp，免再優化；OG 需穩定絕對 URL，public/ 最直接
+### D2: cover.webp 放 public/ 當 OG（不在頁面顯示）
+- **Decision**: `cover.webp` 置於 `public/`，當 /about/ 與首頁的 og:image，不走 astro:assets；不在 /about/ 頁面內顯示 cover 橫幅（原 hero 橫幅已移除，僅留標題與 tagline）
+- **Rationale**: 已是 1200×630 webp，免再優化；OG 需穩定絕對 URL，public/ 最直接。cover 視覺橫幅依使用者意見移除，保留 OG 供社群分享預覽
 - **Date**: 2026-06-26
 
 ### D3: 分類頁只為有文章的分類產 path
