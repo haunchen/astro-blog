@@ -240,3 +240,53 @@ body::after {
   border-top: 1px solid var(--color-border-subtle);
   margin: 32px 0;
 }
+
+/* ========================================
+   D — List Pages (articles / category)
+   ======================================== */
+.list-page {
+  max-width: var(--width-wide);
+  margin: 0 auto;
+  padding: 64px 24px;
+}
+
+.list-head {
+  margin-bottom: 32px;
+}
+
+.list-title {
+  font-family: var(--font-serif);
+  font-size: 36px;
+  line-height: 48px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.list-sub {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-muted);
+  margin-top: 8px;
+  letter-spacing: 0.02em;
+}
+
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+@media (max-width: 768px) {
+  .list-page {
+    padding: 40px 16px;
+  }
+
+  .list-title {
+    font-size: 28px;
+    line-height: 38px;
+  }
+
+  .article-grid {
+    grid-template-columns: 1fr;
+  }
+}
