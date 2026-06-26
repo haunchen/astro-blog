@@ -1,0 +1,502 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import TagBadge from '../components/TagBadge.astro';
+import { SITE } from '../utils/site-meta';
+import avatar from '../assets/about/frank-avatar.png';
+import n8nShot from '../assets/about/n8n-app-screenshot.png';
+import blogShot from '../assets/about/blog-screenshot.png';
+import iset2021 from '../assets/about/iset2021-screenshot.png';
+import iset2020 from '../assets/about/iset2020-screenshot.png';
+
+const experiences = [
+  {
+    role: '系統整合課長',
+    company: '澳門商原妙醫學科技有限公司 台灣分公司',
+    period: '2024.09 - 迄今',
+    points: [
+      '帶領 5 人跨領域團隊（硬體/軟體/機構）開發第三代醫療教學模擬器，協調跨部門資源並掌控專案進度，BOM Cost 相較第二代降低 30%，同時維持產品效能',
+      '主導邊緣 AI 運算（Hailo）技術導入，解決影像處理不穩定問題，系統穩定度提升 50%，大幅改善用戶體驗',
+      '優化硬體架構，以樹莓派 5 取代外購模組，在維持相同效能下單一成本減少 80%，顯著提升產品競爭力',
+    ],
+  },
+  {
+    role: '軟韌體工程師',
+    company: '澳門商原妙醫學科技有限公司 台灣分公司',
+    period: '2021.11 - 2024.08',
+    points: [
+      '主導廠商重複性插管用醫療器材韌體測試與驗證，即時回饋問題並提出解決方案，韌體穩定度提升 30%',
+      '負責第二代醫療教學模擬器前期系統架構規劃，優化設計流程並降低材料成本，成本相較第一代降低 20%',
+      '獨立設計一次性插管用醫療器材電路，通過 SGS ESD/EMI 認證，使產品順利取得中國、美國、泰國及澳洲醫療器材上市許可',
+      '建立 GitHub 版本控管系統，解決多人協作衝突問題，團隊開發效率提升，專案交付準時率達 95%',
+      '規劃並建置 NAS 檔案管理系統，統一公司數位資產管理，降低資料遺失風險並提升跨部門協作效率',
+    ],
+  },
+];
+
+const projects = [
+  {
+    title: '大型醫療教學模擬器（第三代）',
+    period: '2024.11 - 2025.04',
+    roles: ['專案領導人', '系統規劃', '軟體開發'],
+    points: [
+      '領導 5 人跨領域團隊進行第三代系統開發及改良',
+      '導入邊緣 AI 運算（Hailo），影像處理穩定度提升 50%',
+      '導入樹莓派 5，取代前代外購成品功能，保持相同效能下單一成本減少 80%',
+      '統整前代缺點引導團隊改良，優化使用者體驗，解決操作延遲痛點',
+    ],
+    tags: ['跨團隊溝通及整合', 'Qt', 'Raspberry Pi', 'Hailo'],
+  },
+  {
+    title: '大型醫療教學模擬器（第二代）',
+    period: '2022.01 - 2024.06',
+    roles: ['專案領導人', '系統規劃', '軟體開發', '電路設計', '產品推廣'],
+    points: [
+      '從零開始設計並開發軟體及硬體系統',
+      '導入 RFID 模組，增強產品系統安全性',
+      '與機構工程師協作，完成機電整合任務',
+      '建立可重用的零件庫，提升開發效率',
+      '規劃及引導 App 工程師開發專用手機應用程式（Android / iOS），並完成雙平台上架',
+      '定義 RESTful API，並使用 Python Flask 實作',
+      '擔任技術顧問協助業務推廣，成功於國內外展覽展示產品亮點並獲得潛在客戶',
+      '取得兩項發明專利，並應用於產品中',
+    ],
+    tags: ['跨團隊溝通及整合', 'Qt', 'Raspberry Pi', 'RESTful API', 'Python Flask', '產品推廣'],
+  },
+  {
+    title: '一次性插管用醫療器材',
+    period: '2022.05 - 2023.05',
+    roles: ['電路設計'],
+    points: [
+      '設計高成本效益電路，成功將 BOM Cost 控制在 1 美元以內，利於大規模量產',
+      '取得 SGS EMI/ESD 測試報告',
+      '取得發明專利及新型專利各一項',
+    ],
+    tags: ['電路設計', 'Altium Designer'],
+  },
+  {
+    title: '重複性插管用醫療器材',
+    period: '2021.11 - 2022.12',
+    roles: ['韌體測試', 'App 規劃'],
+    points: [
+      '協助測試韌體，即時回饋廠商並提供建議解決方案，韌體穩定度提升 30%',
+      '規劃 App 功能，導入 OTA 升級機制，提升用戶使用體驗',
+    ],
+    tags: ['韌體測試', 'App 規劃', 'Android / iOS 上架經驗'],
+  },
+];
+
+const portfolio = [
+  {
+    img: n8nShot,
+    title: 'n8nManager App',
+    desc: '使用 Flutter 雙平台開發，採 MVVM 架構、Provider 控制狀態。提供 n8n 工作流管理、執行狀態監控與安全性偵測，可即時掌握 n8n 狀態。',
+    tags: ['Flutter', 'Dart', 'Provider', 'MVVM'],
+    link: 'https://www.frankchen.tw/n8nmanager',
+    linkText: '查看專案',
+  },
+  {
+    img: blogShot,
+    title: '法蘭克的技術部落格',
+    desc: '分享軟體開發實戰經驗與工具應用的技術部落格。',
+    tags: ['WordPress', 'Astro'],
+    link: '/',
+    linkText: '前往網站',
+  },
+  {
+    img: iset2021,
+    title: 'ISET2021 研討會官方網站',
+    desc: '沿用 ISET 研討會官網功能，美化介面並調整細節問題。',
+    tags: ['HTML', 'CSS', 'JavaScript', 'Google Sheet', 'Google Apps Script'],
+    link: 'https://github.com/haunchen/ISET2021',
+    linkText: 'GitHub',
+  },
+  {
+    img: iset2020,
+    title: 'ISET2020 研討會官方網站',
+    desc: '碩班時期作品，從零手刻網站完成報名與繳費功能。報名系統串接 Google Sheet 作資料庫，搭配 Google Apps Script 完成功能。',
+    tags: ['HTML', 'CSS', 'JavaScript', 'Google Sheet', 'Google Apps Script'],
+    link: 'https://github.com/haunchen/ISET2020',
+    linkText: 'GitHub',
+  },
+];
+
+const socials = [
+  { label: 'GitHub', href: 'https://github.com/haunchen' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/frankchen0130/' },
+  { label: 'Threads', href: 'https://www.threads.com/@frankchen.tw' },
+  { label: 'Buy Me a Coffee', href: 'https://buymeacoffee.com/frankchentw' },
+];
+
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'ProfilePage',
+  url: `${SITE.url}/about/`,
+  mainEntity: {
+    '@type': 'Person',
+    name: 'Frank Chen',
+    alternateName: '法蘭克',
+    jobTitle: '系統整合工程師',
+    email: SITE.email,
+    description: '系統整合工程師，跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。',
+    knowsAbout: ['系統架構規劃', '電子電路開發', '系統整合', 'Flutter', 'n8n'],
+    sameAs: SITE.sameAs,
+  },
+};
+---
+
+<BaseLayout
+  title="關於我 - 下班後的工程師筆記"
+  description="Frank Chen，系統整合工程師。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。"
+  ogImage="/cover.webp"
+  jsonLd={[personJsonLd]}
+>
+  <main class="about">
+    <!-- Hero banner -->
+    <section class="about-hero">
+      <h1 class="about-hero-title">Frank Chen</h1>
+      <p class="about-hero-tagline">不典型的軟體工程師</p>
+    </section>
+
+    <!-- 關於我 -->
+    <section class="about-section">
+      <h2 class="about-h2">關於我</h2>
+      <div class="about-bio">
+        <Image src={avatar} alt="Frank Chen 的頭像" class="about-avatar" />
+        <div>
+          <p>我是一位充滿熱忱的系統整合工程師，擁有超過 3 年的軟體開發經驗。曾領導 5 人團隊完成兩代智慧醫療模擬器的完整開發與商業化，涵蓋軟體、韌體、硬體、App 及後端系統。</p>
+          <p>技術棧涵蓋嵌入式系統、移動端開發與 AI 整合，具備從 0 到 1 的產品開發與團隊協作能力。</p>
+          <div class="about-tags">
+            <TagBadge text="系統架構規劃" />
+            <TagBadge text="電子電路開發" />
+            <TagBadge text="系統整合" />
+            <TagBadge text="Flutter" />
+            <TagBadge text="n8n" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 工作經歷 -->
+    <section class="about-section">
+      <h2 class="about-h2">工作經歷</h2>
+      <div class="about-cards">
+        {experiences.map((exp) => (
+          <div class="about-card">
+            <h3 class="about-card-title">{exp.role}</h3>
+            <p class="about-card-company">{exp.company}</p>
+            <p class="about-card-period">{exp.period}</p>
+            <ul class="about-list">
+              {exp.points.map((p) => <li>{p}</li>)}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 專案經歷 -->
+    <section class="about-section">
+      <h2 class="about-h2">專案經歷</h2>
+      <div class="about-grid-2">
+        {projects.map((proj) => (
+          <div class="about-card">
+            <h3 class="about-card-title">{proj.title}</h3>
+            <p class="about-card-period">{proj.period}</p>
+            <div class="about-roles">
+              {proj.roles.map((r) => <span class="about-role">{r}</span>)}
+            </div>
+            <ul class="about-list">
+              {proj.points.map((p) => <li>{p}</li>)}
+            </ul>
+            <div class="about-tags">
+              {proj.tags.map((t) => <TagBadge text={t} size="sm" />)}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 作品集 -->
+    <section class="about-section">
+      <h2 class="about-h2">作品集</h2>
+      <div class="about-grid-2">
+        {portfolio.map((item) => (
+          <div class="about-card about-card--portfolio">
+            <Image src={item.img} alt={item.title} class="about-portfolio-img" />
+            <div class="about-card-body">
+              <h3 class="about-card-title">{item.title}</h3>
+              <p class="about-card-desc">{item.desc}</p>
+              <div class="about-tags">
+                {item.tags.map((t) => <TagBadge text={t} size="sm" />)}
+              </div>
+              <a href={item.link} class="about-link" target={item.link.startsWith('http') ? '_blank' : undefined} rel={item.link.startsWith('http') ? 'noopener noreferrer' : undefined}>{item.linkText} →</a>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 聯絡我 -->
+    <section class="about-section">
+      <h2 class="about-h2">聯絡我</h2>
+      <p class="about-contact-intro">如果你有任何專案想法或合作機會，歡迎隨時與我聯繫。</p>
+      <ul class="about-contact-list">
+        <li>Email：<a class="about-link" href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+        <li>地點：台南，台灣</li>
+        <li>聯絡頁：<a class="about-link" href="/contact-frank/">前往聯絡頁面</a></li>
+      </ul>
+      <div class="about-socials">
+        {socials.map((s) => (
+          <a class="about-social" href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+        ))}
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .about {
+    max-width: var(--width-wide);
+    margin: 0 auto;
+    padding: 0 24px 80px;
+  }
+
+  /* Hero */
+  .about-hero {
+    text-align: center;
+    padding: 48px 0 32px;
+  }
+
+  .about-hero-title {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .about-hero-tagline {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    margin-top: 8px;
+  }
+
+  /* Section */
+  .about-section {
+    padding: 48px 0;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .about-h2 {
+    font-family: var(--font-serif);
+    font-size: 28px;
+    line-height: 38px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+
+  /* Bio */
+  .about-bio {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .about-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: var(--radius-full);
+    border: 2px solid var(--color-border-default);
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  .about-bio p {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 28px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .about-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+
+  /* Cards */
+  .about-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .about-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .about-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: 24px;
+  }
+
+  .about-card--portfolio {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .about-card-body {
+    padding: 24px;
+  }
+
+  .about-portfolio-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-bottom: 1px solid var(--color-border-default);
+  }
+
+  .about-card-title {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .about-card-company {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: 2px;
+  }
+
+  .about-card-period {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .about-card-desc {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .about-roles {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .about-role {
+    font-family: var(--font-sans);
+    font-size: 12px;
+    color: var(--color-text-muted);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 1px 8px;
+  }
+
+  .about-list {
+    list-style: disc;
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+
+  .about-list li {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 24px;
+    color: var(--color-text-secondary);
+    margin-bottom: 6px;
+  }
+
+  .about-link {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .about-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+  }
+
+  /* Contact */
+  .about-contact-intro {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 28px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .about-contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    color: var(--color-text-secondary);
+    line-height: 32px;
+  }
+
+  .about-socials {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .about-social {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-full);
+    transition: color 300ms steps(3), border-color 300ms steps(3);
+  }
+
+  .about-social:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border-strong);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    .about-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .about-bio {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .about-bio .about-tags {
+      justify-content: center;
+    }
+
+    .about-hero-title {
+      font-size: 28px;
+      line-height: 38px;
+    }
+  }
+</style>

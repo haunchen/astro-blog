@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../utils/site-meta';
+---
+
+<BaseLayout
+  title="隱私權政策 - 下班後的工程師筆記"
+  description="本站如何處理你的資料：本站為靜態網站，不主動蒐集個人資料、未安裝追蹤型分析工具。"
+>
+  <main class="legal">
+    <h1 class="legal-title">隱私權政策</h1>
+    <p class="legal-updated">最後更新：2026-06-26</p>
+
+    <div class="prose">
+      <h2>我們是誰</h2>
+      <p>本網站網址為 https://www.frankchen.tw，由 Frank Chen 經營。如有任何隱私相關問題，歡迎來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。</p>
+
+      <h2>我們蒐集哪些資料</h2>
+      <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站目前未安裝第三方分析工具（例如 Google Analytics），不會建立你的瀏覽行為輪廓。</p>
+
+      <h2>Cookie</h2>
+      <p>本站本身不使用追蹤型 Cookie。網站由 Cloudflare Pages 代管，平台可能基於資訊安全與效能設置必要性 Cookie；這類 Cookie 不用於識別你的身分。</p>
+
+      <h2>第三方嵌入內容</h2>
+      <p>本站文章可能嵌入來自第三方網站的內容（例如圖片、影片、程式碼片段）。這些內容的隱私權處理方式，與你直接造訪該第三方網站時相同；它們可能會蒐集你的資料、使用 Cookie，或追蹤你與嵌入內容的互動。</p>
+
+      <h2>外部連結</h2>
+      <p>本站文章可能包含指向外部網站的連結。一旦你離開本站，我們無法為其他網站的隱私權做法負責，建議你查閱該網站自己的隱私權政策。</p>
+
+      <h2>你的權利與聯絡方式</h2>
+      <p>由於本站不主動蒐集個人資料，通常沒有可供查詢或刪除的個人資料。如你仍有任何疑問或要求，歡迎來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。</p>
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .legal {
+    max-width: var(--width-content);
+    margin: 0 auto;
+    padding: 64px 24px;
+  }
+
+  .legal-title {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .legal-updated {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: 8px 0 32px;
+    letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 768px) {
+    .legal {
+      padding: 40px 16px;
+    }
+
+    .legal-title {
+      font-size: 28px;
+      line-height: 38px;
+    }
+  }
+</style>

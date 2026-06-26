@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 import { getCollection } from 'astro:content';
+import { CATEGORIES } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -10,13 +11,13 @@ const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.val
 const featured = latestPosts[0];
 const rest = latestPosts.slice(1, 4);
 
-const categories = [
-  { name: 'n8n 自動化', count: 17, href: '/category/n8n/' },
-  { name: '架站部署', count: 7, href: '/category/deployment/' },
-  { name: 'Flutter', count: 4, href: '/category/flutter/' },
-  { name: '工具', count: 4, href: '/category/tools/' },
-  { name: '樹莓派', count: 3, href: '/category/raspberry-pi/' },
-];
+const categories = CATEGORIES
+  .map(({ slug, label }) => ({
+    name: label,
+    count: posts.filter((p) => p.data.category === slug).length,
+    href: `/category/${slug}/`,
+  }))
+  .filter((c) => c.count > 0);
 
 const projects = [
   {
@@ -43,7 +44,7 @@ const projects = [
 ];
 ---
 
-<BaseLayout title="法蘭克的技術筆記" description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。">
+<BaseLayout title="法蘭克的技術筆記" description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。" ogImage="/cover.webp">
   <main>
     <!-- Hero -->
     <div class="container">

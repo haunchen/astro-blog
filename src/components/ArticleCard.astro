@@ -2,6 +2,7 @@
 import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 import TagBadge from './TagBadge.astro';
+import { categoryLabel } from '../utils/site-meta';
 
 interface Props {
   title: string;
@@ -28,7 +29,7 @@ const formattedDate = date.toISOString().slice(0, 10);
   </div>
   <div class="card-body">
     <div class="card-meta">
-      <TagBadge text={category} size="sm" />
+      <TagBadge text={categoryLabel(category)} size="sm" />
       <span class="card-date">{formattedDate}</span>
     </div>
     <h3 class="card-title">{title}</h3>

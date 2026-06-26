@@ -1,0 +1,122 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../utils/site-meta';
+
+const socials = [
+  { label: 'GitHub', href: 'https://github.com/haunchen' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/frankchen0130/' },
+  { label: 'Threads', href: 'https://www.threads.com/@frankchen.tw' },
+  { label: 'Buy Me a Coffee', href: 'https://buymeacoffee.com/frankchentw' },
+];
+---
+
+<BaseLayout
+  title="聯絡我 - 下班後的工程師筆記"
+  description="與 Frank Chen 聯絡：專案想法、合作機會或技術交流，歡迎來信或透過社群聯繫。"
+>
+  <main class="contact">
+    <h1 class="contact-title">聯絡我</h1>
+    <p class="contact-intro">如果你有任何專案想法、合作機會，或只是想聊聊技術，歡迎透過以下方式與我聯繫，我會盡快回覆。</p>
+
+    <h2 class="contact-h2">直接聯繫</h2>
+    <ul class="contact-list">
+      <li>Email：<a class="contact-link" href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+      <li>地點：台南，台灣</li>
+    </ul>
+
+    <h2 class="contact-h2">社群</h2>
+    <div class="contact-socials">
+      {socials.map((s) => (
+        <a class="contact-social" href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+      ))}
+    </div>
+  </main>
+</BaseLayout>
+
+<style>
+  .contact {
+    max-width: var(--width-content);
+    margin: 0 auto;
+    padding: 64px 24px;
+  }
+
+  .contact-title {
+    font-family: var(--font-serif);
+    font-size: 36px;
+    line-height: 48px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .contact-intro {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 28px;
+    color: var(--color-text-secondary);
+    margin: 16px 0 32px;
+  }
+
+  .contact-h2 {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    margin: 32px 0 16px;
+  }
+
+  .contact-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--color-text-secondary);
+    line-height: 32px;
+  }
+
+  .contact-link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .contact-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+  }
+
+  .contact-socials {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+  }
+
+  .contact-social {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: 6px 14px;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-full);
+    transition: color 300ms steps(3), border-color 300ms steps(3);
+  }
+
+  .contact-social:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-border-strong);
+  }
+
+  @media (max-width: 768px) {
+    .contact {
+      padding: 40px 16px;
+    }
+
+    .contact-title {
+      font-size: 28px;
+      line-height: 38px;
+    }
+  }
+</style>
