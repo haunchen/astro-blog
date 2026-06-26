@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleCard from '../../components/ArticleCard.astro';
 import CategoryBar from '../../components/CategoryBar.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, type CollectionEntry } from 'astro:content';
 import { CATEGORIES, categoryLabel } from '../../utils/site-meta';
 
 export async function getStaticPaths() {
@@ -15,6 +15,11 @@ export async function getStaticPaths() {
       return { params: { category: slug }, props: { categoryPosts, slug } };
     })
     .filter((entry) => entry.props.categoryPosts.length > 0);
+}
+
+interface Props {
+  categoryPosts: CollectionEntry<'posts'>[];
+  slug: string;
 }
 
 const { categoryPosts, slug } = Astro.props;
