@@ -2,7 +2,7 @@
 import { SEO } from 'astro-seo';
 import { ClientRouter } from 'astro:transitions';
 import JsonLd from '../components/JsonLd.astro';
-import { ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
+import { SITE, ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -50,7 +50,7 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
         optional: {
           description,
           locale: 'zh_TW',
-          siteName: title,
+          siteName: SITE.name,
         },
       }}
     />
