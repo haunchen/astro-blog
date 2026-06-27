@@ -19,7 +19,8 @@ for (const post of sorted) {
 }
 const groups = [...groupsMap.entries()].sort((a, b) => b[0] - a[0]);
 
-const mmdd = (d: Date) => d.toISOString().slice(5, 10);
+const mmdd = (d: Date) =>
+  `${String(d.getUTCMonth() + 1).padStart(2, '0')}-${String(d.getUTCDate()).padStart(2, '0')}`;
 ---
 
 <div class="timeline">
@@ -68,7 +69,8 @@ const mmdd = (d: Date) => d.toISOString().slice(5, 10);
   }
 
   .timeline-row {
-    display: flex;
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
     align-items: baseline;
     gap: 16px;
     padding: 10px 0;
@@ -76,15 +78,12 @@ const mmdd = (d: Date) => d.toISOString().slice(5, 10);
   }
 
   .timeline-date {
-    flex-shrink: 0;
-    width: 48px;
     font-family: var(--font-mono);
     font-size: 14px;
     color: var(--color-text-muted);
   }
 
   .timeline-link {
-    flex: 1;
     font-family: var(--font-sans);
     font-size: 16px;
     color: var(--color-text-primary);
@@ -99,17 +98,17 @@ const mmdd = (d: Date) => d.toISOString().slice(5, 10);
   }
 
   .timeline-badge {
-    flex-shrink: 0;
+    display: inline-flex;
   }
 
   @media (max-width: 768px) {
     .timeline-row {
-      flex-wrap: wrap;
-      gap: 4px 12px;
+      grid-template-columns: 48px 1fr;
+      gap: 4px 16px;
     }
 
     .timeline-badge {
-      margin-left: 64px;
+      grid-column: 2;
     }
   }
 </style>
