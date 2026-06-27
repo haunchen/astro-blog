@@ -1,0 +1,18 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CategoryGrid from '../../components/CategoryGrid.astro';
+---
+
+<BaseLayout
+  title="分類 - 下班後的工程師筆記"
+  description="依主題瀏覽所有技術文章分類：n8n 自動化、架站部署、Flutter、樹莓派與開發工具。"
+>
+  <main class="list-page">
+    <header class="list-head">
+      <h1 class="list-title">分類</h1>
+      <p class="list-sub">依主題瀏覽文章</p>
+    </header>
+
+    <CategoryGrid />
+  </main>
+</BaseLayout>
