@@ -148,3 +148,65 @@ last_modified: 2026-06-26
 - **Rationale**: 該頁是 WordPress 站既有的產品介紹頁、Astro 站無此路由；`SITE.url`（`https://frankchen.tw`，非 www）改寫會指向不存在的 Astro 路由變死連結。與 /contact-frank/（改建站內頁）刻意做不同處理：contact 頁有等價內容可內建，n8nmanager 無
 - **Date**: 2026-06-26
 
+## Pending Changes
+
+> Delta from branch `feat/articles-timeline`（2026-06-27 brainstorm）。
+> `/articles/` 改年份分組時間軸、`/category/` 加分類總覽頁、`/category/<slug>/` 改時間軸、移除分類導覽列。
+> 新 Requirement ID 從既有最大值 R10 +1 起。
+
+### MODIFIED R3: 文章總覽頁
+- **Level**: MUST
+- **Change**: `/articles/` 由卡片網格改為「按年份分組的時間軸列表」：年份標題降序、組內由新到舊，每列含日期（MM-DD）、文章標題連結與分類標籤；仍不分頁、無 client 端篩選；移除頂部分類導覽列。
+
+### MODIFIED R4: 分類頁
+- **Level**: MUST
+- **Change**: `/category/{slug}/` 改用與 `/articles/` 相同的時間軸列表呈現該分類文章；頁頂顯示分類名與篇數，並提供回鏈至 `/category/`。
+
+### REMOVED R5: 分類導覽一致性
+- **Reason**: 改採純時間軸極簡呈現，移除 `/articles/` 與 `/category/` 共用的分類導覽列（`CategoryBar`）。分類入口改由 `/category/` 總覽頁、時間軸每列的分類標籤、首頁探索主題卡共同承擔。
+
+### ADDED R11: 分類總覽頁
+- **Level**: MUST
+- **Description**: `/category/` 提供分類總覽頁，列出每個至少有一篇非草稿文章的分類及其即時篇數（卡片呈現，與首頁探索主題一致），點選導向對應 `/category/{slug}/`；裸 `/category/` 不再 404。
+
+### ADDED R12: 時間軸年份分組
+- **Level**: SHOULD
+- **Description**: 時間軸文章列表依文章發布年份分組，年份標題降序，組內文章由新到舊。
+
+### ADDED R13: 分類子頁回鏈
+- **Level**: SHOULD
+- **Description**: `/category/{slug}/` 提供回到 `/category/` 分類總覽的連結，取代原分類導覽列的切換功能。
+
+### ADDED S9: 文章總覽時間軸
+- **Given**: collection 有跨年份的非草稿文章
+- **When**: 訪客造訪 `/articles/`
+- **Then**: 文章依年份分組（年份降序）、組內新到舊列出，每列顯示日期、標題連結與分類標籤，頁面無分類導覽列
+- **Implements**: #R3 (modified), #R12
+
+### ADDED S10: 分類總覽頁
+- **Given**: 站台已部署、各分類有不同篇數、某分類 0 篇
+- **When**: 訪客造訪 `/category/`
+- **Then**: 列出每個有文章的分類及即時篇數（0 篇分類不出現），點選導向對應 `/category/{slug}/`；`/category/` 不為 404
+- **Implements**: #R11
+
+### ADDED S11: 分類子頁時間軸與回鏈
+- **Given**: 某分類有 N 篇非草稿文章
+- **When**: 訪客造訪 `/category/{slug}/`
+- **Then**: 以時間軸（年份分組）列出該分類 N 篇文章，頁頂顯示分類名與篇數，並有回到 `/category/` 的連結
+- **Implements**: #R4 (modified), #R13
+
+### MODIFIED D4: 文章總覽改時間軸、移除導覽列
+- **Decision**: `/articles/` 由「純時序卡片列表 + 分類導覽列」改為「年份分組時間軸 + 無導覽列」；分類過濾入口移至 `/category/` 總覽頁與每列分類標籤
+- **Rationale**: 使用者偏好 darrelltw.com/archives/ 式時間軸彙整，掃描更快、版面更輕；分類導覽改由總覽頁承擔
+- **Date**: 2026-06-27
+
+### ADDED D10: 共用 ArticleTimeline 與 CategoryGrid 元件
+- **Decision**: 抽 `ArticleTimeline.astro` 供 `/articles/` 與 `/category/{slug}/` 共用；抽 `CategoryGrid.astro` 供首頁探索主題與 `/category/` 總覽共用（取代首頁 inline 卡片）；刪除 `CategoryBar.astro`
+- **Rationale**: 兩處列表/卡片邏輯一致，抽元件消除重複、篇數單一來源；`CategoryBar` 已無使用者
+- **Date**: 2026-06-27
+
+### ADDED D11: 裸 /category/ 改實體總覽頁（非 redirect）
+- **Decision**: 裸 `/category/` 建實體分類總覽頁（`src/pages/category/index.astro`），不採 301 導向 `/articles/`
+- **Rationale**: 使用者要求 `/category/` 呈現分類與篇數總覽（如首頁探索主題），有獨立資訊價值，勝過 redirect
+- **Date**: 2026-06-27
+
