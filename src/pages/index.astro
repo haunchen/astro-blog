@@ -2,22 +2,14 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
+import CategoryGrid from '../components/CategoryGrid.astro';
 import { getCollection } from 'astro:content';
-import { CATEGORIES } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const featured = latestPosts[0];
 const rest = latestPosts.slice(1, 4);
-
-const categories = CATEGORIES
-  .map(({ slug, label }) => ({
-    name: label,
-    count: posts.filter((p) => p.data.category === slug).length,
-    href: `/category/${slug}/`,
-  }))
-  .filter((c) => c.count > 0);
 
 const projects = [
   {
@@ -107,14 +99,7 @@ const projects = [
         <div class="section-header">
           <h2 class="section-title">探索主題</h2>
         </div>
-        <div class="category-grid">
-          {categories.map((cat) => (
-            <a href={cat.href} class="category-card">
-              <div class="category-name">{cat.name}</div>
-              <div class="category-count">{cat.count} 篇</div>
-            </a>
-          ))}
-        </div>
+        <CategoryGrid />
       </div>
     </div>
 
@@ -278,40 +263,6 @@ const projects = [
     gap: 24px;
   }
 
-  /* Category grid */
-  .category-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 16px;
-  }
-
-  .category-card {
-    background: transparent;
-    border: 1px solid var(--color-border-default);
-    border-radius: var(--radius-md);
-    padding: 24px;
-    text-decoration: none;
-    color: inherit;
-    transition: border-color 500ms steps(4);
-  }
-
-  .category-card:hover {
-    animation: einkRefresh 500ms steps(4) forwards;
-  }
-
-  .category-name {
-    font-family: var(--font-sans);
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-
-  .category-count {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--color-text-muted);
-  }
-
   /* About preview */
   .about-preview {
     display: flex;
@@ -443,10 +394,6 @@ const projects = [
 
     .card-grid--three {
       grid-template-columns: 1fr;
-    }
-
-    .category-grid {
-      grid-template-columns: repeat(2, 1fr);
     }
 
     .project-grid {
