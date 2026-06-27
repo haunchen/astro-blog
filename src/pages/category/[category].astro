@@ -1,7 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ArticleCard from '../../components/ArticleCard.astro';
-import CategoryBar from '../../components/CategoryBar.astro';
+import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { CATEGORIES, categoryLabel } from '../../utils/site-meta';
 
@@ -9,9 +8,7 @@ export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
   return CATEGORIES
     .map(({ slug }) => {
-      const categoryPosts = posts
-        .filter((p) => p.data.category === slug)
-        .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+      const categoryPosts = posts.filter((p) => p.data.category === slug);
       return { params: { category: slug }, props: { categoryPosts, slug } };
     })
     .filter((entry) => entry.props.categoryPosts.length > 0);
@@ -34,21 +31,27 @@ const label = categoryLabel(slug);
     <header class="list-head">
       <h1 class="list-title">{label}</h1>
       <p class="list-sub">共 {categoryPosts.length} 篇</p>
+      <a class="list-back" href="/category/">← 所有分類</a>
     </header>
 
-    <CategoryBar active={slug} />
-
-    <div class="article-grid">
-      {categoryPosts.map((post) => (
-        <ArticleCard
-          title={post.data.title}
-          description={post.data.description}
-          date={post.data.date}
-          category={post.data.category}
-          slug={post.id}
-          cover={post.data.cover}
-        />
-      ))}
-    </div>
+    <ArticleTimeline posts={categoryPosts} />
   </main>
 </BaseLayout>
+
+<style>
+  .list-back {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .list-back:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
+  }
+</style>
