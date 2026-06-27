@@ -1,11 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ArticleCard from '../components/ArticleCard.astro';
-import CategoryBar from '../components/CategoryBar.astro';
+import ArticleTimeline from '../components/ArticleTimeline.astro';
 import { getCollection } from 'astro:content';
 
-const posts = (await getCollection('posts', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const posts = await getCollection('posts', ({ data }) => !data.draft);
 ---
 
 <BaseLayout
@@ -18,19 +16,6 @@ const posts = (await getCollection('posts', ({ data }) => !data.draft))
       <p class="list-sub">共 {posts.length} 篇</p>
     </header>
 
-    <CategoryBar active="all" />
-
-    <div class="article-grid">
-      {posts.map((post) => (
-        <ArticleCard
-          title={post.data.title}
-          description={post.data.description}
-          date={post.data.date}
-          category={post.data.category}
-          slug={post.id}
-          cover={post.data.cover}
-        />
-      ))}
-    </div>
+    <ArticleTimeline posts={posts} />
   </main>
 </BaseLayout>
