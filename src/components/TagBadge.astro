@@ -23,6 +23,7 @@ const attrs = href ? { href } : {};
     font-weight: 500;
     padding: 2px 8px;
     background: rgba(251, 146, 60, 0.15);
+    background: color-mix(in srgb, var(--color-brand-orange) 15%, transparent);
     color: var(--color-brand-orange);
     border: none;
     border-radius: var(--radius-sm);
@@ -32,6 +33,7 @@ const attrs = href ? { href } : {};
 
   .tag:hover {
     background: rgba(251, 146, 60, 0.25);
+    background: color-mix(in srgb, var(--color-brand-orange) 25%, transparent);
   }
 
   .tag--sm {

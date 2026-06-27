@@ -2,7 +2,7 @@ export const SITE = {
   name: '下班後的工程師筆記',
   tagline: '白天上班，下班寫 Side Project。',
   url: 'https://frankchen.tw',
-  logo: 'https://frankchen.tw/logo.png',
+  logo: 'https://frankchen.tw/logo.webp',
   email: 'frank@frankchen.tw',
   sameAs: [
     'https://www.threads.com/@frankchen.tw',

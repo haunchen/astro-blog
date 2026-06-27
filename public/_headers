@@ -18,7 +18,7 @@
 /favicon.svg
   Cache-Control: public, max-age=86400
 
-/logo.png
+/logo.webp
   Cache-Control: public, max-age=86400
 
 /robots.txt
