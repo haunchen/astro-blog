@@ -50,7 +50,7 @@ const blogPosting = {
   datePublished: post.data.date.toISOString(),
   dateModified: (post.data.updated ?? post.data.date).toISOString(),
   image: `${SITE.url}/og/${post.id}.png`,
-  author: { '@id': `${SITE.url}/#org` },
+  author: { '@type': 'Person', name: SITE.author },
   publisher: { '@id': `${SITE.url}/#org` },
   mainEntityOfPage: canonicalURL,
   articleSection: categoryLabel,
@@ -132,7 +132,7 @@ const breadcrumb = {
           <div class="aside-author">
             <div class="aside-author-avatar">F</div>
             <div>
-              <div class="aside-author-name">Frank</div>
+              <div class="aside-author-name">{SITE.author}</div>
               <div class="aside-author-role">系統整合工程師</div>
             </div>
           </div>

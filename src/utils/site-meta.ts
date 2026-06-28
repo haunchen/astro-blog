@@ -1,9 +1,10 @@
 export const SITE = {
-  // 品牌/SEO 識別：<title> 後綴、og:site_name、JSON-LD（對外搜尋/分享用個人識別）
-  name: '法蘭克｜不典型的軟體工程師',
+  // 網站名：header/footer 顯示、<title> 後綴、og:site_name、JSON-LD（所有「網站」場合）
+  name: '下班後的工程師筆記',
   tagline: '白天上班，下班寫 Side Project。',
-  // header/footer 站上顯示用標題與副標（走 side-project 調性）
-  title: '下班後的工程師筆記',
+  // 作者名（署名用：文章作者 byline、BlogPosting author / JSON-LD）
+  author: '法蘭克｜不典型的軟體工程師',
+  // header/footer 副標
   subtitle: '白天上班，下班寫 Side Project。',
   description: '從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。',
   url: 'https://frankchen.tw',

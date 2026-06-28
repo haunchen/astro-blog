@@ -239,10 +239,10 @@ last_modified: 2026-06-28
 - **Rationale**: 使用者要求全生＋文字雲；編碼處理中文／特殊字一致性
 - **Date**: 2026-06-28
 
-### D16: 顯示標題／副標／描述抽到 site-meta、品牌名定案（大標題）
-- **Decision**: 站上 header/footer 顯示用 `SITE.title`＝「下班後的工程師筆記」、`SITE.subtitle`＝「白天上班，下班寫 Side Project。」（side-project 調性）；品牌/SEO 識別 `SITE.name`＝「法蘭克｜不典型的軟體工程師」，用於 `<title>` 後綴、og:site_name、JSON-LD（對外搜尋/分享用個人識別）。`SITE.description` 維持。icon 全面換成 `$ frank _` logo（logo.webp/favicon.png/apple-touch-icon.png）
-- **Rationale**: 站上走品牌調性、對外用可搜尋的個人識別，兩者刻意分開（解 2026-06-28 大標題討論：原「暫用原站字串待議」定案）
-- **Date**: 2026-06-28
+### D16: 網站名與作者名分流定案（大標題）
+- **Decision**: 區分兩個身分——網站名 `SITE.name`＝「下班後的工程師筆記」，用於**所有「網站」場合**：header/footer 顯示、`<title>` 後綴（pageTitle）、og:site_name、Organization/WebSite JSON-LD；作者名 `SITE.author`＝「法蘭克｜不典型的軟體工程師」，用於**署名**：文章作者 byline widget、BlogPosting JSON-LD `author`（Person）。`SITE.subtitle`＝「白天上班，下班寫 Side Project。」（header 副標）。移除舊 `SITE.title`（與 name 重複，header/footer 改讀 `SITE.name`）。icon 全面換成 `$ frank _` logo（logo.webp/favicon.png/apple-touch-icon.png）
+- **Rationale**: 解 2026-06-28 大標題討論——「法蘭克｜不典型的軟體工程師」是作者名不是網站名，故分頁後綴等網站場合一律用網站名「下班後的工程師筆記」、署名才用作者名。注意 OG 圖（satori）渲染 `SITE.name`，其 subset 字型來源 `subset-fonts.mjs` 硬編同字串，兩者須一致（name 用此值剛好對上、無缺字）
+- **Date**: 2026-06-28（同日先誤設 name=作者名，當日更正為此分流）
 
 ### D18: 頁面 `<title>` 單一來源 `pageTitle()`、首頁移除 hero
 - **Decision**: 於 `site-meta` 加 `pageTitle(t?)` helper（有頁名→「頁名 - SITE.name」、無→純 SITE.name），全頁 `<title>` 改用它，消除原本散落硬編的品牌後綴與首頁第三種名字「法蘭克的技術筆記」；文章頁補品牌後綴。首頁 hero（大 h1＋介紹＋標籤＋捲動提示）移除——tall header 每頁已承載站台識別，hero 與其重複
