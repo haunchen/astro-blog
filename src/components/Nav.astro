@@ -116,7 +116,9 @@ function isActive(href: string): boolean {
     align-items: center;
     justify-content: space-between;
     gap: 24px;
-    padding: 18px 24px;
+    /* bar 滿版，內容置中對齊 body 寬度（--width-max，與 footer/首頁 container 同含 24px 內距） */
+    padding-block: 18px;
+    padding-inline: max(24px, calc(50% - var(--width-max) / 2 + 24px));
     background: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border-default);
     font-family: var(--font-sans);
@@ -234,7 +236,7 @@ function isActive(href: string): boolean {
 
   /* 收合（捲動後） */
   .site-header.scrolled {
-    padding: 8px 24px;
+    padding-block: 8px;
   }
 
   .site-header.scrolled .header-avatar {
