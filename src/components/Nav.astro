@@ -1,10 +1,7 @@
 ---
-const pathname = Astro.url.pathname;
+import { SITE, HEADER_NAV } from '../utils/site-meta';
 
-const navLinks = [
-  { href: '/articles/', label: '文章' },
-  { href: '/about/', label: '關於我' },
-];
+const pathname = Astro.url.pathname;
 
 function isActive(href: string): boolean {
   if (href === '/') return pathname === '/';
@@ -12,62 +9,153 @@ function isActive(href: string): boolean {
 }
 ---
 
-<nav class="nav">
-  <a href="/" class="nav-logo">Frank Chen</a>
-  <ul class="nav-links" id="nav-links">
-    {navLinks.map(({ href, label }) => (
-      <li>
-        <a href={href} class:list={[{ 'nav-active': isActive(href) }]}>
-          {label}
-        </a>
-      </li>
-    ))}
-    <li><a href="https://github.com/HaunChen" class="social-icon" target="_blank" rel="noopener noreferrer">GH</a></li>
-    <li><a href="https://threads.net/@frank_chen" class="social-icon" target="_blank" rel="noopener noreferrer">TH</a></li>
-  </ul>
-  <button class="nav-hamburger" id="nav-hamburger" aria-label="選單" type="button">
+<div class="header-sentinel" id="header-sentinel" aria-hidden="true"></div>
+<header class="site-header" id="site-header">
+  <a href="/" class="header-brand">
+    <img src="/logo.webp" alt="" class="header-avatar" width="56" height="56" />
+    <span class="header-id">
+      <span class="header-title">{SITE.title}</span>
+      <span class="header-subtitle">{SITE.subtitle}</span>
+    </span>
+  </a>
+
+  <button class="nav-hamburger" id="nav-hamburger" aria-label="選單" aria-expanded="false" type="button">
     <span></span><span></span><span></span>
   </button>
-</nav>
+
+  <nav class="header-nav" id="header-nav">
+    <ul class="nav-links">
+      {HEADER_NAV.map((item) =>
+        'children' in item && item.children ? (
+          <li class="nav-item nav-item--dropdown">
+            <div class="nav-parent">
+              <a href={item.href} class:list={[{ 'nav-active': isActive(item.href) }]}>{item.label}</a>
+              <button
+                class="nav-caret"
+                type="button"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-label={`展開${item.label}子選單`}
+              >▾</button>
+            </div>
+            <ul class="nav-dropdown">
+              {item.children.map((child) => (
+                <li>
+                  <a href={child.href} class:list={[{ 'nav-active': isActive(child.href) }]}>{child.label}</a>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ) : (
+          <li class="nav-item">
+            <a href={item.href} class:list={[{ 'nav-active': isActive(item.href) }]}>{item.label}</a>
+          </li>
+        )
+      )}
+    </ul>
+  </nav>
+</header>
 
 <script>
-  function initNav() {
+  function initHeader() {
+    const header = document.getElementById('site-header');
+    const sentinel = document.getElementById('header-sentinel');
     const hamburger = document.getElementById('nav-hamburger');
-    const links = document.getElementById('nav-links');
-    if (!hamburger || !links) return;
+    const nav = document.getElementById('header-nav');
 
-    hamburger.addEventListener('click', () => {
-      const expanded = links.classList.toggle('nav-links--open');
-      hamburger.setAttribute('aria-expanded', String(expanded));
+    // 捲離頂部 → 收合成精簡 sticky bar
+    if (header && sentinel && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver(
+        ([entry]) => header.classList.toggle('scrolled', !entry.isIntersecting),
+        { threshold: 0 }
+      );
+      io.observe(sentinel);
+    }
+
+    // 手機漢堡
+    if (hamburger && nav) {
+      hamburger.addEventListener('click', () => {
+        const open = nav.classList.toggle('header-nav--open');
+        hamburger.setAttribute('aria-expanded', String(open));
+      });
+    }
+
+    // 手機下拉 caret 切換
+    document.querySelectorAll('.nav-caret').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const item = (btn as HTMLElement).closest('.nav-item--dropdown');
+        if (!item) return;
+        const open = item.classList.toggle('nav-item--open');
+        btn.setAttribute('aria-expanded', String(open));
+      });
     });
   }
 
-  initNav();
-  document.addEventListener('astro:after-swap', initNav);
+  initHeader();
+  document.addEventListener('astro:after-swap', initHeader);
 </script>
 
 <style>
-  .nav {
+  .header-sentinel {
+    height: 1px;
+  }
+
+  .site-header {
     position: sticky;
     top: 0;
     z-index: 100;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: var(--height-header);
-    padding: 0 24px;
+    gap: 24px;
+    padding: 18px 24px;
     background: var(--color-bg-secondary);
     border-bottom: 1px solid var(--color-border-default);
     font-family: var(--font-sans);
+    transition: padding 300ms steps(3);
   }
 
-  .nav-logo {
-    font-weight: 700;
-    font-size: 18px;
-    color: var(--color-text-primary);
+  /* 品牌（頭像＋標題＋副標） */
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
     text-decoration: none;
+    color: var(--color-text-primary);
+    min-width: 0;
   }
 
+  .header-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border-default);
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+    object-fit: contain;
+    transition: width 300ms steps(3), height 300ms steps(3);
+  }
+
+  .header-id {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .header-subtitle {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+
+  /* nav */
   .nav-links {
     display: flex;
     align-items: center;
@@ -77,33 +165,85 @@ function isActive(href: string): boolean {
     padding: 0;
   }
 
+  .nav-item {
+    position: relative;
+  }
+
+  .nav-parent {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
   .nav-links a {
     color: var(--color-text-secondary);
     text-decoration: none;
     font-size: 15px;
+    white-space: nowrap;
     transition: color 300ms steps(3);
   }
 
-  .nav-links a:hover {
-    color: var(--color-text-primary);
-  }
-
+  .nav-links a:hover,
   .nav-links a.nav-active {
     color: var(--color-text-primary);
   }
 
-  .nav-links .social-icon {
-    display: inline-flex;
-    align-items: center;
-    color: var(--color-text-muted);
-    font-size: 13px;
-    transition: color 300ms steps(3);
+  .nav-caret {
+    background: none;
+    border: none;
+    color: var(--color-text-secondary);
+    font-size: 12px;
+    line-height: 1;
+    padding: 0;
+    cursor: pointer;
   }
 
-  .nav-links .social-icon:hover {
-    color: var(--color-text-primary);
+  /* 下拉 */
+  .nav-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    min-width: 180px;
+    margin-top: 8px;
+    padding: 8px 0;
+    list-style: none;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    display: none;
+    z-index: 110;
   }
 
+  .nav-item--dropdown:hover .nav-dropdown,
+  .nav-item--dropdown:focus-within .nav-dropdown {
+    display: block;
+  }
+
+  .nav-dropdown a {
+    display: block;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  /* 收合（捲動後） */
+  .site-header.scrolled {
+    padding: 8px 24px;
+  }
+
+  .site-header.scrolled .header-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .site-header.scrolled .header-subtitle {
+    display: none;
+  }
+
+  .site-header.scrolled .header-title {
+    font-size: 16px;
+  }
+
+  /* 漢堡 */
   .nav-hamburger {
     display: none;
     flex-direction: column;
@@ -116,31 +256,79 @@ function isActive(href: string): boolean {
 
   .nav-hamburger span {
     display: block;
-    width: 20px;
+    width: 22px;
     height: 2px;
     background: var(--color-text-primary);
   }
 
+  /* 手機 */
   @media (max-width: 768px) {
-    .nav-links {
+    .header-subtitle {
       display: none;
     }
 
-    .nav-links.nav-links--open {
+    .header-title {
+      font-size: 16px;
+    }
+
+    .header-avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .nav-hamburger {
       display: flex;
-      flex-direction: column;
+    }
+
+    .header-nav {
+      display: none;
       position: absolute;
-      top: var(--height-header);
+      top: 100%;
       left: 0;
       right: 0;
       background: var(--color-bg-secondary);
       border-bottom: 1px solid var(--color-border-default);
       padding: 16px 24px;
+    }
+
+    .header-nav.header-nav--open {
+      display: block;
+    }
+
+    .nav-links {
+      flex-direction: column;
+      align-items: flex-start;
       gap: 16px;
     }
 
-    .nav-hamburger {
-      display: flex;
+    .nav-item,
+    .nav-item--dropdown {
+      width: 100%;
+    }
+
+    .nav-parent {
+      width: 100%;
+      justify-content: space-between;
+    }
+
+    /* 手機改用 caret 點擊展開，停用 hover/focus 自動展開 */
+    .nav-item--dropdown:hover .nav-dropdown,
+    .nav-item--dropdown:focus-within .nav-dropdown {
+      display: none;
+    }
+
+    .nav-dropdown {
+      position: static;
+      min-width: 0;
+      margin: 8px 0 0;
+      padding: 0 0 0 16px;
+      border: none;
+      background: transparent;
+      display: none;
+    }
+
+    .nav-item--open .nav-dropdown {
+      display: block;
     }
   }
 </style>
