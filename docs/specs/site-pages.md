@@ -71,23 +71,15 @@ last_modified: 2026-06-28
 - **Level**: MUST
 - **Description**: 每個至少有一篇非草稿文章的 tag 在 `/tag/{tag}/` 以時間軸（年份分組）列出該 tag 文章並顯示篇數，並提供回 `/tag/` 的連結；`/tag/` 提供標籤雲總覽，列出全部 tag、字級依篇數分級，點選導向對應 `/tag/{tag}/`。tag 路徑以 URL 編碼處理中文／特殊字。篇數一律即時計算。
 
-### R17: n8n-resources 占位頁
-- **Level**: MUST
-- **Description**: `/n8n-resources/` 提供最小但真實的占位頁（標題、簡介、少量真連結），供 header「n8n 相關資源」與 footer「n8n 學習資源」連結，確保無死連結；完整策展內容（7 區塊）另案處理。
-
-## Pending Changes
-
-> feat/n8n-resources（2026-06-28）— n8n-resources 由占位頁升級為完整 7 區塊策展頁
-
-### MODIFIED R17: n8n-resources 完整策展頁
+### R17: n8n-resources 完整策展頁
 - **Level**: MUST
 - **Description**: `/n8n-resources/` 由占位頁升級為完整 7 區塊策展頁：(1) 教學文章＝最新 N 篇 `category: n8n` 文章精選並提供「查看全部」連到 `/category/n8n/`（不在本頁重做分頁）(2) 模板分享＝帶「模板」tag 的文章 (3) 推薦學習資源 (4) 推薦進階應用 (5) 推薦模板 (6) Line 社群 (7) 官方資源。前兩區內容由 content collection 即時查詢（篇數/順序不寫死），後五區為策展資料。視覺沿用站台 e-ink 深色系與既有版面骨架。
 
-### ADDED R18: 外部策展資料單一來源
+### R18: 外部策展資料單一來源
 - **Level**: MUST
 - **Description**: n8n-resources 後五區的外部策展內容（學習資源、進階應用、推薦模板、Line 社群、官方連結）以型別化單一來源檔 `src/data/n8n-resources.ts` 定義；頁面只渲染、不內嵌寫死資料。
 
-### ADDED R19: 外部連結開新分頁
+### R19: 外部連結開新分頁
 - **Level**: SHOULD
 - **Description**: n8n-resources 頁面所有指向站外的連結一律以 `target="_blank"` 開新分頁並帶 `rel="noopener noreferrer"`；站內連結（文章、分類、tag）維持同分頁。
 
@@ -177,13 +169,13 @@ last_modified: 2026-06-28
 - **Then**: 到達 `/n8n-resources/` 占位頁（非 404），含簡介與少量真連結
 - **Implements**: #R17
 
-### S15: n8n-resources 完整策展頁（Pending: feat/n8n-resources）
+### S15: n8n-resources 完整策展頁
 - **Given**: collection 有 n8n 文章與帶「模板」tag 的文章、`src/data/n8n-resources.ts` 已定義策展資料
 - **When**: 訪客造訪 `/n8n-resources/`
 - **Then**: 看到 7 區塊（教學文章精選＋查看全部連 `/category/n8n/`、模板分享、推薦學習資源、推薦進階應用、推薦模板、Line 社群、官方資源），各區內容與卡片正確
 - **Implements**: #R17, #R18
 
-### S16: 外部連結開新分頁（Pending: feat/n8n-resources）
+### S16: 外部連結開新分頁
 - **Given**: 訪客在 `/n8n-resources/`
 - **When**: 點任一站外資源連結（YouTube／Threads／模板／官方）
 - **Then**: 連結以新分頁開啟並帶 `rel="noopener noreferrer"`；點站內文章／分類連結則同分頁
