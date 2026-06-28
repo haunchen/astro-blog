@@ -1,24 +1,295 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import ArticleCard from '../components/ArticleCard.astro';
+import ResourceCard from '../components/ResourceCard.astro';
+import { getCollection } from 'astro:content';
 import { pageTitle } from '../utils/site-meta';
+import {
+  LEARNING_RESOURCES,
+  ADVANCED_APPS,
+  RECOMMENDED_TEMPLATES,
+  COMMUNITY,
+  OFFICIAL_LINKS,
+} from '../data/n8n-resources';
+
+const posts = await getCollection('posts', ({ data }) => !data.draft);
+const byDateDesc = (a: typeof posts[number], b: typeof posts[number]) =>
+  b.data.date.valueOf() - a.data.date.valueOf();
+
+// 區塊 1：最新 6 篇 n8n 文章
+const n8nPosts = posts
+  .filter((p) => p.data.category === 'n8n')
+  .sort(byDateDesc)
+  .slice(0, 6);
+
+// 區塊 2：帶「模板」tag 的文章（封頂 3 篇，與區塊 1 一致；更多走 /tag/模板/）
+const templatePosts = posts
+  .filter((p) => p.data.tags.includes('模板'))
+  .sort(byDateDesc)
+  .slice(0, 3);
 ---
 
 <BaseLayout
   title={pageTitle('n8n 相關資源')}
-  description="n8n 教學文章、模板分享與學習資源整理。"
+  description="n8n 教學文章、自動化模板分享，以及精選 YouTube 學習資源、進階應用、推薦模板與社群整理。"
 >
   <main class="list-page">
     <header class="list-head">
       <h1 class="list-title">n8n 相關資源</h1>
-      <p class="list-sub">教學文章、模板分享、外部資源</p>
+      <p class="list-sub">教學文章、模板分享、學習資源、進階應用與社群整理</p>
     </header>
 
-    <div class="prose">
-      <p>整理自己實戰過的 n8n 內容，包含教學文章、自動化模板，以及參考過的學習資源。完整資源整理持續更新中。</p>
-      <ul>
-        <li><a href="/category/n8n/">n8n 相關文章</a></li>
-        <li><a href={`/tag/${encodeURIComponent('模板')}/`}>n8n 自動化模板</a></li>
-      </ul>
-    </div>
+    <!-- 區塊 1：教學文章 -->
+    {n8nPosts.length > 0 && (
+      <section class="n8n-section">
+        <div class="n8n-section-head">
+          <h2 class="n8n-section-title">教學文章</h2>
+          <a href="/category/n8n/" class="n8n-section-link">查看全部 n8n 文章 &rarr;</a>
+        </div>
+        <div class="article-grid">
+          {n8nPosts.map((post) => (
+            <ArticleCard
+              title={post.data.title}
+              description={post.data.description}
+              date={post.data.date}
+              category={post.data.category}
+              slug={post.id}
+              cover={post.data.cover}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- 區塊 2：模板分享 -->
+    {templatePosts.length > 0 && (
+      <section class="n8n-section">
+        <div class="n8n-section-head">
+          <h2 class="n8n-section-title">模板分享</h2>
+          <a href={`/tag/${encodeURIComponent('模板')}/`} class="n8n-section-link">更多模板 &rarr;</a>
+        </div>
+        <div class="article-grid">
+          {templatePosts.map((post) => (
+            <ArticleCard
+              title={post.data.title}
+              description={post.data.description}
+              date={post.data.date}
+              category={post.data.category}
+              slug={post.id}
+              cover={post.data.cover}
+            />
+          ))}
+        </div>
+      </section>
+    )}
+
+    <!-- 區塊 3：推薦學習資源 -->
+    <section class="n8n-section">
+      <div class="n8n-section-head">
+        <h2 class="n8n-section-title">推薦學習資源</h2>
+      </div>
+      <div class="res-grid">
+        {LEARNING_RESOURCES.map((c) => (
+          <ResourceCard name={c.name} desc={c.desc} image={c.image} links={c.links} />
+        ))}
+      </div>
+    </section>
+
+    <!-- 區塊 4：推薦進階應用 -->
+    <section class="n8n-section">
+      <div class="n8n-section-head">
+        <h2 class="n8n-section-title">推薦進階應用</h2>
+      </div>
+      <div class="res-grid">
+        {ADVANCED_APPS.map((c) => (
+          <ResourceCard name={c.name} desc={c.desc} image={c.image} links={c.links} />
+        ))}
+      </div>
+    </section>
+
+    <!-- 區塊 5：推薦模板 -->
+    <section class="n8n-section">
+      <div class="n8n-section-head">
+        <h2 class="n8n-section-title">推薦模板</h2>
+      </div>
+      <div class="res-grid">
+        {RECOMMENDED_TEMPLATES.map((c) => (
+          <ResourceCard name={c.name} desc={c.desc} image={c.image} links={c.links} />
+        ))}
+      </div>
+    </section>
+
+    <!-- 區塊 6：推薦 Line 社群 -->
+    <section class="n8n-section">
+      <div class="n8n-section-head">
+        <h2 class="n8n-section-title">推薦 Line 社群</h2>
+      </div>
+      <div class="community-card">
+        <img
+          src={COMMUNITY.image}
+          alt={`掃描 QR Code 加入「${COMMUNITY.name}」LINE 社群`}
+          class="community-qr"
+          width="150"
+          height="150"
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="community-body">
+          <h3 class="community-name">{COMMUNITY.name}</h3>
+          <p class="community-desc">{COMMUNITY.desc}</p>
+          <a class="community-btn" href={COMMUNITY.joinHref} target="_blank" rel="noopener noreferrer">
+            加入 LINE 社群 &rarr;
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 區塊 7：官方資源 -->
+    <section class="n8n-section">
+      <div class="n8n-section-head">
+        <h2 class="n8n-section-title">官方資源</h2>
+      </div>
+      <div class="official-row">
+        {OFFICIAL_LINKS.map((l) => (
+          <a class="official-link" href={l.href} target="_blank" rel="noopener noreferrer">
+            {l.label} &rarr;
+          </a>
+        ))}
+      </div>
+    </section>
   </main>
 </BaseLayout>
+
+<style>
+  .n8n-section {
+    padding: 48px 0;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .n8n-section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+  }
+
+  .n8n-section-title {
+    font-family: var(--font-serif);
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+  }
+
+  .n8n-section-link {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
+    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .n8n-section-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+  }
+
+  .res-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  /* 區塊 6：社群 CTA */
+  .community-card {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: 24px;
+  }
+
+  .community-qr {
+    width: 150px;
+    height: 150px;
+    flex-shrink: 0;
+    border-radius: var(--radius-sm);
+    background: #fff;
+  }
+
+  .community-name {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .community-desc {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--color-text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .community-btn {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-brand-orange);
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+    border: 1px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    border-radius: var(--radius-sm);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .community-btn:hover {
+    border-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.12);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 12%, transparent);
+  }
+
+  /* 區塊 7：官方連結排 */
+  .official-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .official-link {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    padding: 10px 18px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    transition: border-color 500ms steps(4);
+  }
+
+  .official-link:hover {
+    animation: einkRefresh 500ms steps(4) forwards;
+  }
+
+  @media (max-width: 768px) {
+    .res-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .community-card {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>
