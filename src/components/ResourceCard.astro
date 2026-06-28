@@ -1,0 +1,104 @@
+---
+interface ResLink {
+  label: string;
+  href: string;
+}
+
+interface Props {
+  name: string;
+  desc: string;
+  image: string;
+  links: ResLink[];
+}
+
+const { name, desc, image, links } = Astro.props;
+---
+
+<div class="res-card">
+  <img
+    src={image}
+    alt={name}
+    class="res-thumb"
+    width="72"
+    height="72"
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="res-body">
+    <h3 class="res-name">{name}</h3>
+    <p class="res-desc">{desc}</p>
+    <div class="res-links">
+      {links.map((l) => (
+        <a class="res-link" href={l.href} target="_blank" rel="noopener noreferrer">
+          {l.label} &rarr;
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  .res-card {
+    display: flex;
+    gap: 16px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    transition: border-color 500ms steps(4);
+  }
+
+  .res-card:hover {
+    animation: einkRefresh 500ms steps(4) forwards;
+  }
+
+  .res-thumb {
+    width: 72px;
+    height: 72px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-tertiary);
+  }
+
+  .res-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .res-name {
+    font-family: var(--font-sans);
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .res-desc {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+  }
+
+  .res-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+  }
+
+  .res-link {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .res-link:hover {
+    border-bottom-color: var(--color-brand-orange);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+  }
+</style>
