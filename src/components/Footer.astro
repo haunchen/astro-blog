@@ -1,17 +1,38 @@
 ---
+import { SITE, FOOTER_COLS } from '../utils/site-meta';
+import SocialIcons from './SocialIcons.astro';
+
+const startYear = 2025;
+const currentYear = new Date().getFullYear();
+const yearLabel = currentYear > startYear ? `${startYear}–${currentYear}` : `${startYear}`;
 ---
 
 <footer class="footer">
   <div class="footer-inner">
-    <div class="footer-brand">Frank Chen</div>
-    <p class="footer-tagline">分享實戰經驗、踩坑紀錄與自動化模板</p>
-    <ul class="footer-links">
-      <li><a href="/">首頁</a></li>
-      <li><a href="/articles/">文章</a></li>
-      <li><a href="/about/">關於我</a></li>
-      <li><a href="/privacy-policy/">隱私權政策</a></li>
-    </ul>
-    <p class="footer-copyright">&copy; 2026 Frank Chen. All rights reserved.</p>
+    <div class="footer-main">
+      <div class="footer-brand">
+        <img src="/logo.webp" alt="" class="footer-avatar" width="64" height="64" />
+        <div class="footer-id">
+          <div class="footer-title">{SITE.title}</div>
+          <p class="footer-desc">{SITE.description}</p>
+          <SocialIcons />
+        </div>
+      </div>
+
+      <div class="footer-cols">
+        {FOOTER_COLS.map((col) => (
+          <ul class="footer-col">
+            {col.map((link) => (
+              <li><a href={link.href}>{link.label}</a></li>
+            ))}
+          </ul>
+        ))}
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p class="footer-copyright">Copyright © {yearLabel} 法蘭克</p>
+    </div>
   </div>
 </footer>
 
@@ -19,52 +40,102 @@
   .footer {
     background: var(--color-bg-secondary);
     border-top: 1px solid var(--color-border-default);
-    padding: 48px 0;
+    padding: 48px 0 24px;
     font-family: var(--font-sans);
     font-size: 14px;
     color: var(--color-text-muted);
   }
 
   .footer-inner {
-    max-width: 1200px;
+    max-width: var(--width-max);
     margin: 0 auto;
     padding: 0 24px;
   }
 
+  .footer-main {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 48px;
+  }
+
   .footer-brand {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .footer-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border-default);
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+    object-fit: contain;
+  }
+
+  .footer-id {
+    min-width: 0;
+  }
+
+  .footer-title {
     font-size: 16px;
     font-weight: 700;
     color: var(--color-text-primary);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
   }
 
-  .footer-tagline {
+  .footer-desc {
     color: var(--color-text-secondary);
-    margin-bottom: 24px;
+    line-height: 1.7;
+    margin: 0 0 16px;
+    max-width: 420px;
   }
 
-  .footer-links {
-    display: flex;
+  .footer-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
-    list-style: none;
-    margin: 0 0 24px;
-    padding: 0;
   }
 
-  .footer-links a {
+  .footer-col {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .footer-col a {
     color: var(--color-text-secondary);
     text-decoration: none;
     transition: color 300ms steps(3);
   }
 
-  .footer-links a:hover {
+  .footer-col a:hover {
     color: var(--color-text-primary);
   }
 
+  .footer-bottom {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border-subtle);
+    text-align: center;
+  }
+
   .footer-copyright {
-    color: var(--color-text-muted);
-    font-size: 12px;
+    margin: 0;
     font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--color-text-muted);
     letter-spacing: 0.02em;
+  }
+
+  @media (max-width: 768px) {
+    .footer-main {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
   }
 </style>
