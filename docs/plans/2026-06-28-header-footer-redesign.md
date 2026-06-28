@@ -39,7 +39,7 @@ export const SITE = {
   sameAs: [
 ```
 
-改為（在 `tagline` 後插入 `title`/`subtitle`/`description`，其餘不動）：
+改為（在 `tagline` 後插入 `title`/`subtitle`/`description`；`sameAs` 陣列與 `} as const;` 結尾保持原樣不動）：
 
 ```ts
 export const SITE = {
@@ -536,8 +536,8 @@ function isActive(href: string): boolean {
 </style>
 ```
 
-Step 2: 確認 build 通過且 header 標記出現在輸出
-Run: `npm run build && grep -rl "site-header" dist/index.html`
+Step 2: 先型別檢查再 build（Nav 含 union narrowing，先 check 便於排查）
+Run: `npx astro check 2>/dev/null || true; npm run build && grep -rl "site-header" dist/index.html`
 Expected: build 成功；`dist/index.html` 命中 `site-header`。
 
 Step 3: 確認 Nav 不再有舊的 GH/TH 文字連結殘留
@@ -950,7 +950,9 @@ Expected: 成功，無錯誤／警告。
 Step 2: 死連結靜態核對 — 確認 header/footer 連到的頁面都有對應產出
 Run:
 ```bash
-for p in index about articles contact-frank privacy-policy category n8n-resources \
+# 首頁輸出在 dist/index.html（無子目錄），單獨檢查
+test -f "dist/index.html" && echo "OK  index" || echo "MISS index"
+for p in about articles contact-frank privacy-policy category n8n-resources \
          category/n8n category/devops category/flutter category/raspberry-pi tag; do
   test -f "dist/$p/index.html" && echo "OK  $p" || echo "MISS $p"
 done
