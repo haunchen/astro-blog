@@ -366,10 +366,11 @@ const n8nPosts = posts
   .sort(byDateDesc)
   .slice(0, 6);
 
-// 區塊 2：帶「模板」tag 的文章
+// 區塊 2：帶「模板」tag 的文章（封頂 3 篇，與區塊 1 一致；更多走 /tag/模板/）
 const templatePosts = posts
   .filter((p) => p.data.tags.includes('模板'))
-  .sort(byDateDesc);
+  .sort(byDateDesc)
+  .slice(0, 3);
 ---
 
 <BaseLayout

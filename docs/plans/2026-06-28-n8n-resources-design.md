@@ -34,7 +34,7 @@ type Creator = { name: string; desc: string; image: string; links: ResLink[] };
 匯出：`LEARNING_RESOURCES`、`ADVANCED_APPS`、`RECOMMENDED_TEMPLATES`（皆 `Creator[]`）、`COMMUNITY`（單一物件）、`OFFICIAL_LINKS`（`ResLink[]`）。
 
 ### 元件
-- 區塊 1、2：復用既有 `ArticleCard.astro`，放 `.card-grid--three`，cover 用 collection 內既有圖
+- 區塊 1、2：復用既有 `ArticleCard.astro`，放 `.article-grid`（global.css 既有三欄 grid），cover 用 collection 內既有圖
 - 新增 `ResourceCard.astro`：方形縮圖（~72px）＋ name ＋ desc ＋一排 labeled links；樣式比照首頁 `project-card`（深色卡、`einkRefresh` hover、橘色底線連結）。供區塊 3/4/5 共用
 - 區塊 6（社群 CTA）、7（官方連結排）夠簡單，直接 inline 於頁面，不另開元件
 
