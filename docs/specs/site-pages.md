@@ -2,12 +2,12 @@
 domain: site-pages
 status: active
 created: 2026-06-26
-last_modified: 2026-06-27
+last_modified: 2026-06-28
 ---
 
 # Site Pages
 
-部落格的非文章型頁面與全站導覽：關於我、文章總覽、分類頁、隱私權政策，以及分類資料的單一來源。
+部落格的非文章型頁面與全站導覽：關於我、文章總覽、分類頁、隱私權政策、Header／Footer 站台識別、Tag 頁與標籤雲，以及分類資料的單一來源。
 
 ## Requirements
 
@@ -41,7 +41,7 @@ last_modified: 2026-06-27
 
 ### R9: 導覽無死連結
 - **Level**: MUST
-- **Description**: 全站 Nav 不含指向未實作頁面的連結（移除 `/n8n-resources/`）；Nav 與 Footer 的其餘連結皆有對應頁面。
+- **Description**: 全站 Nav 連結集為 首頁`/`、關於我`/about/`、n8n 相關資源`/n8n-resources/`、文章`/articles/`（下拉分類）、聯絡我`/contact-frank/`，皆有對應頁面（`/n8n-resources/` 以占位頁存在）；Nav 與 Footer 其餘連結（含 `/tag/模板/`）皆可達。
 
 ### R10: 聯絡頁
 - **Level**: MUST
@@ -58,6 +58,22 @@ last_modified: 2026-06-27
 ### R13: 分類子頁回鏈
 - **Level**: SHOULD
 - **Description**: `/category/{slug}/` 提供回到 `/category/` 分類總覽的連結，取代原分類導覽列的切換功能。
+
+### R14: Header 站台識別與收合行為
+- **Level**: MUST
+- **Description**: Header 顯示圓形頭像、站台標題（連 `/`）與副標，桌機右側為水平 nav（首頁／關於我／n8n 相關資源／文章／聯絡我）；頁面捲離頂部後 header 收合成精簡 sticky bar（小 logo＋nav、隱藏副標）。文章項提供下拉，列固定 3 個分類連結（n8n 相關文章→`/category/n8n/`、Flutter 開發→`/category/flutter/`、Raspberry Pi→`/category/raspberry-pi/`），父項連 `/articles/`。手機收成漢堡，文章分類為子項。
+
+### R15: Footer 站台資訊
+- **Level**: MUST
+- **Description**: Footer 左區呈現頭像、站台標題、描述段落與一排社群圖示（Threads／Instagram／GitHub／LinkedIn／Email，來源為 `site-meta` 的 `sameAs` 與 `email`，不另寫死）；右區為兩欄策展連結；底部置中 copyright，格式 `Copyright © 2025–{當前年} 法蘭克`（起始 2025、結束年於 build 時動態計算）。
+
+### R16: Tag 頁與標籤雲總覽
+- **Level**: MUST
+- **Description**: 每個至少有一篇非草稿文章的 tag 在 `/tag/{tag}/` 以時間軸（年份分組）列出該 tag 文章並顯示篇數，並提供回 `/tag/` 的連結；`/tag/` 提供標籤雲總覽，列出全部 tag、字級依篇數分級，點選導向對應 `/tag/{tag}/`。tag 路徑以 URL 編碼處理中文／特殊字。篇數一律即時計算。
+
+### R17: n8n-resources 占位頁
+- **Level**: MUST
+- **Description**: `/n8n-resources/` 提供最小但真實的占位頁（標題、簡介、少量真連結），供 header「n8n 相關資源」與 footer「n8n 學習資源」連結，確保無死連結；完整策展內容（7 區塊）另案處理。
 
 ## Scenarios
 
@@ -100,7 +116,7 @@ last_modified: 2026-06-27
 ### S7: 導覽列無死連結
 - **Given**: 站台已部署
 - **When**: 檢視任一頁的 Nav
-- **Then**: 不含 `/n8n-resources/` 連結，其餘連結皆可達
+- **Then**: Nav 連結（首頁／關於我／n8n 相關資源／文章／聯絡我）皆指向存在頁面，無死連結
 - **Implements**: #R9
 
 ### S8: 造訪聯絡頁
@@ -120,6 +136,30 @@ last_modified: 2026-06-27
 - **When**: 訪客造訪 `/category/{slug}/`
 - **Then**: 以時間軸（年份分組）列出該分類 N 篇文章，頁頂顯示分類名與篇數，並有回到 `/category/` 的連結
 - **Implements**: #R4, #R13
+
+### S11: Header 高版與收合
+- **Given**: 站台已部署
+- **When**: 訪客在桌機造訪任一頁並向下捲動
+- **Then**: 初始看到高版 header（頭像/標題/副標/水平 nav）；捲離頂部後 header 收合成精簡 sticky bar；hover 文章項展開 3 個分類連結
+- **Implements**: #R14
+
+### S12: Footer 站台資訊
+- **Given**: 站台已部署
+- **When**: 訪客檢視 footer
+- **Then**: 看到頭像/標題/描述、5 個社群圖示（連結正確）、兩欄連結皆可達、底部 copyright 年份為 2025–當前年
+- **Implements**: #R15
+
+### S13: Tag 標籤雲與個別 tag 頁
+- **Given**: collection 有帶 tag 的非草稿文章
+- **When**: 訪客造訪 `/tag/` 並點某個 tag（如「模板」）
+- **Then**: `/tag/` 顯示標籤雲（字級依篇數）；點選後 `/tag/模板/` 以時間軸列出該 tag 文章與篇數，並可回 `/tag/`
+- **Implements**: #R16
+
+### S14: n8n-resources 占位頁
+- **Given**: 站台已部署
+- **When**: 訪客從 header「n8n 相關資源」或 footer「n8n 學習資源」點選
+- **Then**: 到達 `/n8n-resources/` 占位頁（非 404），含簡介與少量真連結
+- **Implements**: #R17
 
 ## Design Decisions
 
@@ -157,6 +197,7 @@ last_modified: 2026-06-27
 - **Decision**: 本次不實作 `/n8n-resources/`（repo 無現成素材），並從 Nav 移除該連結
 - **Rationale**: 不留死連結；待有素材再另開設計
 - **Date**: 2026-06-26
+- **Superseded-by**: D17（2026-06-28 以占位頁重新納入）
 
 ### D8: 聯絡頁採無後端靜態頁
 - **Decision**: `/contact-frank/` 以 email + 社群 + 地點的靜態頁呈現，不接表單後端（不引入 Web3Forms/Turnstile 等服務與金鑰）
@@ -178,42 +219,8 @@ last_modified: 2026-06-27
 - **Rationale**: 使用者要求 `/category/` 呈現分類與篇數總覽（如首頁探索主題），有獨立資訊價值，勝過 redirect
 - **Date**: 2026-06-27
 
-## Pending Changes
-
-來源：`docs/plans/2026-06-28-header-footer-redesign-design.md`（分支 `feat/header-footer-redesign`，2026-06-28）。Header / Footer 改版 + Tag 路由 + n8n-resources 占位頁。
-
-### ADDED R14: Header 站台識別與收合行為
-- **Level**: MUST
-- **Description**: Header 顯示圓形頭像、站台標題（連 `/`）與副標，桌機右側為水平 nav（首頁／關於我／n8n 相關資源／文章／聯絡我）；頁面捲離頂部後 header 收合成精簡 sticky bar（小 logo＋nav、隱藏副標）。文章項提供下拉，列固定 3 個分類連結（n8n 相關文章→`/category/n8n/`、Flutter 開發→`/category/flutter/`、Raspberry Pi→`/category/raspberry-pi/`），父項連 `/articles/`。手機收成漢堡，文章分類為子項。
-
-### ADDED R15: Footer 站台資訊
-- **Level**: MUST
-- **Description**: Footer 左區呈現頭像、站台標題、描述段落與一排社群圖示（Threads／Instagram／GitHub／LinkedIn／Email，來源為 `site-meta` 的 `sameAs` 與 `email`，不另寫死）；右區為兩欄策展連結；底部置中 copyright，格式 `Copyright © 2025–{當前年} 法蘭克`（起始 2025、結束年於 build 時動態計算）。
-
-### ADDED R16: Tag 頁與標籤雲總覽
-- **Level**: MUST
-- **Description**: 每個至少有一篇非草稿文章的 tag 在 `/tag/{tag}/` 以時間軸（年份分組）列出該 tag 文章並顯示篇數，並提供回 `/tag/` 的連結；`/tag/` 提供標籤雲總覽，列出全部 tag、字級依篇數分級，點選導向對應 `/tag/{tag}/`。tag 路徑以 URL 編碼處理中文／特殊字。篇數一律即時計算。
-
-### ADDED R17: n8n-resources 占位頁
-- **Level**: MUST
-- **Description**: `/n8n-resources/` 提供最小但真實的占位頁（標題、簡介、少量真連結），供 header「n8n 相關資源」與 footer「n8n 學習資源」連結，確保無死連結；完整策展內容（7 區塊）另案處理。
-
-### MODIFIED R9: 導覽無死連結
-- **Level**: MUST
-- **Description**: 全站 Nav 連結集為 首頁`/`、關於我`/about/`、n8n 相關資源`/n8n-resources/`、文章`/articles/`（下拉分類）、聯絡我`/contact-frank/`，皆有對應頁面（`/n8n-resources/` 以占位頁存在）；Nav 與 Footer 其餘連結（含 `/tag/模板/`）皆可達。
-- **Note**: 原 R9 要求移除 `/n8n-resources/`；本次以占位頁重新納入，翻案見 D17。
-
-### Scenarios delta
-
-- **S11**（#R14）：訪客在桌機造訪任一頁 → 看到高版 header（頭像/標題/副標/nav）；向下捲動後 header 收合成精簡 sticky bar；hover 文章項展開 3 個分類連結。
-- **S12**（#R15）：訪客檢視 footer → 看到頭像/標題/描述、5 個社群圖示（連結正確）、兩欄連結皆可達、底部 copyright 年份為 2025–當前年。
-- **S13**（#R16）：訪客造訪 `/tag/` → 看到標籤雲（字級依篇數）；點「模板」→ `/tag/模板/` 以時間軸列出該 tag 文章與篇數，並可回 `/tag/`。
-- **S14**（#R17）：訪客從 header/footer 點「n8n 相關資源／學習資源」→ 到達 `/n8n-resources/` 占位頁（非 404），含簡介與少量真連結。
-
-### Design Decisions delta
-
 ### D12: Header 高版＋IntersectionObserver 收合 sticky
-- **Decision**: header 頂部高版，捲離頂部（sentinel + IntersectionObserver）後加 `.scrolled` 收合成精簡 sticky bar；`astro:after-swap` 重新初始化
+- **Decision**: header 頂部高版，捲離頂部（sentinel + IntersectionObserver）後加 `.scrolled` 收合成精簡 sticky bar；`astro:after-swap` 重新初始化（IO 重入前先 disconnect）
 - **Rationale**: 兼顧圖示的高版視覺與「nav 常駐」可用性，避免整塊 105px 一直佔捲動畫面
 - **Date**: 2026-06-28
 
