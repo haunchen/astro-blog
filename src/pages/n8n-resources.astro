@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { pageTitle } from '../utils/site-meta';
 ---
 
 <BaseLayout
-  title="n8n 相關資源 - 下班後的工程師筆記"
+  title={pageTitle('n8n 相關資源')}
   description="n8n 教學文章、模板分享與學習資源整理。"
 >
   <main class="list-page">

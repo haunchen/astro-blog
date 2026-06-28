@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { CATEGORIES, categoryLabel } from '../../utils/site-meta';
+import { CATEGORIES, categoryLabel, pageTitle } from '../../utils/site-meta';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -24,7 +24,7 @@ const label = categoryLabel(slug);
 ---
 
 <BaseLayout
-  title={`${label} - 下班後的工程師筆記`}
+  title={pageTitle(label)}
   description={`所有「${label}」分類的技術文章。`}
 >
   <main class="list-page">

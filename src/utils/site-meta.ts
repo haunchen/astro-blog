@@ -1,9 +1,10 @@
 export const SITE = {
-  name: '下班後的工程師筆記',
+  // 品牌/SEO 識別：<title> 後綴、og:site_name、JSON-LD（對外搜尋/分享用個人識別）
+  name: '法蘭克｜不典型的軟體工程師',
   tagline: '白天上班，下班寫 Side Project。',
-  // header/footer 顯示用標題（暫用原站字串，實際「大標題」與 name 對齊待另議）
-  title: '法蘭克｜不典型的軟體工程師',
-  subtitle: '探索軟體世界，紀錄開發點滴',
+  // header/footer 站上顯示用標題與副標（走 side-project 調性）
+  title: '下班後的工程師筆記',
+  subtitle: '白天上班，下班寫 Side Project。',
   description: '從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。',
   url: 'https://frankchen.tw',
   logo: 'https://frankchen.tw/logo.webp',
@@ -41,6 +42,11 @@ const CATEGORY_DISPLAY: Record<string, string> = Object.fromEntries(
 
 export function categoryLabel(slug: string): string {
   return CATEGORY_DISPLAY[slug] ?? slug;
+}
+
+// 頁面 <title> 單一來源：有頁名則「頁名 - 品牌名」，首頁等無頁名則純品牌名
+export function pageTitle(title?: string): string {
+  return title ? `${title} - ${SITE.name}` : SITE.name;
 }
 
 export const ORGANIZATION_JSONLD = {

@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../utils/site-meta';
+import { SITE, pageTitle } from '../utils/site-meta';
 
 const socials = [
   { label: 'GitHub', href: 'https://github.com/haunchen' },
@@ -11,7 +11,7 @@ const socials = [
 ---
 
 <BaseLayout
-  title="聯絡我 - 下班後的工程師筆記"
+  title={pageTitle('聯絡我')}
   description="與 Frank Chen 聯絡：專案想法、合作機會或技術交流，歡迎來信或透過社群聯繫。"
 >
   <main class="contact">

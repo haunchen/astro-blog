@@ -239,9 +239,14 @@ last_modified: 2026-06-28
 - **Rationale**: 使用者要求全生＋文字雲；編碼處理中文／特殊字一致性
 - **Date**: 2026-06-28
 
-### D16: 顯示標題／副標／描述抽到 site-meta
-- **Decision**: 新增 `SITE.title`／`SITE.subtitle`／`SITE.description`，header/footer 由此取值；暫用原站字串
-- **Rationale**: 單一來源、之後改一處即可；實際「大標題」文字與 `SITE.name` 對齊待使用者另議
+### D16: 顯示標題／副標／描述抽到 site-meta、品牌名定案（大標題）
+- **Decision**: 站上 header/footer 顯示用 `SITE.title`＝「下班後的工程師筆記」、`SITE.subtitle`＝「白天上班，下班寫 Side Project。」（side-project 調性）；品牌/SEO 識別 `SITE.name`＝「法蘭克｜不典型的軟體工程師」，用於 `<title>` 後綴、og:site_name、JSON-LD（對外搜尋/分享用個人識別）。`SITE.description` 維持。icon 全面換成 `$ frank _` logo（logo.webp/favicon.png/apple-touch-icon.png）
+- **Rationale**: 站上走品牌調性、對外用可搜尋的個人識別，兩者刻意分開（解 2026-06-28 大標題討論：原「暫用原站字串待議」定案）
+- **Date**: 2026-06-28
+
+### D18: 頁面 `<title>` 單一來源 `pageTitle()`、首頁移除 hero
+- **Decision**: 於 `site-meta` 加 `pageTitle(t?)` helper（有頁名→「頁名 - SITE.name」、無→純 SITE.name），全頁 `<title>` 改用它，消除原本散落硬編的品牌後綴與首頁第三種名字「法蘭克的技術筆記」；文章頁補品牌後綴。首頁 hero（大 h1＋介紹＋標籤＋捲動提示）移除——tall header 每頁已承載站台識別，hero 與其重複
+- **Rationale**: 品牌名單一來源避免再次漂移（Issue #8 教訓）；首頁去重更極簡，header 已提供身分區
 - **Date**: 2026-06-28
 
 ### D17: 翻案 D7，n8n-resources 以占位頁重新納入 Nav

@@ -4,7 +4,7 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
 import TableOfContents from '../components/TableOfContents.astro';
-import { SITE, CATEGORY_LABEL } from '../utils/site-meta';
+import { SITE, CATEGORY_LABEL, pageTitle } from '../utils/site-meta';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -69,7 +69,7 @@ const breadcrumb = {
 ---
 
 <BaseLayout
-  title={post.data.title}
+  title={pageTitle(post.data.title)}
   description={post.data.description}
   ogImage={`/og/${post.id}.png`}
   jsonLd={[blogPosting, breadcrumb]}

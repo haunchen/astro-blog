@@ -4,6 +4,7 @@ import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CategoryGrid from '../components/CategoryGrid.astro';
 import { getCollection } from 'astro:content';
+import { pageTitle } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -36,24 +37,8 @@ const projects = [
 ];
 ---
 
-<BaseLayout title="法蘭克的技術筆記" description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。" ogImage="/cover.webp">
+<BaseLayout title={pageTitle()} description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。" ogImage="/cover.webp">
   <main>
-    <!-- Hero -->
-    <div class="container">
-      <div class="hero">
-        <h1>法蘭克｜不典型的軟體工程師</h1>
-        <p>從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。</p>
-        <div class="hero-tags">
-          <TagBadge text="系統整合" />
-          <TagBadge text="技術部落客" />
-          <TagBadge text="開源貢獻" />
-        </div>
-        <div class="hero-scroll">
-          <a href="#latest" class="hero-scroll-indicator">閱讀文章<span class="hero-scroll-arrow">&darr;</span></a>
-        </div>
-      </div>
-    </div>
-
     <!-- 最新文章 -->
     <div class="container">
       <div class="section" id="latest">
@@ -201,61 +186,6 @@ const projects = [
     background-color: rgba(251, 146, 60, 0.1);
   }
 
-  /* Hero */
-  .hero {
-    padding: 96px 0 64px;
-    max-width: var(--width-content);
-    margin: 0 auto;
-  }
-
-  .hero h1 {
-    font-family: var(--font-serif);
-    font-size: 36px;
-    line-height: 48px;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 16px;
-  }
-
-  .hero p {
-    font-family: var(--font-sans);
-    font-size: 16px;
-    line-height: 28px;
-    color: var(--color-text-secondary);
-    margin-bottom: 24px;
-    max-width: 560px;
-  }
-
-  .hero-tags {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .hero-scroll {
-    margin-top: 48px;
-    text-align: center;
-  }
-
-  .hero-scroll-indicator {
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-size: 13px;
-    color: var(--color-text-muted);
-    text-decoration: none;
-  }
-
-  .hero-scroll-arrow {
-    display: block;
-    margin-top: 4px;
-    animation: bounce 2s ease-in-out infinite;
-  }
-
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(6px); }
-  }
-
   /* Card grid (for regular article cards) */
   .card-grid--three {
     display: grid;
@@ -383,15 +313,6 @@ const projects = [
 
   /* Responsive */
   @media (max-width: 768px) {
-    .hero {
-      padding: 48px 24px 32px;
-    }
-
-    .hero h1 {
-      font-size: 28px;
-      line-height: 38px;
-    }
-
     .card-grid--three {
       grid-template-columns: 1fr;
     }

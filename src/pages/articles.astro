@@ -2,12 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleTimeline from '../components/ArticleTimeline.astro';
 import { getCollection } from 'astro:content';
+import { pageTitle } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 ---
 
 <BaseLayout
-  title="文章 - 下班後的工程師筆記"
+  title={pageTitle('文章')}
   description="所有技術文章，涵蓋 n8n 自動化、架站部署、Flutter、樹莓派與開發工具的實戰經驗與踩坑紀錄。"
 >
   <main class="list-page">
