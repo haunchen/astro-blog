@@ -25,7 +25,7 @@ function isActive(href: string): boolean {
 
   <nav class="header-nav" id="header-nav">
     <ul class="nav-links">
-      {HEADER_NAV.map((item) =>
+      {HEADER_NAV.map((item, index) =>
         'children' in item && item.children ? (
           <li class="nav-item nav-item--dropdown">
             <div class="nav-parent">
@@ -35,11 +35,11 @@ function isActive(href: string): boolean {
                 type="button"
                 aria-haspopup="true"
                 aria-expanded="false"
-                aria-controls="nav-dropdown-articles"
+                aria-controls={`nav-dropdown-${index}`}
                 aria-label={`展開${item.label}子選單`}
               >▾</button>
             </div>
-            <ul class="nav-dropdown" id="nav-dropdown-articles">
+            <ul class="nav-dropdown" id={`nav-dropdown-${index}`}>
               {item.children.map((child) => (
                 <li>
                   <a href={child.href} class:list={[{ 'nav-active': isActive(child.href) }]}>{child.label}</a>
