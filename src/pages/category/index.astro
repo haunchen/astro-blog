@@ -1,10 +1,11 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CategoryGrid from '../../components/CategoryGrid.astro';
+import { pageTitle } from '../../utils/site-meta';
 ---
 
 <BaseLayout
-  title="分類 - 下班後的工程師筆記"
+  title={pageTitle('分類')}
   description="依主題瀏覽所有技術文章分類：n8n 自動化、架站部署、Flutter、樹莓派與開發工具。"
 >
   <main class="list-page">

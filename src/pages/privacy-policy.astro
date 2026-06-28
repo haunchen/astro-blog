@@ -1,10 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../utils/site-meta';
+import { SITE, pageTitle } from '../utils/site-meta';
 ---
 
 <BaseLayout
-  title="隱私權政策 - 下班後的工程師筆記"
+  title={pageTitle('隱私權政策')}
   description="本站如何處理你的資料：本站為靜態網站，不主動蒐集個人資料、未安裝追蹤型分析工具。"
 >
   <main class="legal">

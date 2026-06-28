@@ -2,39 +2,38 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { CATEGORIES, categoryLabel, pageTitle } from '../../utils/site-meta';
+import { pageTitle } from '../../utils/site-meta';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
-  return CATEGORIES
-    .map(({ slug }) => {
-      const categoryPosts = posts.filter((p) => p.data.category === slug);
-      return { params: { category: slug }, props: { categoryPosts, slug } };
-    })
-    .filter((entry) => entry.props.categoryPosts.length > 0);
+  const tagSet = new Set<string>();
+  for (const p of posts) for (const t of p.data.tags) tagSet.add(t);
+  return [...tagSet].map((tag) => ({
+    params: { tag },
+    props: { tag, tagPosts: posts.filter((p) => p.data.tags.includes(tag)) },
+  }));
 }
 
 interface Props {
-  categoryPosts: CollectionEntry<'posts'>[];
-  slug: string;
+  tag: string;
+  tagPosts: CollectionEntry<'posts'>[];
 }
 
-const { categoryPosts, slug } = Astro.props;
-const label = categoryLabel(slug);
+const { tag, tagPosts } = Astro.props;
 ---
 
 <BaseLayout
-  title={pageTitle(label)}
-  description={`所有「${label}」分類的技術文章。`}
+  title={pageTitle(`標籤：${tag}`)}
+  description={`所有標記「${tag}」的技術文章。`}
 >
   <main class="list-page">
     <header class="list-head">
-      <h1 class="list-title">{label}</h1>
-      <p class="list-sub">共 {categoryPosts.length} 篇</p>
-      <a class="list-back" href="/category/">← 所有分類</a>
+      <h1 class="list-title">標籤：{tag}</h1>
+      <p class="list-sub">共 {tagPosts.length} 篇</p>
+      <a class="list-back" href="/tag/">← 所有標籤</a>
     </header>
 
-    <ArticleTimeline posts={categoryPosts} />
+    <ArticleTimeline posts={tagPosts} />
   </main>
 </BaseLayout>
 

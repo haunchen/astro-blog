@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { pageTitle } from '../utils/site-meta';
+---
+
+<BaseLayout
+  title={pageTitle('n8n 相關資源')}
+  description="n8n 教學文章、模板分享與學習資源整理。"
+>
+  <main class="list-page">
+    <header class="list-head">
+      <h1 class="list-title">n8n 相關資源</h1>
+      <p class="list-sub">教學文章、模板分享、外部資源</p>
+    </header>
+
+    <div class="prose">
+      <p>整理自己實戰過的 n8n 內容，包含教學文章、自動化模板，以及參考過的學習資源。完整資源整理持續更新中。</p>
+      <ul>
+        <li><a href="/category/n8n/">n8n 相關文章</a></li>
+        <li><a href={`/tag/${encodeURIComponent('模板')}/`}>n8n 自動化模板</a></li>
+      </ul>
+    </div>
+  </main>
+</BaseLayout>

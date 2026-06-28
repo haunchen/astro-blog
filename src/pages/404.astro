@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { pageTitle } from '../utils/site-meta';
 ---
 
-<BaseLayout title="404 — 找不到頁面">
+<BaseLayout title={pageTitle('404 — 找不到頁面')}>
   <div class="error-page">
     <div class="error-code">404</div>
     <p class="error-message">找不到這個頁面</p>

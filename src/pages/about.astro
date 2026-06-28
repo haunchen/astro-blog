@@ -2,7 +2,7 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
-import { SITE } from '../utils/site-meta';
+import { SITE, pageTitle } from '../utils/site-meta';
 import avatar from '../assets/about/frank-avatar.png';
 import n8nShot from '../assets/about/n8n-app-screenshot.png';
 import blogShot from '../assets/about/blog-screenshot.png';
@@ -146,7 +146,7 @@ const personJsonLd = {
 ---
 
 <BaseLayout
-  title="關於我 - 下班後的工程師筆記"
+  title={pageTitle('關於我')}
   description="Frank Chen，系統整合工程師。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。"
   ogImage="/cover.webp"
   jsonLd={[personJsonLd]}
