@@ -29,7 +29,7 @@ function isActive(href: string): boolean {
         'children' in item && item.children ? (
           <li class="nav-item nav-item--dropdown">
             <div class="nav-parent">
-              <a href={item.href} class:list={[{ 'nav-active': isActive(item.href) }]}>{item.label}</a>
+              <a href={item.href} class:list={[{ 'nav-active': isActive(item.href) || item.children.some((child) => isActive(child.href)) }]}>{item.label}</a>
               <button
                 class="nav-caret"
                 type="button"
@@ -203,7 +203,9 @@ function isActive(href: string): boolean {
     color: var(--color-text-secondary);
     font-size: 12px;
     line-height: 1;
-    padding: 0;
+    /* padding 撐大手機點擊熱區（手機下拉靠此 caret 切換）；負 margin 抵銷垂直撐高維持排版 */
+    padding: 8px;
+    margin: -8px 0;
     cursor: pointer;
   }
 
