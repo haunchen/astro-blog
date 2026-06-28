@@ -35,10 +35,11 @@ function isActive(href: string): boolean {
                 type="button"
                 aria-haspopup="true"
                 aria-expanded="false"
+                aria-controls="nav-dropdown-articles"
                 aria-label={`展開${item.label}子選單`}
               >▾</button>
             </div>
-            <ul class="nav-dropdown">
+            <ul class="nav-dropdown" id="nav-dropdown-articles">
               {item.children.map((child) => (
                 <li>
                   <a href={child.href} class:list={[{ 'nav-active': isActive(child.href) }]}>{child.label}</a>
@@ -57,19 +58,25 @@ function isActive(href: string): boolean {
 </header>
 
 <script>
+  let headerObserver: IntersectionObserver | null = null;
+
   function initHeader() {
     const header = document.getElementById('site-header');
     const sentinel = document.getElementById('header-sentinel');
     const hamburger = document.getElementById('nav-hamburger');
     const nav = document.getElementById('header-nav');
 
-    // 捲離頂部 → 收合成精簡 sticky bar
+    // 捲離頂部 → 收合成精簡 sticky bar（re-init 前先清舊 observer，避免重入累積）
+    if (headerObserver) {
+      headerObserver.disconnect();
+      headerObserver = null;
+    }
     if (header && sentinel && 'IntersectionObserver' in window) {
-      const io = new IntersectionObserver(
+      headerObserver = new IntersectionObserver(
         ([entry]) => header.classList.toggle('scrolled', !entry.isIntersecting),
         { threshold: 0 }
       );
-      io.observe(sentinel);
+      headerObserver.observe(sentinel);
     }
 
     // 手機漢堡
