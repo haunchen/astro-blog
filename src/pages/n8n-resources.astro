@@ -188,12 +188,14 @@ const templatePosts = posts
     color: var(--color-text-primary);
     text-decoration: none;
     white-space: nowrap;
+    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
     border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
     transition: border-color 300ms steps(3), background-color 300ms steps(3);
   }
 
   .n8n-section-link:hover {
     border-bottom-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
     background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
   }
 
@@ -245,6 +247,7 @@ const templatePosts = posts
     color: var(--color-brand-orange);
     text-decoration: none;
     padding: 8px 16px;
+    border: 1px solid rgba(251, 146, 60, 0.4);
     border: 1px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
     border-radius: var(--radius-sm);
     transition: border-color 300ms steps(3), background-color 300ms steps(3);
@@ -252,6 +255,7 @@ const templatePosts = posts
 
   .community-btn:hover {
     border-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.12);
     background-color: color-mix(in srgb, var(--color-brand-orange) 12%, transparent);
   }
 
