@@ -1,6 +1,10 @@
 export const SITE = {
   name: '下班後的工程師筆記',
   tagline: '白天上班，下班寫 Side Project。',
+  // header/footer 顯示用標題（暫用原站字串，實際「大標題」與 name 對齊待另議）
+  title: '法蘭克｜不典型的軟體工程師',
+  subtitle: '探索軟體世界，紀錄開發點滴',
+  description: '從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。',
   url: 'https://frankchen.tw',
   logo: 'https://frankchen.tw/logo.webp',
   email: 'frank@frankchen.tw',
@@ -59,3 +63,47 @@ export const WEBSITE_JSONLD = {
   inLanguage: 'zh-TW',
   publisher: { '@id': `${SITE.url}/#org` },
 };
+
+// header/footer 導覽與連結單一來源 ---------------------------------
+
+// 社群圖示：由 SITE.sameAs（threads/instagram/github/linkedin 順序）＋ email 推出
+export const SOCIAL = [
+  { icon: 'threads', label: 'Threads', href: SITE.sameAs[0] },
+  { icon: 'instagram', label: 'Instagram', href: SITE.sameAs[1] },
+  { icon: 'github', label: 'GitHub', href: SITE.sameAs[2] },
+  { icon: 'linkedin', label: 'LinkedIn', href: SITE.sameAs[3] },
+  { icon: 'email', label: 'Email', href: `mailto:${SITE.email}` },
+] as const;
+
+// Header 導覽；文章為下拉，固定 3 項策展清單（照原站，與 CATEGORIES 顯示名解耦）
+export const HEADER_NAV = [
+  { href: '/', label: '首頁' },
+  { href: '/about/', label: '關於我' },
+  { href: '/n8n-resources/', label: 'n8n 相關資源' },
+  {
+    href: '/articles/',
+    label: '文章',
+    children: [
+      { href: '/category/n8n/', label: 'n8n 相關文章' },
+      { href: '/category/flutter/', label: 'Flutter 開發' },
+      { href: '/category/raspberry-pi/', label: 'Raspberry Pi' },
+    ],
+  },
+  { href: '/contact-frank/', label: '聯絡我' },
+] as const;
+
+// Footer 兩欄策展連結（標籤沿用原站文字；分類/標籤連到實際頁面）
+export const FOOTER_COLS = [
+  [
+    { href: '/category/n8n/', label: 'n8n 自動化' },
+    { href: `/tag/${encodeURIComponent('模板')}/`, label: 'n8n 模板' },
+    { href: '/category/devops/', label: 'WordPress 架站' },
+    { href: '/category/flutter/', label: 'App 應用開發' },
+  ],
+  [
+    { href: '/n8n-resources/', label: 'n8n 學習資源' },
+    { href: '/about/', label: '關於我' },
+    { href: '/contact-frank/', label: '聯絡我' },
+    { href: '/privacy-policy/', label: '隱私權政策' },
+  ],
+] as const;
