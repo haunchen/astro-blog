@@ -29,9 +29,11 @@
     "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.9",
     "@types/sanitize-html": "^2.16.1",
     "fast-xml-parser": "^5.8.0",
     "turndown": "^7.2.4",
-    "turndown-plugin-gfm": "^1.0.2"
+    "turndown-plugin-gfm": "^1.0.2",
+    "typescript": "^5.9.3"
   }
 }

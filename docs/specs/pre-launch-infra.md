@@ -2,7 +2,7 @@
 domain: pre-launch-infra
 status: active
 created: 2026-05-16
-last_modified: 2026-06-06
+last_modified: 2026-07-02
 ---
 
 # Pre-launch Infrastructure
@@ -29,11 +29,11 @@ last_modified: 2026-06-06
 
 ### R5: RSS Feed
 - **Level**: MUST
-- **Description**: `/rss.xml` 提供最新 20 篇非草稿文章的 RSS 2.0 feed，全文 HTML 由 Astro Container API 渲染文章 `<Content/>` 元件產生，內文圖片解析為 image pipeline 的 `/_astro/` 最佳化資源後改寫為絕對 URL，內連同樣改寫為絕對 URL，sanitize 後輸出，含 `<language>zh-TW</language>`。
+- **Description**: `/rss.xml` 提供最新 20 篇非草稿文章的 RSS 2.0 feed，全文 HTML 由 Astro Container API 渲染文章 `<Content/>` 元件產生，內文圖片解析為 image pipeline 的 `/_astro/` 最佳化資源後改寫為絕對 URL，內連同樣改寫為絕對 URL，sanitize 後輸出，含 `<language>zh-TW</language>` 與 `<atom:link rel="self">` 自我參照連結。
 
 ### R6: llms.txt
 - **Level**: MUST
-- **Description**: `/llms.txt` 提供 AI 友善的站點導引純文字檔，build 時從 content collection 動態產出，列出今天存在的頁面與所有非草稿文章。
+- **Description**: `/llms.txt` 提供 AI 友善的站點導引純文字檔，build 時從 content collection 動態產出。「主要頁面」段列出首頁、文章總覽、分類總覽、標籤總覽、n8n 相關資源、關於我、聯絡我等站台主要頁面（各附一句用途說明），「文章」段列出所有非草稿文章。
 
 ### R7: robots.txt 爬蟲分流
 - **Level**: MUST
@@ -41,11 +41,19 @@ last_modified: 2026-06-06
 
 ### R8: 安全標頭與快取策略
 - **Level**: MUST
-- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`、`X-XSS-Protection: 1; mode=block`；`/_astro/*` 一年 immutable、`/images/*` 一週、`/og/*` 一週、`/rss.xml` 一小時、靜態根檔案一天。
+- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`；`/_astro/*` 一年 immutable、`/og/*` 一週、`/n8n-resources/*` 一週、`/rss.xml` 一小時、靜態根檔案（favicon / apple-touch-icon / logo / cover / robots.txt / llms.txt）一天。不含 `X-XSS-Protection`（已廢棄）與對不到建置輸出的 `/images/*` 規則。
 
 ### R9: CF Pages 部署
 - **Level**: MUST
 - **Description**: 站台部署於 Cloudflare Pages，透過 GitHub integration 連接 `haunchen/astro-blog` 的 `main` branch 自動 build。本階段使用 `*.pages.dev` 預設網域，不切自訂網域。
+
+### R10: 社群分享 meta 完整性
+- **Level**: MUST
+- **Description**: 每個頁面的 `<head>` 必須有非空的 `og:image`（頁面未指定時 fallback 為站台 cover 圖）與 `twitter:card=summary_large_image`（含 title / description / image）。文章詳細頁的 `og:type` 必須為 `article` 並帶 `article:published_time`（有更新日時另帶 `article:modified_time`）與 `article:tag`；非文章頁維持 `website`。RSS autodiscovery `<link rel="alternate" type="application/rss+xml">` 的 title 固定為站名，不隨頁面變動。
+
+### R11: sitemap 文章 lastmod
+- **Level**: SHOULD
+- **Description**: sitemap 中每個文章 URL 帶 `<lastmod>`（值為文章 `updated ?? date`）；非文章頁不帶 lastmod。
 
 ## Scenarios
 

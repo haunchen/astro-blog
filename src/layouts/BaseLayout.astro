@@ -23,13 +23,20 @@ interface Props {
   title: string;
   description?: string;
   ogImage?: string;
+  /** 文章頁傳入：og:type 轉 article，輸出 article:published_time / modified_time / tag */
+  article?: {
+    publishedTime: Date;
+    modifiedTime?: Date;
+    tags?: string[];
+  };
   jsonLd?: object[];
 }
 
-const { title, description = '', ogImage, jsonLd = [] } = Astro.props;
+const { title, description = '', ogImage, article, jsonLd = [] } = Astro.props;
 const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...jsonLd];
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
-const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
+// og:image 不可為空：頁面未指定時 fallback 站台 cover 圖
+const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
 ---
 
 <html lang="zh-TW">
@@ -45,17 +52,31 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
       openGraph={{
         basic: {
           title,
-          type: 'website',
-          image: ogImageURL ?? '',
+          type: article ? 'article' : 'website',
+          image: ogImageURL,
         },
         optional: {
           description,
           locale: 'zh_TW',
           siteName: SITE.name,
         },
+        ...(article && {
+          article: {
+            publishedTime: article.publishedTime.toISOString(),
+            ...(article.modifiedTime && { modifiedTime: article.modifiedTime.toISOString() }),
+            ...(article.tags && article.tags.length > 0 && { tags: [...article.tags] }),
+          },
+        }),
+      }}
+      twitter={{
+        card: 'summary_large_image',
+        title,
+        description,
+        image: ogImageURL,
+        imageAlt: title,
       }}
     />
-    <link rel="alternate" type="application/rss+xml" title={title} href="/rss.xml" />
+    <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
     <JsonLd data={allJsonLd} />
     <ClientRouter />
   </head>
@@ -77,8 +98,11 @@ const ogImageURL = ogImage ? new URL(ogImage, Astro.site).href : undefined;
       },
     }}
   >
+    <a href="#main-content" class="skip-link">跳到主內容</a>
     <Nav />
-    <slot />
+    <div id="main-content" tabindex="-1">
+      <slot />
+    </div>
     <Footer />
   </body>
 </html>
