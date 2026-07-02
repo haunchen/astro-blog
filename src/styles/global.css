@@ -307,3 +307,29 @@ body::after {
   white-space: nowrap;
   border: 0;
 }
+
+/* Skip to content：平時移出畫面，鍵盤 focus 時滑入可見 */
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 10000; /* 高於 paper noise overlay（9998）與 header */
+  padding: 10px 18px;
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 16px));
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* skip-link 落點：不顯示整塊內容的 focus 外框 */
+#main-content:focus {
+  outline: none;
+}

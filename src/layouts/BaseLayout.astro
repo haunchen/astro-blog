@@ -98,8 +98,11 @@ const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
       },
     }}
   >
+    <a href="#main-content" class="skip-link">跳到主內容</a>
     <Nav />
-    <slot />
+    <div id="main-content" tabindex="-1">
+      <slot />
+    </div>
     <Footer />
   </body>
 </html>
