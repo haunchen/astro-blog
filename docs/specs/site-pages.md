@@ -273,3 +273,20 @@ last_modified: 2026-06-28
 - **Decision**: 撤銷 D7「不做 /n8n-resources/、Nav 移除」，改以最小占位頁納入 Nav，完整內容另案
 - **Rationale**: 使用者要求補做缺頁；占位頁先消除死連結，完整策展頁規模較大另行處理
 - **Date**: 2026-06-28
+
+## Pending Changes
+
+> Source: docs/plans/2026-07-02-seo-production-hardening-design.md
+> Date: 2026-07-02
+
+### ADDED R20: skip-to-content 連結
+- **Level**: MUST
+- **Description**: 每頁 HTML 的第一個可 focus 元素為「跳到主內容」連結，平時視覺隱藏、鍵盤 focus 時可見，啟用後焦點移至主內容區，鍵盤使用者不需逐一 Tab 過 header 導覽。
+
+### ADDED R21: 首頁唯一 h1
+- **Level**: MUST
+- **Description**: 首頁有且僅有一個 `<h1>`（內容為站名與 tagline），以無障礙隱藏方式存在、不改變版面視覺。補 D18 移除 hero 後首頁無 h1 的 SEO 缺口；hero 不回歸。
+
+### ADDED R22: 首頁專案卡連結有效性
+- **Level**: MUST
+- **Description**: 首頁側欄專案卡的連結一律指向有效目的地（站內頁或外部 URL），不得出現 `#` 佔位死連結；「醫療教學模擬器 G3」卡連至 `/about/`（該頁含完整專案介紹段落）。
