@@ -290,3 +290,20 @@ body::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================
+   E — Accessibility
+   ======================================== */
+
+/* 視覺隱藏但保留給輔助科技與 SEO（首頁 h1 用） */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -4,7 +4,7 @@ import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CategoryGrid from '../components/CategoryGrid.astro';
 import { getCollection } from 'astro:content';
-import { pageTitle } from '../utils/site-meta';
+import { SITE, pageTitle } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -24,7 +24,7 @@ const projects = [
     name: '醫療教學模擬器 G3',
     desc: '領導 5 人團隊開發，BOM 成本降低 30%',
     tags: ['Raspberry Pi', 'Hailo AI'],
-    link: '#',
+    link: '/about/',
     linkText: '了解更多 →',
   },
   {
@@ -39,6 +39,7 @@ const projects = [
 
 <BaseLayout title={pageTitle()} description="從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。" ogImage="/cover.webp">
   <main>
+    <h1 class="visually-hidden">{SITE.name}｜{SITE.tagline}</h1>
     <!-- 最新文章 -->
     <div class="container">
       <div class="section" id="latest">
