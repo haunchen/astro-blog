@@ -72,6 +72,11 @@ const breadcrumb = {
   title={pageTitle(post.data.title)}
   description={post.data.description}
   ogImage={`/og/${post.id}.png`}
+  article={{
+    publishedTime: post.data.date,
+    modifiedTime: post.data.updated,
+    tags: post.data.tags,
+  }}
   jsonLd={[blogPosting, breadcrumb]}
 >
   <main>
