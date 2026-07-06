@@ -47,11 +47,13 @@ const label = categoryLabel(slug);
     color: var(--color-text-secondary);
     text-decoration: none;
     border-bottom: 2px solid rgba(251, 146, 60, 0.4);
+    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
     transition: border-color 300ms steps(3), background-color 300ms steps(3);
   }
 
   .list-back:hover {
     border-bottom-color: var(--color-brand-orange);
     background-color: rgba(251, 146, 60, 0.1);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
   }
 </style>
