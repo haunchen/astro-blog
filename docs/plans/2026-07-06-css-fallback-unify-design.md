@@ -56,7 +56,7 @@
 ### C. 正規化（2 處）
 
 - `src/pages/tag/index.astro:61`：border-bottom alpha 為 **0.3**（全站孤例，其餘皆 0.4）。統一改 0.4，color-mix 用 40%。有極輕微加深，屬預期。
-- `src/pages/404.astro:110`：品牌藍 `background: rgba(0, 132, 255, 0.1)` → 後補 `color-mix(in srgb, var(--color-brand-blue) 10%, transparent)`。順手統一。
+- `src/pages/404.astro:110`：品牌藍 `background: rgba(0, 132, 255, 0.1)` → 後補 `color-mix(in srgb, var(--color-brand-blue) 10%, transparent)`。issue #19 原標「選配」，但這是品牌色半透明宣告，屬 spec R1 範圍，本計畫納入為必做。
 
 ### D. dead transition 移除（7 處）
 

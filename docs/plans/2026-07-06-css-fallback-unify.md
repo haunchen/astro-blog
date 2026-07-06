@@ -506,11 +506,13 @@ Run: `git add -A && git commit -m "fix(css): contact-frank.astro 補 rgba fallba
 
 ---
 
-## C 段選配：404.astro 品牌藍 pair（Task 14）
+## C 段：404.astro 品牌藍 pair（Task 14）
 
 ### Task 14: 404.astro 品牌藍補 color-mix pair
 
 Implements: `design-system.md` #R1
+
+注意：issue #19 原標此項「選配」，但 spec R1（MUST）涵蓋所有品牌色半透明宣告（含 `--color-brand-blue`）。本計畫納入為必做，勿跳過。
 
 Files:
 - Modify: `src/pages/404.astro`
