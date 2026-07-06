@@ -1,6 +1,6 @@
 ---
 domain: design-system
-status: draft
+status: active
 created: 2026-07-06
 last_modified: 2026-07-06
 ---
@@ -48,7 +48,3 @@ last_modified: 2026-07-06
 - **Decision**: `TagBadge.astro`、`ResourceCard.astro`、`n8n-resources.astro` 已成對的 rgba+color-mix 宣告視為正確標準，不清除
 - **Rationale**: git log 佐證（PR #10 commit「add rgba fallback before color-mix」）rgba 行是刻意補的舊瀏覽器 fallback；清掉會在 iOS 15 前 Safari 引入 regression（#15 第 2 項駁回理由）
 - **Date**: 2026-07-06
-
-## Pending Changes
-
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
