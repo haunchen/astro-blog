@@ -22,7 +22,7 @@ Cloudflare 的快取會過期，也可能因為更新設定而被清空。這時
 
 在開始設定之前，先來了解一下 Nginx Cache 在整個架構中的位置：
 
-```
+```text
 使用者請求
     ↓
 ☁️ Cloudflare Cache (第一層) - 全球 CDN
@@ -50,7 +50,7 @@ Nginx 提供兩種主要的快取方式，根據你的架構選擇適合的一�
 
 在 `http` 區塊中加入以下設定：
 
-```
+```nginx
 http {
     # 定義快取路徑和參數
     proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=my_cache:10m max_size=1g inactive=60m use_temp_path=off;
@@ -102,7 +102,7 @@ http {
 
 如果 Nginx 是直接跟 PHP-FPM 溝通（傳統的 LEMP 架構），則使用 FastCGI Cache：
 
-```
+```nginx
 http {
     # 定義 FastCGI 快取路徑
     fastcgi_cache_path /var/cache/nginx/fastcgi levels=1:2 keys_zone=php_cache:10m max_size=1g inactive=60m;
@@ -128,7 +128,7 @@ http {
 
 除了伺服器端快取，我們也可以透過 Nginx 告訴瀏覽器：「這些靜態檔案你可以存久一點」。
 
-```
+```nginx
 # 圖片檔案 - 快取 30 天
 location ~* \.(jpg|jpeg|png|gif|ico|css|js)$ {
     expires 30d;
@@ -148,7 +148,7 @@ location ~* \.(woff|woff2|ttf|otf)$ {
 
 這是最關鍵的一步。WordPress 的後台、登入頁面、API 絕對不能被快取，否則會出大問題（例如讓別人看到自己的後台）。
 
-```
+```nginx
 # 定義需要跳過快取的 URL
 map $request_uri $skip_cache {
     default 0;
@@ -183,7 +183,7 @@ location / {
 
 如果你跟我一樣把 WordPress 部署在 Zeabur 上，以下是我實際使用的配置：
 
-```
+```nginx
 http {
     # 定義快取路徑
     proxy_cache_path /var/cache/nginx/wordpress levels=1:2 keys_zone=WORDPRESS:100m max_size=1g inactive=60m use_temp_path=off;
@@ -233,7 +233,7 @@ http {
 
 ### 查看 X-Cache-Status Header
 
-```
+```bash
 curl -I https://your-site.com/
 ```
 
@@ -257,13 +257,13 @@ curl -I https://your-site.com/
 3.  不要清空 Nginx 快取
 4.  立刻訪問網站
 
-```
+```bash
 curl -I https://your-site.com/
 ```
 
 預期結果：
 
-```
+```text
 cf-cache-status: MISS      ← Cloudflare 剛被清空
 X-Cache-Status: HIT        ← Nginx 還有快取！
 ```
@@ -272,7 +272,7 @@ X-Cache-Status: HIT        ← Nginx 還有快取！
 
 ### 查看快取檔案數量
 
-```
+```bash
 # 查看快取檔案數量
 find /var/cache/nginx/wordpress -type f | wc -l
 
@@ -289,7 +289,7 @@ find /var/cache/nginx/wordpress -type f -mmin -30 -ls | head
 
 ### 方法一：刪除快取目錄
 
-```
+```bash
 # 刪除所有快取
 rm -rf /var/cache/nginx/*
 
@@ -301,7 +301,7 @@ nginx -s reload
 
 如果你需要精確清除特定頁面的快取，可以使用 ngx\_cache\_purge 模組：
 
-```
+```nginx
 location ~ /purge(/.*) {
     allow 127.0.0.1;
     deny all;
@@ -319,7 +319,7 @@ location ~ /purge(/.*) {
 
 在 `http` 區塊加入：
 
-```
+```nginx
 log_format cache_log '$remote_addr - $upstream_cache_status [$time_local] '
                      '"$request" $status $body_bytes_sent '
                      '"$http_referer" "$http_user_agent"';
@@ -331,7 +331,7 @@ server {
 
 ### 分析快取命中率
 
-```
+```bash
 # 統計各種快取狀態的數量
 grep -o "HIT\|MISS\|BYPASS" /var/log/nginx/cache_access.log | sort | uniq -c
 
@@ -343,7 +343,7 @@ tail -f /var/log/nginx/cache_access.log | grep --line-buffered "HIT\|MISS"
 
 如果 Nginx 無法寫入快取目錄，快取就不會生效。確保權限設定正確：
 
-```
+```bash
 mkdir -p /var/cache/nginx
 chown -R nginx:nginx /var/cache/nginx
 chmod -R 755 /var/cache/nginx

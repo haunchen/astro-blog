@@ -142,7 +142,7 @@ Discord Bot 的設定分為三個主要階段，讓我們一步步完成。
 
 **OAuth Redirect URL 範例：**
 
-```
+```text
 https://your-n8n-domain.com/rest/oauth2-credential/callback
 ```
 
@@ -245,7 +245,7 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 3.  完成授權後，系統會自動跳回 n8n，看到「Connected」或綠色勾勾表示連接成功
 4.  點擊右上角的「Save」儲存憑證
 
-![n8n 的 Discord 憑證設定頁面，顯示 OAuth Redirect URL 與連線狀態](./images/n8n-discord-oauth-redirect-url.webp)
+授權成功後，此頁的連線狀態會由原本的未連線狀態，變為顯示綠色的「Connected」，即代表 n8n 已與你的 Discord 應用程式完成串接。
 
 建議為憑證命名，方便日後管理：
 

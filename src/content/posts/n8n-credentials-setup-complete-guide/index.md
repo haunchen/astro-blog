@@ -89,7 +89,7 @@ Line 在台灣的使用率超高，從個人生活到公司內部溝通都離不
 
 **完整教學：** [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
 
-### 7\. Canva - 台灣少見的教學
+### 6\. Canva - 台灣少見的教學
 
 **複雜度：** ⭐⭐⭐⭐（較複雜）｜**設定時間：** 約 20-25 分鐘
 
@@ -104,7 +104,7 @@ Canva 憑證設定在台灣幾乎沒人寫過教學，我當初花了不少時�
 
 **完整教學：** [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
 
-### 8\. Google 系列 - 最複雜但最常用
+### 7\. Google 系列 - 最複雜但最常用
 
 **複雜度：** ⭐⭐⭐⭐⭐（最複雜）｜**設定時間：** 約 30-40 分鐘
 
@@ -121,7 +121,7 @@ Google 憑證設定是我覺得 n8n 裡面最麻煩的。在 Google Cloud Consol
 
 **完整教學：** [n8n 憑證設定指南：串接 Google Cloud 服務 新手也能輕鬆上手](/n8n-google-credentials-setup-guide/)
 
-### 9\. Instagram / Facebook - 最耗時的設定
+### 8\. Instagram / Facebook - 最耗時的設定
 
 **複雜度：** ⭐⭐⭐⭐⭐（非常複雜）｜**設定時間：** 約 40-60 分鐘
 

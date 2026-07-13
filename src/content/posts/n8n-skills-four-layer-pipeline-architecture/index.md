@@ -41,7 +41,7 @@ n8n 的節點定義是用 TypeScript 類別來描述的，每個節點都有自�
 
 如果你把所有邏輯都寫在同一個地方，很快就會遇到這種情況：
 
-```
+```ts
 // 這種程式碼你一定看過（或寫過）
 if (node.type === 'trigger') {
   // 處理 trigger
@@ -215,7 +215,7 @@ ConnectionRuleGenerator 生成節點相容性矩陣，告訴 AI 哪些節點可�
 
 每個元件都可以獨立測試。專案裡有針對每一層的測試腳本：
 
-```
+```text
 test-npm-collector.ts    # 測試節點載入
 test-io-parser.ts        # 測試輸入輸出解析
 test-priority-ranker.ts  # 測試優先級計算

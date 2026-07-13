@@ -39,7 +39,7 @@ draft: false
 1.  前往 [GitHub Releases](https://github.com/haunchen/n8n-skills/releases) 下載最新版本的 `n8n-skills-x.x.x.zip`（約 1MB）
 2.  解壓縮後，你會看到以下結構：
 
-```
+```text
 n8n-skills/
 ├── Skill.md                    # 主技能檔案（15KB）
 └── resources/                  # 詳細資源（2.8MB）

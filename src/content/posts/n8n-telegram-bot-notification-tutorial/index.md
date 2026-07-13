@@ -74,7 +74,7 @@ Telegram 設定 Bot 比 LINE 來得簡單很多，只需要跟 BotFather 對話�
 
 在與 BotFather 的對話視窗中，輸入以下指令：
 
-```
+```text
 /newbot
 ```
 
@@ -105,7 +105,7 @@ BotFather 會先問你：「你的 Bot 要叫什麼名字？」
 
 **範例：**
 
-```
+```text
 my_n8n_bot
 ```
 
@@ -115,7 +115,7 @@ my_n8n_bot
 
 建立成功後，BotFather 會提供一組 **Bot Token**，格式類似：
 
-```
+```text
 1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
 ```
 
@@ -128,7 +128,7 @@ my_n8n_bot
 
 **範例回覆訊息：**
 
-```
+```text
 Done! Congratulations on your new bot. You will find it at t.me/your_bot_name.You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
 
 Use this token to access the HTTP API:
@@ -173,7 +173,7 @@ Telegram 官方提供了一個方便的工具 Bot，可以快速取得你的 Cha
 
 **範例回覆訊息：**
 
-```
+```text
 Id: 123456789
 First: Frank
 Last: Chen
@@ -194,7 +194,7 @@ Language: zh-TW
 
 **範例回覆訊息：**
 
-```
+```text
 Id: -5228947698
 ```
 
@@ -309,7 +309,7 @@ Telegram Bot API 支援三種格式化模式：Markdown（舊版）、MarkdownV2
 
 **HTML 格式（推薦初學者使用）：**
 
-```
+```html
 <b>粗體文字</b>
 <i>斜體文字</i>
 <u>底線文字</u>
@@ -322,7 +322,7 @@ HTML 格式語法直觀，不需要處理特殊字元跳脫，適合大多數使
 
 **MarkdownV2 格式：**
 
-```
+```markdown
 *粗體文字*
 _斜體文字_
 __底線文字__

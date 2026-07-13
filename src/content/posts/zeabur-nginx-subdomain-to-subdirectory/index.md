@@ -106,7 +106,7 @@ Zeabur 有提供內建的免費網域 (`xxxxx.zeabur.app`)，你也可以綁定�
 
 > ⚠️ **重要提醒**：這裡取得的內部網址只適用於同一個專案內互相使用，無法跨專案調用內部網址。
 
-如果你的 WordPress 需要搬家到 Zeabur 上，可以參考[這篇文章](/wordpress-migrate-to-zeabur/)。
+如果你的 WordPress 需要搬家到 Zeabur 上，可以參考 [WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/)。
 
 ### 步驟四：設定 nginx.conf 反向代理規則
 
@@ -317,4 +317,4 @@ Zeabur 會自動處理 SSL 憑證，但要確保：
 
 ### 延伸閱讀
 
--   [網站搬家超簡單：WordPress 無痛 轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 手把手教你如何將現有的 WordPress 網站搬到 Zeabur 平台
+-   [網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/) - 手把手教你如何將現有的 WordPress 網站搬到 Zeabur 平台
