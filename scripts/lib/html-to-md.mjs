@@ -36,7 +36,7 @@ function extractCodeBlocksPro(html) {
 function extractWpCodeBlocks(html) {
   const blocks = [];
   const re = /<!-- wp:code(?: (\{[^}]*\}))? -->\s*<pre[^>]*class="[^"]*wp-block-code[^"]*"[^>]*>\s*<code([^>]*)>([\s\S]*?)<\/code>\s*<\/pre>\s*<!-- \/wp:code -->/g;
-  const replaced = html.replace(re, (whole, jsonStr, codeAttrs, rawContent) => {
+  const replaced = html.replace(re, (_whole, jsonStr, codeAttrs, rawContent) => {
     let language = '';
     // 1. 先試 wp:code 註解 JSON 的 language
     if (jsonStr) {
