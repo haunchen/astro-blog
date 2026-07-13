@@ -30,7 +30,7 @@ draft: false
 
 想像一下訪客進入你網站的流程：
 
-```
+```text
 訪客請求
     ↓
 🌐 第一層: 瀏覽器快取 (Browser Cache)
@@ -67,7 +67,7 @@ draft: false
 
 ### 設定路徑
 
-```
+```text
 Cloudflare 控制台 → 選擇網域 → 快取 (Caching) → 快取規則 (Cache Rules) → 建立規則
 ```
 
@@ -88,7 +88,7 @@ WordPress 的後台、登入頁面、REST API 這些區域絕對不能被快取�
 
 **運算式**（點選「編輯運算式」後貼上）：
 
-```
+```text
 (http.request.uri.path contains "/wp-admin/" or
 http.request.uri.path contains "/wp-login.php" or
 http.request.uri.path contains "/wp-json/" or
@@ -123,7 +123,7 @@ http.cookie contains "wordpress_logged_in")
 
 **運算式**：
 
-```
+```text
 (http.request.uri.path.extension in {"jpg" "jpeg" "png" "gif" "webp" "svg" "css" "js" "woff" "woff2" "ttf" "ico" "pdf"})
 ```
 
@@ -152,7 +152,7 @@ http.cookie contains "wordpress_logged_in")
 
 **運算式**：
 
-```
+```text
 (http.request.uri.path eq "/" or
 http.request.uri.path contains "/blog/" or
 http.request.uri.path matches "^/[0-9]{4}/[0-9]{2}/") and
@@ -196,7 +196,7 @@ RSS Feed 需要快取以減少伺服器負擔，但又不能快取太久，否�
 
 **運算式**：
 
-```
+```text
 (http.request.uri.path contains "/feed/")
 ```
 
@@ -242,7 +242,7 @@ RSS Feed 需要快取以減少伺服器負擔，但又不能快取太久，否�
 
 ### 預期結果
 
-```
+```text
 第 1 次訪問: cf-cache-status: MISS ← 正常，第一次還沒快取
 第 2 次訪問: cf-cache-status: HIT  ← 成功！從快取取得
 ```
@@ -255,13 +255,13 @@ RSS Feed 需要快取以減少伺服器負擔，但又不能快取太久，否�
 
 ### 1\. 清除 Cloudflare 快取
 
-```
+```text
 Cloudflare 控制台 → 快取 → 設定 → 清除快取 → 清除所有內容
 ```
 
 ### 2\. 清除 Redis 快取（如有使用）
 
-```
+```text
 WordPress 後台 → 設定 → Redis Object Cache → 清除快取
 ```
 
