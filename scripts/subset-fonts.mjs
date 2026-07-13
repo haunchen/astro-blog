@@ -19,26 +19,31 @@ for (const f of files) {
 }
 
 const text = [...chars].join('');
-console.log(`[subset-fonts] unique chars: ${chars.size}`);
+// OG 圖字型堆疊為 'Noto Sans TC, Inter, sans-serif'，satori 逐字元 fallback：
+// ASCII 由 Inter（latin-700 unicode-range U+0000-00FF，完整涵蓋）渲染，Noto Sans TC 的
+// text= 請求無需含 ASCII。過濾半形 ASCII 只影響 Noto，全形標點（≥U+3000）仍留在 CJK subset。
+const cjkChars = new Set([...chars].filter((c) => !/[\x00-\x7F]/.test(c)));
+const cjkText = [...cjkChars].join('');
+console.log(`[subset-fonts] unique chars: ${chars.size} total, ${cjkChars.size} CJK-only (sent to Google Fonts text=)`);
 
 // 守門：Google Fonts css2 的 text= 超過約 800 unique chars 會被靜默忽略、
 // 回傳整套字型的預設 CSS，subset 後大多字形缺失 → OG 圖豆腐字但 build 照樣綠燈。
-// 守 unique chars 數（較早、較準的那條線），把無聲失敗變成 build 期警告／錯誤。永久修法見 Issue #2。
-if (chars.size > 700) {
+// 守實際送往 Google 的 CJK-only 數（才是真正逼近上限的那條線），把無聲失敗變成 build 期警告／錯誤。永久修法見 Issue #2。
+if (cjkChars.size > 700) {
   throw new Error(
-    `[subset-fonts] unique chars ${chars.size} 已逼近 Google Fonts text= 的 ~800 unique chars 上限，` +
+    `[subset-fonts] CJK unique chars ${cjkChars.size} 已逼近 Google Fonts text= 的 ~800 unique chars 上限，` +
     `超過會被靜默忽略、回整套字型導致 OG 圖豆腐字；` +
     `請改用本地完整字型 subset 永久修法，見 Issue #2。`
   );
-} else if (chars.size > 600) {
+} else if (cjkChars.size > 600) {
   console.warn(
-    `[subset-fonts] ⚠ unique chars ${chars.size} 已超過 600，逼近 Google Fonts text= 的 ~800 上限；` +
+    `[subset-fonts] ⚠ CJK unique chars ${cjkChars.size} 已超過 600，逼近 Google Fonts text= 的 ~800 上限；` +
     `該規劃永久修法了，見 Issue #2。`
   );
 }
 
 // CJK: 透過 Google Fonts API 一次取得包含實際用字的 woff2
-const cjkUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&text=${encodeURIComponent(text)}`;
+const cjkUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&text=${encodeURIComponent(cjkText)}`;
 const cssRes = await fetch(cjkUrl, {
   headers: {
     // 用 Mac Safari UA 確保拿到 woff2
@@ -63,7 +68,7 @@ if (cjkSrc.length > 512 * 1024) {
 }
 
 // subset-font 把 woff2 重新轉為 woff（satori 不接 woff2）
-const cjkSubset = await subsetFont(cjkSrc, text, { targetFormat: 'woff' });
+const cjkSubset = await subsetFont(cjkSrc, cjkText, { targetFormat: 'woff' });
 await fs.mkdir('src/assets/og-fonts', { recursive: true });
 await fs.writeFile('src/assets/og-fonts/noto-sans-tc-subset.woff', cjkSubset);
 console.log(`[subset-fonts] noto-sans-tc-subset.woff: ${cjkSubset.length} bytes`);
