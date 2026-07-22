@@ -52,6 +52,10 @@ export default defineConfig({
   site: 'https://frankchen.tw',
   integrations: [
     sitemap({
+      // 個別標籤彙整頁不進 sitemap：內容與文章頁重複、單頁文章數少，
+      // 收錄價值低（WP 時期 Yoast 也是排除的，故舊 sitemap 只有 40 幾筆）。
+      // 保留 /tag/ 總覽頁本身——它是導覽入口，個別標籤頁仍可被爬到，只是不主動提交。
+      filter: (page) => !/\/tag\/[^/]+\//.test(new URL(page).pathname),
       serialize(item) {
         const lastmod = POST_LASTMOD.get(new URL(item.url).pathname);
         if (lastmod) {
