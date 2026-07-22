@@ -79,5 +79,5 @@ Disallow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://frankchen.tw/sitemap-index.xml
+Sitemap: https://frankchen.tw/sitemap.xml
 Llms-txt: https://frankchen.tw/llms.txt

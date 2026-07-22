@@ -1,4 +1,6 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, renameSync, rmSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
@@ -20,6 +22,32 @@ const POST_LASTMOD = new Map(
   }),
 );
 
+// @astrojs/sitemap 一律輸出 sitemap-index.xml + sitemap-0.xml，無法直接指定單一檔名。
+// 對外要的是 /sitemap.xml，且本站遠低於 entryLimit（預設 45000）只會有一個分片，
+// 因此 build 後把該分片改名為 sitemap.xml 並移除只指向它的 index。
+// 若哪天分片超過一個（即文章數破 45000），這裡會直接讓 build 失敗而非默默漏掉網址。
+function sitemapAsSingleFile() {
+  return {
+    name: 'sitemap-as-single-file',
+    hooks: {
+      'astro:build:done': ({ dir }) => {
+        const outDir = fileURLToPath(dir);
+        const chunks = globSync('sitemap-*.xml', { cwd: outDir }).filter(
+          (name) => name !== 'sitemap-index.xml',
+        );
+        if (chunks.length !== 1) {
+          throw new Error(
+            `sitemap 分片數為 ${chunks.length}（預期 1）：${chunks.join(', ')}。` +
+              '超過一個分片時不能直接改名，否則會遺漏網址，請改回保留 sitemap-index.xml。',
+          );
+        }
+        renameSync(join(outDir, chunks[0]), join(outDir, 'sitemap.xml'));
+        rmSync(join(outDir, 'sitemap-index.xml'), { force: true });
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://frankchen.tw',
   integrations: [
@@ -32,6 +60,7 @@ export default defineConfig({
         return item;
       },
     }),
+    sitemapAsSingleFile(),
   ],
   vite: {
     plugins: [tailwindcss()],

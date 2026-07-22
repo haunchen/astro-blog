@@ -8,6 +8,11 @@
 /n8n-skills    https://n8n-skills.frankchen.tw/        301
 /n8n-skills/*  https://n8n-skills.frankchen.tw/:splat  301
 
+# sitemap 一律收斂到 /sitemap.xml（WP 舊檔名 + Astro 預設檔名）
+/sitemap_index.xml  /sitemap.xml                            301
+/sitemap-index.xml  /sitemap.xml                            301
+/sitemap-0.xml      /sitemap.xml                            301
+
 # WordPress 遺留路徑（文章列表頁、RSS）
 /archives      /articles/                              301
 /archives/*    /articles/                              301
