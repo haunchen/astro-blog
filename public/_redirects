@@ -7,3 +7,9 @@
 /pdfkey/*      https://pdfkey.frankchen.tw/:splat      301
 /n8n-skills    https://n8n-skills.frankchen.tw/        301
 /n8n-skills/*  https://n8n-skills.frankchen.tw/:splat  301
+
+# WordPress 遺留路徑（文章列表頁、RSS）
+/archives      /articles/                              301
+/archives/*    /articles/                              301
+/feed          /rss.xml                                301
+/feed/*        /rss.xml                                301
