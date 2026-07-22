@@ -1,0 +1,9 @@
+# Zeabur→CF 遷移：舊 www 子頁面 → 新子網域 / astro-blog 頁面（cutover 後生效）
+/personal      /about/                                 301
+/personal/*    /about/                                 301
+/n8nmanager    https://n8nmanager.frankchen.tw/        301
+/n8nmanager/*  https://n8nmanager.frankchen.tw/:splat  301
+/pdfkey        https://pdfkey.frankchen.tw/            301
+/pdfkey/*      https://pdfkey.frankchen.tw/:splat      301
+/n8n-skills    https://n8n-skills.frankchen.tw/        301
+/n8n-skills/*  https://n8n-skills.frankchen.tw/:splat  301
