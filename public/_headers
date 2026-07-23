@@ -14,7 +14,7 @@
   # CSP：全站為 Astro 靜態輸出，逐一核對 dist/ 實際產物後才定案，避免寫得比實際更嚴而壞站：
   #   - script-src 'self'（不含 unsafe-inline）：astro.config.mjs 已設
   #     vite.build.assetsInlineLimit: 0，Astro 不再把小體積 hoisted script 內聯，
-  #     全站 104 頁掃描結果為 0 個內聯 script，故可鎖到最嚴。若日後有人加了
+  #     全站掃描結果為 0 個內聯 script，故可鎖到最嚴。若日後有人加了
   #     is:inline 的 <script>，該腳本會被 CSP 擋掉——這是刻意的，要加請改走外部檔。
   #     JSON-LD（type="application/ld+json"）不受 script-src 管控，瀏覽器不會把它
   #     當可執行腳本解析，無需另外開放。
@@ -27,17 +27,31 @@
   #     邊緣注入的——只看專案原始碼會漏掉，實測 CSP 違規事件才發現
   #     （script-src-elem 擋掉 beacon.min.js，window.__cfBeacon 為 undefined）。
   #     列成具名來源而非放寬成 'unsafe-inline'，攻擊面差距很大。
-  #     註：Bot Management 的 JS Detections 不需要例外——Cloudflare 以同源路徑
-  #     （/ql0n/ 之類的隨機路徑）提供，'self' 本來就允許。
+  #     註：Bot Fight 模式的 JS Detections 另外會注入一段每次請求內容都不同的
+  #     inline script（含 per-request token），無法用 hash 放行，會被 CSP 擋掉。
+  #     已知並接受：站台功能不受影響，代價是 console 有違規訊息、Lighthouse
+  #     Best Practices 因此扣分。要拿回滿分只能關掉 Bot Fight 模式。
   #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
   #     全站字型、圖片、樣式表皆同源。
   #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 鎖到最嚴。
   Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
-  # HTML 頁面的預設快取：內容會持續更新（改字句、補圖、修正），不能比照 /_astro/*
+  # HTML 頁面的預設快取：內容會持續更新（改字句、補圖、修正），不能比照雜湊檔名的
+  # 靜態資產用 immutable 長快取；但完全不快取又浪費 CDN 邊緣節點的快取能力，讓每次
+  # 瀏覽都回源。短 max-age 讓 CDN／瀏覽器能快取一小段時間，過期後 must-revalidate
+  # 強制回源驗證。
+  #
+  # 重要：Cloudflare Pages 的 _headers 對同一個標頭是「合併」不是「覆蓋」——多條規則
+  # 都命中同一個路徑時，值會用逗號串起來。所以下方每條需要不同 Cache-Control 的規則
+  # 都必須先以 `! Cache-Control` 清掉這裡設的值，再設自己的，否則會產生
+  # `max-age=600, must-revalidate, max-age=86400` 這種有兩組 max-age 的標頭
+  # （瀏覽器取第一個，等於後面那條規則完全沒作用）。
+  Cache-Control: public, max-age=600, must-revalidate
+
+/_astro/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-# 字型子目錄：檔名固定（無 hash），比照 /_astro/* 給長期 immutable 快取。
+# 字型子目錄：檔名固定（無雜湊），比照雜湊資產給長期 immutable 快取。
 # 前提是「換字型檔案必須同時改檔名」——若直接覆蓋同名檔案，舊的 immutable 快取
 # 不會失效，使用者會繼續吃到舊字型，換檔時務必連檔名一起改。
 /fonts/*
@@ -52,9 +66,9 @@
   ! Cache-Control
   Cache-Control: public, max-age=604800
 
-# n8n-resources 的索引頁本身是 HTML、內容會更新，不該吃上面那條給圖片資源的
-# 一週快取。先清掉再明確設回 HTML 的短快取——只寫 `! Cache-Control` 會連 /* 設的
-# 值一起清掉，讓這頁完全沒有 Cache-Control（實測過，正式站上就是這個狀況）。
+# n8n-resources 的索引頁本身是 HTML、內容會更新，不該吃上面那條給圖片資源的一週快取。
+# 先清掉再明確設回 HTML 的短快取——只寫 `! Cache-Control` 會連 /* 設的值一起清掉，
+# 讓這頁完全沒有 Cache-Control（實測過，修正前的正式站就是這個狀況）。
 /n8n-resources/
   ! Cache-Control
   Cache-Control: public, max-age=600, must-revalidate
