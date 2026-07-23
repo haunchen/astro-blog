@@ -11,7 +11,8 @@
     "fonts": "node scripts/build-font-css.mjs",
     "verify:seo": "node scripts/verify-seo.mjs",
     "prepare": "git config core.hooksPath .githooks",
-    "verify:headers": "node scripts/verify-headers.mjs"
+    "verify:headers": "node scripts/verify-headers.mjs",
+    "verify:robots": "node scripts/verify-robots.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
