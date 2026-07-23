@@ -51,9 +51,16 @@ export function categoryLabel(slug: string): string {
   return CATEGORY_DISPLAY[slug] ?? slug;
 }
 
-// 頁面 <title> 單一來源：有頁名則「頁名 - 品牌名」，首頁等無頁名則純品牌名
+/** Google SERP 大約在 60 個字元處截斷標題，超出的部分等於沒有版位。 */
+const TITLE_MAX = 60;
+
+// 頁面 <title> 單一來源：有頁名則「頁名 - 品牌名」，首頁等無頁名則純品牌名。
+// 若加上品牌後綴會超過 60 字元，就不加——被截掉的本來就是尾端的品牌名，
+// 留著只是把 SERP 版位讓給一段顯示不完的字，不如全部留給頁名本身。
 export function pageTitle(title?: string): string {
-  return title ? `${title} - ${SITE.name}` : SITE.name;
+  if (!title) return SITE.name;
+  const withBrand = `${title} - ${SITE.name}`;
+  return withBrand.length <= TITLE_MAX ? withBrand : title;
 }
 
 export const ORGANIZATION_JSONLD = {

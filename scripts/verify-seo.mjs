@@ -149,6 +149,54 @@ check('每頁有非空 <meta name="description">', (failures) => {
   }
 });
 
+// SERP 版位是有限的：title 約 60 字元、description 約 160 字元之後會被截斷，
+// 太短則浪費版位、也給不了點擊理由。這兩項在稽核工具上是最大宗的失分來源，
+// 但 zod schema 只擋文章 title 上限、pre-commit 只擋文章 description，
+// 手寫的靜態頁與動態產生的列表頁完全沒有防線——補在這裡才是全站覆蓋。
+// noindex 的頁面（404）不進 SERP，豁免。
+const TITLE_RANGE = [30, 60];
+const DESC_RANGE = [120, 160];
+
+function isNoindex(html) {
+  const tags = findMetaByAttr(html, 'name', 'robots');
+  return tags.some((t) => (getAttr(t, 'content') ?? '').includes('noindex'));
+}
+
+// HTML 實體會讓字元數失真（&amp; 是 5 個字元但實際只有 1 個）
+function decodeEntities(text) {
+  return text
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+check(`可索引頁的 <title> 長度介於 ${TITLE_RANGE[0]}–${TITLE_RANGE[1]} 字元`, (failures) => {
+  for (const { pathname, html } of pages) {
+    if (isNoindex(html)) continue;
+    const text = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim();
+    if (!text) continue; // 缺 title 由上一項檢查負責回報
+    const len = decodeEntities(text).length;
+    if (len < TITLE_RANGE[0] || len > TITLE_RANGE[1]) {
+      failures.push({ page: pathname, reason: `title 長度 ${len}（需 ${TITLE_RANGE[0]}–${TITLE_RANGE[1]}）` });
+    }
+  }
+});
+
+check(`可索引頁的 meta description 長度介於 ${DESC_RANGE[0]}–${DESC_RANGE[1]} 字元`, (failures) => {
+  for (const { pathname, html } of pages) {
+    if (isNoindex(html)) continue;
+    const tags = findMetaByAttr(html, 'name', 'description');
+    const content = (getAttr(tags[0] ?? '', 'content') ?? '').trim();
+    if (!content) continue; // 缺 description 由上一項檢查負責回報
+    const len = decodeEntities(content).length;
+    if (len < DESC_RANGE[0] || len > DESC_RANGE[1]) {
+      failures.push({ page: pathname, reason: `description 長度 ${len}（需 ${DESC_RANGE[0]}–${DESC_RANGE[1]}）` });
+    }
+  }
+});
+
 check('每頁有 <link rel="canonical">，host 為 frankchen.tw', (failures) => {
   for (const { pathname, html } of pages) {
     const tags = findTags(html, 'link').filter(

@@ -27,3 +27,6 @@ src/assets/og-fonts/
 public/fonts/
 src/styles/fonts.css
 src/styles/font-preloads.json
+
+# wrangler pages dev 的本地狀態目錄
+.wrangler/
