@@ -7,17 +7,10 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
 
-import '@fontsource/merriweather/400.css';
-import '@fontsource/merriweather/700.css';
-import '@fontsource/merriweather/400-italic.css';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/inter/700.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
-import '@fontsource-variable/noto-serif-tc';
-import '@fontsource-variable/noto-sans-tc';
+// 由 scripts/build-font-css.mjs 於 build 前產生：只含站上實際用到的 @font-face 分片。
+// 取代原本 11 支 @fontsource CSS 全量匯入（220KB → 39KB render-blocking CSS）。
+import '../styles/fonts.css';
+import fontPreloads from '../styles/font-preloads.json';
 
 interface Props {
   title: string;
@@ -30,13 +23,51 @@ interface Props {
     tags?: string[];
   };
   jsonLd?: object[];
+  /** 麵包屑（不含當前頁）；傳入時自動輸出 BreadcrumbList JSON-LD 與可見導覽 */
+  breadcrumbs?: { name: string; href: string }[];
+  /** 該頁不希望被索引（404 等） */
+  noindex?: boolean;
 }
 
-const { title, description = '', ogImage, article, jsonLd = [] } = Astro.props;
-const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...jsonLd];
+const {
+  title,
+  description = '',
+  ogImage,
+  article,
+  jsonLd = [],
+  breadcrumbs,
+  noindex = false,
+} = Astro.props;
+
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 // og:image 不可為空：頁面未指定時 fallback 站台 cover 圖
 const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
+
+// BreadcrumbList：最後一階為當前頁，依 schema.org 慣例省略 item（自身即為 item）
+const breadcrumbJsonLd = breadcrumbs?.length
+  ? [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          ...breadcrumbs.map((crumb, i) => ({
+            '@type': 'ListItem',
+            position: i + 1,
+            name: crumb.name,
+            item: new URL(crumb.href, SITE.url).href,
+          })),
+          {
+            '@type': 'ListItem',
+            position: breadcrumbs.length + 1,
+            // title 已含品牌後綴（pageTitle()），麵包屑只要頁名
+            name: title.replace(` - ${SITE.name}`, ''),
+          },
+        ],
+      },
+    ]
+  : [];
+
+const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...jsonLd];
 ---
 
 <html lang="zh-TW">
@@ -45,10 +76,46 @@ const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content={SITE.themeColor} />
+    <meta name="color-scheme" content="dark" />
+    {
+      /* 首屏字型 preload：避免 CSS → @font-face → woff2 的三層請求鏈拖慢 LCP。
+         清單由 build-font-css.mjs 產生，字型檔名含內容雜湊由 fontsource 保證穩定。 */
+      fontPreloads.map((href) => (
+        <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
+      ))
+    }
     <SEO
       title={title}
       description={description}
       canonical={canonicalURL.href}
+      noindex={noindex}
+      nofollow={noindex}
+      {/* astro-seo 一定會輸出 <meta name="robots">，自己再加一個會變成兩個互相矛盾的宣告。
+          額外指令走 robotsExtras 併進同一個 meta：允許 Google 出大圖預覽與完整摘要
+          （預設會截短，直接影響 SERP 版位）。noindex 時不需要這些指令。 */}
+      robotsExtras={noindex
+        ? undefined
+        : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'}
+      extend={{
+        meta: [
+          { name: 'author', content: SITE.author },
+          { property: 'og:image:alt', content: description || title },
+          { property: 'og:image:width', content: '1200' },
+          { property: 'og:image:height', content: '630' },
+          { property: 'og:image:type', content: 'image/png' },
+          ...(SITE.twitterHandle
+            ? [
+                { name: 'twitter:site', content: SITE.twitterHandle },
+                { name: 'twitter:creator', content: SITE.twitterHandle },
+              ]
+            : []),
+          ...(SITE.googleSiteVerification
+            ? [{ name: 'google-site-verification', content: SITE.googleSiteVerification }]
+            : []),
+        ],
+      }}
       openGraph={{
         basic: {
           title,
@@ -65,6 +132,7 @@ const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
             publishedTime: article.publishedTime.toISOString(),
             ...(article.modifiedTime && { modifiedTime: article.modifiedTime.toISOString() }),
             ...(article.tags && article.tags.length > 0 && { tags: [...article.tags] }),
+            authors: [SITE.author],
           },
         }),
       }}
@@ -73,10 +141,14 @@ const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
         title,
         description,
         image: ogImageURL,
-        imageAlt: title,
+        imageAlt: description || title,
       }}
     />
     <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    {/* 單一語系站台，hreflang 只需自我宣告 + x-default，避免搜尋引擎誤判地區變體 */}
+    <link rel="alternate" hreflang="zh-Hant-TW" href={canonicalURL.href} />
+    <link rel="alternate" hreflang="x-default" href={canonicalURL.href} />
     <JsonLd data={allJsonLd} />
     <ClientRouter />
   </head>

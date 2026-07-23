@@ -10,6 +10,12 @@ export const SITE = {
   url: 'https://frankchen.tw',
   logo: 'https://frankchen.tw/logo.webp',
   email: 'frank@frankchen.tw',
+  // <meta name="theme-color">：對齊 global.css 的 --color-bg-primary，行動裝置網址列同色
+  themeColor: '#0f172a',
+  // twitter:site / twitter:creator。目前無 X 帳號，留空即不輸出（空字串比假帳號好）。
+  twitterHandle: '',
+  // Google Search Console 驗證碼。走環境變數以免驗證碼進版控；未設定則不輸出該 meta。
+  googleSiteVerification: import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION ?? '',
   sameAs: [
     'https://www.threads.com/@frankchen.tw',
     'https://www.instagram.com/frankchen.tw/',
@@ -56,9 +62,32 @@ export const ORGANIZATION_JSONLD = {
   '@id': `${SITE.url}/#org`,
   name: SITE.name,
   url: SITE.url,
-  logo: SITE.logo,
+  // logo 必須是 ImageObject（純字串 URL 會被 Rich Results Test 判為缺欄位）
+  logo: {
+    '@type': 'ImageObject',
+    url: SITE.logo,
+    width: 512,
+    height: 512,
+  },
   email: SITE.email,
   sameAs: SITE.sameAs,
+};
+
+/**
+ * Article/BlogPosting 的 publisher 專用：Google 要求 publisher.name 與 publisher.logo
+ * 必須在該筆 Article 內可解析，用 { '@id': ... } 外部參照會被判為缺欄位，故此處內聯。
+ */
+export const PUBLISHER_JSONLD = {
+  '@type': 'Organization',
+  '@id': `${SITE.url}/#org`,
+  name: SITE.name,
+  url: SITE.url,
+  logo: {
+    '@type': 'ImageObject',
+    url: SITE.logo,
+    width: 512,
+    height: 512,
+  },
 };
 
 export const WEBSITE_JSONLD = {
@@ -66,10 +95,40 @@ export const WEBSITE_JSONLD = {
   '@type': 'WebSite',
   '@id': `${SITE.url}/#website`,
   name: SITE.name,
+  alternateName: SITE.author,
+  description: SITE.description,
   url: SITE.url,
   inLanguage: 'zh-TW',
   publisher: { '@id': `${SITE.url}/#org` },
 };
+
+/** 列表頁（分類／標籤／文章總覽）共用的 CollectionPage JSON-LD */
+export function collectionPageJsonLd(opts: {
+  name: string;
+  description: string;
+  path: string;
+  items: { title: string; path: string }[];
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: opts.name,
+    description: opts.description,
+    url: new URL(opts.path, SITE.url).href,
+    inLanguage: 'zh-TW',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: opts.items.length,
+      itemListElement: opts.items.map((item, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: item.title,
+        url: new URL(item.path, SITE.url).href,
+      })),
+    },
+  };
+}
 
 // header/footer 導覽與連結單一來源 ---------------------------------
 
