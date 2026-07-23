@@ -28,11 +28,15 @@ interface Props {
   /** 該頁不希望被索引（404 等） */
   noindex?: boolean;
   /**
-   * 首屏 LCP 圖片的最終網址（經 astro:assets 處理後的 src）。
+   * 首屏 LCP 圖片（經 astro:assets 處理後的結果）。
    * 傳入才會輸出 <link rel="preload">——只有真的是 LCP 元素的那一張該preload，
    * 亂加會搶掉關鍵資源的頻寬反而更慢。
+   *
+   * 圖片有 srcset 時，preload 也必須帶 imagesrcset/imagesizes 且值要與 <img>
+   * 上的一模一樣：只給 href 的話瀏覽器會先預載那一個固定網址，渲染時再依 sizes
+   * 挑一次候選圖，兩次挑到不同張就等於下載兩份，比不 preload 還慢。
    */
-  preloadImage?: string;
+  preloadImage?: { src: string; srcSet?: string; sizes?: string };
 }
 
 const {
@@ -106,7 +110,14 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
     {
       /* LCP 圖片 preload：圖片藏在 CSS 之後才被發現，preload 讓它與 CSS 並行下載。 */
       preloadImage && (
-        <link rel="preload" href={preloadImage} as="image" fetchpriority="high" />
+        <link
+          rel="preload"
+          href={preloadImage.src}
+          as="image"
+          fetchpriority="high"
+          imagesrcset={preloadImage.srcSet || undefined}
+          imagesizes={preloadImage.sizes || undefined}
+        />
       )
     }
     <!--
