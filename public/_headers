@@ -4,8 +4,45 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  # 阻止瀏覽器對頁面上連結的第三方網域做 DNS 預解析，避免在使用者實際點擊前
+  # 就把「造訪過哪些外部網站」的線索透過 DNS 查詢洩漏出去。
+  X-DNS-Prefetch-Control: off
+  # 讓本站頁面在開新分頁 window.open 別人網站時，不會把 window 物件留給對方
+  # （防 tabnabbing），同時保留跨來源 popup 的正常運作（同源 Isolation 需求較嚴格的
+  # same-origin-allow-popups 沒有必要，本站無跨源需求）。
+  Cross-Origin-Opener-Policy: same-origin
+  # CSP：全站為 Astro 靜態輸出，逐一核對 dist/ 實際產物後才定案，避免寫得比實際更嚴而壞站：
+  #   - script-src 'unsafe-inline'：Astro 對小體積 script 預設會直接內聯到 HTML
+  #     （build.inlineStylesheets 之外，script 也有等價的 auto-inline 行為，例如
+  #     Nav.astro／TableOfContents.astro 的互動邏輯），沒有 nonce/hash 機制可用在
+  #     純靜態的 _headers；JSON-LD（type="application/ld+json"）本身不受 script-src
+  #     管控（瀏覽器不會把它當成可執行腳本解析），unsafe-inline 主要是為了那些內聯的
+  #     module script。已確認全站僅 2 組固定內容的內聯 script（可用 sha256 hash 取代
+  #     以求更嚴格，但每次改動 Nav/TOC 的 <script> 都要手動同步 hash，改漏會讓功能
+  #     silently 失效且不易察覺，維護風險大於效益，故先用 unsafe-inline）。
+  #   - style-src 'unsafe-inline'：同一套 auto-inline 機制下，元件 scoped CSS 大量以
+  #     內聯 <style data-astro-cid-*> 輸出（無 nonce/hash），數量遠多於 script 且隨版
+  #     面改動頻繁變動，加 hash 不切實際。
+  #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
+  #   - 其餘（font/connect/manifest/media/worker 等）皆退回 default-src 'self'：
+  #     全站字型、圖片、指令碼、樣式表皆同源，沒有任何第三方資源，故可直接收緊。
+  #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 可放心鎖到最嚴。
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  # HTML 頁面的預設快取（未被下方更精確規則覆蓋的路徑，含 /、/about/、/articles/、
+  # /category/*、/tag/*、各篇文章頁）：內容會持續更新（改字句、補圖、修正），不能比照
+  # /_astro/* 用 immutable 長快取；但完全不快取又浪費 CDN 邊緣節點的快取能力，讓每次
+  # 瀏覽都回源。短 max-age 讓 CDN／瀏覽器能快取一小段時間，過期後 must-revalidate
+  # 強制回源驗證，兼顧「改完內容多久會生效」與「CDN 快取命中率」。下方各條更精確的
+  # 路徑規則（/_astro/*、/og/* 等）會覆蓋這裡的 Cache-Control。
+  Cache-Control: public, max-age=600, must-revalidate
 
 /_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 字型子目錄：檔名固定（無 hash），比照 /_astro/* 給長期 immutable 快取。
+# 前提是「換字型檔案必須同時改檔名」——若直接覆蓋同名檔案，舊的 immutable 快取
+# 不會失效，使用者會繼續吃到舊字型，換檔時務必連檔名一起改。
+/fonts/*
   Cache-Control: public, max-age=31536000, immutable
 
 /og/*
