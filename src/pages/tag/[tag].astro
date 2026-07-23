@@ -40,9 +40,14 @@ const clamp = (s: string) => (s.length <= 160 ? s : `${s.slice(0, 159)}…`);
 
 let description = `站上標記「${tag}」的技術文章共 ${tagPosts.length} 篇，涵蓋${tagCategories.join('、')}，依發表日期由新到舊排列。`;
 // 補到 120 字元以上：逐篇加入最新文章標題，避免文章數少的冷門標籤描述過短。
+// 加之前先確認整句放得下——否則最後一篇可能把長度從 119 推過 160，被 clamp
+// 從標題中間硬切，產生「另有〈不用再當搬運工！ n8n 助你實現 Notion 無縫轉移
+// WordPre…」這種〈〉不閉合的殘句（正式站上實際出現過）。寧可短一點也不要切半。
 for (const [i, post] of sorted.entries()) {
   if (description.length >= 120) break;
-  description += i === 0 ? `最新一篇是〈${post.data.title}〉，` : `另有〈${post.data.title}〉，`;
+  const clause = i === 0 ? `最新一篇是〈${post.data.title}〉，` : `另有〈${post.data.title}〉，`;
+  if (description.length + clause.length > 160) break;
+  description += clause;
 }
 description = description.replace(/，$/, '。');
 // 只有一兩篇文章的冷門標籤，光靠篇數與標題湊不到 120 字元，逐句補到達標為止。
