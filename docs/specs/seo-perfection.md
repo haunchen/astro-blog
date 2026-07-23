@@ -41,7 +41,7 @@ Lighthouse（`astro preview`，首頁與文章頁、手機與桌機共四組）�
 Accessibility / Best Practices / SEO / Agentic Browsing **全數 100**。
 效能 trace（首頁，本機無節流）：LCP 265ms、CLS 0.00、TTFB 3ms。
 
-`npm run verify:seo`：104 頁、15 項規則全數通過。`npx astro check`：0 error。
+`npm run verify:seo`：104 頁、16 項規則全數通過。`npx astro check`：0 error。
 
 ### 正式環境驗證（Cloudflare Pages preview，真實 HTTPS）
 
@@ -172,6 +172,39 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 - **Verification**: 效能 trace（首頁，本機無節流）LCP 265ms、CLS 0.00、TTFB 3ms。
   Lighthouse Performance 未列入本輪驗收數字——本機無節流的分數不具代表性，
   改由 CI workflow 對每個 PR 量測（門檻見 R7）。
+- **2026-07-23 PSI 行動裝置版覆量（perf/critical-path）**：分數 83。CrUX 欄位資料
+  顯示「沒有資料」——站台流量還不足以進 CrUX，所以這份完全是 Lantern 模擬值
+  （Moto G Power / 慢速 4G），不是真人數據。失分歸屬：LCP 4.0s 得 12/25、
+  FCP 2.7s 得 6/10，TBT 50ms、CLS 0、SI 2.7s 全部滿分。也就是 17 分的失分完全
+  集中在同一條關鍵路徑上。
+  - **render-blocking CSS 5 支 → 1 支**（`vite build.cssCodeSplit: false`）。PSI 估
+    延後算繪 790 毫秒；其中 4 支加起來只有 7.9 KB 卻各佔一次 round trip。實測首頁
+    CSS 從「5 個請求 / 13,525 B (gzip)」變成「1 個請求 / 15,293 B」，並且全站共用
+    同一支，第二頁起 CSS 請求數為 0。✅（36aaac9）
+
+    這裡順帶更正一個先前寫在 `astro.config.mjs` 裡但與事實不符的說法：註解宣稱
+    「不動 `build.inlineStylesheets`，讓小型樣式表維持內聯」，但線上與本機 build
+    都是 5 支外部 CSS，一支都沒內聯。原因是 Astro 的 `build.inlineStylesheets`
+    預設 `'auto'` 拿 vite 的 `assetsInlineLimit` 當門檻，而該值為了擋 inline script
+    （CSP `script-src 'self'`）設成 0，等於把樣式表內聯一起關掉。實測把它改回 4096
+    確實會內聯 4 支樣式表，但同時把 `Nav.astro` 的 script 內聯回 HTML 而被 CSP 擋掉
+    ——兩者共用同一顆旋鈕，所以改走 `cssCodeSplit`。
+  - **封面圖輸出 srcset**。原本只有單一 1200px 來源，而版位是行動裝置 378 CSS px、
+    桌機三欄卡片 368px、featured 卡 576px、文章頁封面 912px。實測（DPR 1.75）瀏覽器
+    改挑 800×450，首頁 4 張封面 134,828 B → 86,684 B（-36%），LCP 圖 25,762 B →
+    16,490 B。✅（42a33bb）
+
+    PSI 標的「可省 107 KiB」是以 DPR 1 計（會挑 400w，實測省 94,572 B）；一般手機
+    DPR 1.75～3，實際落在 36% 上下。不要拿 PSI 的估計值當驗收目標。
+  - **未處理：GA4 的 176 KB**。首頁最大的單一資源（475 KiB 中的 173 KiB，36%），
+    但 repo 裡零痕跡——它是 Cloudflare 在邊緣注入的 `<script async src="/ql0n/">`，
+    且只對瀏覽器 UA 出現（curl 預設 UA 拿不到）。第一方路徑代理，所以 CSP 的
+    `script-src 'self'` 與 `connect-src 'self'` 都攔不到它，`window.google_tag_manager`
+    確認 `G-J4PFZEBYW7` 正常運作。站主決定保留 GA4 的資料連續性，故本輪不動。
+    這同時是「非目標：不引入任何第三方 JS」在正式站被邊緣注入破壞的第二個實例。
+  - **未處理：字型 96 KiB**。5 支 woff2 都在關鍵路徑但只 preload 2 支；
+    `font-display: swap` 已全數就位所以不阻斷算繪，優先度最低。JetBrains Mono
+    17 KiB 在首頁只服務日期與篇數那幾個字，是否換系統等寬字堆疊留待站主決定。
 - **Decision（web-vitals RUM）**: **不實作**。理由是 Cloudflare Web Analytics 已經
   在收 Core Web Vitals 的真實使用者數據，自建 RUM 是重複建設，還要多載一支 JS
   傷 INP。實驗室端另有 CI 的 Lighthouse 定期量測（見 R7）。
@@ -198,9 +231,10 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
   回歸；pre-commit 快速檢查文章 frontmatter。
 - **Decision（CI Performance 門檻 90 而非 95）**: GitHub runner 的效能量測波動大，
   95 會造成大量假失敗。95 的目標以本機／正式站量測為準，CI 只擋明顯退步。
-- **Verification**: `npm run verify:seo` 104 頁 15 項規則全過；該腳本以刻意注入
+- **Verification**: `npm run verify:seo` 104 頁 16 項規則全過；該腳本以刻意注入
   重複 title、重複 robots/canonical/og:image 與 sitemap 死連結驗證過確實會攔截，
-  不是空跑。verify-headers 的 CSP 比對亦以「zone 層多注入一個來源」的情境反向
+  不是空跑；新增的 preload 一致性規則亦以「只改 preload 那一邊的 imagesizes」
+  反向驗證過會 FAIL 並印出兩邊的值。verify-headers 的 CSP 比對亦以「zone 層多注入一個來源」的情境反向
   驗證過——舊的整串 includes 寫法在該情境下會判通過，屬實質漏洞，已改為集合比對。
 - **Risk**: 兩個 workflow 的 YAML 語法、`run:` 區塊 shell 語法、分數比對腳本都已
   在本地驗證，但完整的 GitHub Actions 執行環境無法本地模擬。合併後需看第一次

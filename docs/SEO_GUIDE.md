@@ -128,17 +128,23 @@ CJK 唯一字元數超過 700 會警告、超過 800 會直接 throw（Google Fo
    120–160。啟用靠 `npm install` 觸發的 `prepare` script 設定
    `git config core.hooksPath .githooks`，不是 husky。
 2. **`npm run verify:seo`**（build 後，秒級，純 regex 掃 `dist/*.html`，見
-   `scripts/verify-seo.mjs`）：15 條規則——每頁恰一個 `<title>`、恰一個非空
+   `scripts/verify-seo.mjs`）：16 條規則——每頁恰一個 `<title>`、恰一個非空
    description、canonical 恰一個且 host 正確、恰一個非空 robots、OG 四項各恰一個、
    恰一個 twitter:card、可索引頁的 title 長度 30–60、description 長度 120–160、
    恰一個 `<h1>`、JSON-LD 皆可 parse、文章頁有 `BlogPosting`+`BreadcrumbList`
    且 `publisher.name`/`publisher.logo` 齊全、`sitemap.xml` 可解析且無死連結、
    `robots.txt`/`llms.txt`/`site.webmanifest` 存在、站內連結皆可解析且無 http://
-   協定降級、無孤兒頁。實測：104 個 HTML 頁面、15 項規則全數通過。
+   協定降級、無孤兒頁、LCP 圖 preload 的 `imagesrcset`/`imagesizes` 與對應
+   `<img>` 一致。實測：104 個 HTML 頁面、16 項規則全數通過。
 
    注意 head 標籤那幾條是「恰好一個」而非「至少一個」。這不是潔癖：先前曾同時
    輸出兩個 `<meta name="robots">`（astro-seo 自己會輸出一個，我們又手寫了一個），
    兩者內容還互相矛盾，而只檢查存在性的版本完全抓不到。
+
+   最後一條（preload 一致性）防的是沒有錯誤訊息的失敗：`<link rel="preload"
+   as="image">` 與 `<img>` 對候選圖的描述若不一致，瀏覽器會先照 preload 抓一張、
+   渲染時再依 `<img>` 的 sizes 挑一次，等於把 LCP 圖下載兩份——畫面完全正常，
+   只是比不 preload 還慢。
 3. **`npx astro check`**：TypeScript / Astro 型別檢查，跟 SEO 內容無關，但能擋下
    `BaseLayout` props 傳錯型別這類低級錯誤。
 
