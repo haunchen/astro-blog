@@ -43,6 +43,28 @@ Accessibility / Best Practices / SEO / Agentic Browsing **全數 100**。
 
 `npm run verify:seo`：104 頁、12 項規則全數通過。`npx astro check`：0 error。
 
+### 正式環境驗證（Cloudflare Pages preview，真實 HTTPS）
+
+PR #26 的 preview 部署提供了公開 HTTPS URL，先前判定「需要正式站才能驗」的項目
+因此可以提前完成：
+
+| 項目 | 結果 |
+|------|------|
+| 安全標頭（清單 9.8） | squirrelscan Security **100/100**；HSTS preload、CSP、XFO、XCTO、Referrer-Policy、Permissions-Policy、COOP 全部到位，HTTP/3 |
+| W3C Validator（清單 9.7） | 7 個代表頁 **0 個 HTML error** |
+| squirrelscan（HTTPS） | SEO 65／Performance 45／Security 100／Agents 47，失敗項 **43**（基準 152） |
+| 站內死連結（清單 9.9） | dist 逐一比對 **0 條**；squirrelscan 報的 1 條為線上探測假陽性 |
+
+W3C 那 5 個訊息全部是 CSS 層級、且全部來自 Astro View Transitions 的
+`view-transition-name` 與 `::view-transition-*`——W3C 的 CSS validator 尚未實作
+該規範，不是本站程式碼的問題，也不影響 HTML 合法性。
+
+preview 部署特有的假陽性（正式站不成立）：Cloudflare 會對 preview 加上
+`x-robots-tag: noindex`，因而觸發 `Schema + Noindex Conflict`（39 頁）與
+`Indexability Conflicts`；canonical 與 sitemap 指向 frankchen.tw 而爬的是
+`*.pages.dev`，因而觸發 `Sitemap Domain`、`Canonical Chain`、`HTTPS Downgrade`、
+`Redirect Chains`。這幾項要等合併到正式網域後才有意義。
+
 **squirrelscan 分數為何沒有到 95**：剩餘失敗項幾乎都是本地環境的結構性限制，
 不是站台缺陷——`HTTPS`（本地是 http）、`Sitemap Domain`／`Sitemap Coverage`／
 `Canonical Chain`（sitemap 與 canonical 指向 frankchen.tw，爬的卻是 localhost）、
