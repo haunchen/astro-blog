@@ -36,6 +36,15 @@ jobs:
         continue-on-error: true
         run: node scripts/verify-robots.mjs https://frankchen.tw
 
+      # 2026-07-23 正式站整站沒有樣式，而當時所有檢查都是綠的：build 成功、Pages
+      # 部署 success、verify-seo 全過（只看 dist/）、verify-headers 全過（只看標頭）。
+      # 真正的狀況是頁面引用的主樣式表在邊緣被快取成 404。這條補上唯一能發現它的
+      # 斷言——用跟瀏覽器一樣的裸網址，實際把頁面引用的資產抓一遍。
+      - name: 驗證正式站頁面引用的資產都取得到
+        id: assets
+        continue-on-error: true
+        run: node scripts/verify-assets.mjs https://frankchen.tw
+
       - name: 對正式站執行 squirrelscan 稽核
         # 版本鎖定而非 npx squirrelscan（取 latest）：squirrelscan 還在 0.0.x，
         # 語意化版號在 1.0 前不保證相容，CLI 參數與計分都可能無預警變動。日檢是
@@ -65,8 +74,8 @@ jobs:
           path: squirrelscan-report.md
           retention-days: 30
 
-      - name: 標頭或 robots.txt 檢查失敗時讓整個 job 失敗
-        if: steps.headers.outcome == 'failure' || steps.robots.outcome == 'failure'
+      - name: 線上檢查有任一項失敗時讓整個 job 失敗
+        if: steps.headers.outcome == 'failure' || steps.robots.outcome == 'failure' || steps.assets.outcome == 'failure'
         run: |
           if [ "${{ steps.headers.outcome }}" = "failure" ]; then
             echo "::error::正式站回應標頭與 public/_headers 的意圖不一致，見上方 verify-headers 輸出。"
@@ -86,6 +95,16 @@ jobs:
               echo "或內容與 repo 的 \`public/robots.txt\` 不一致。後者多半是邊緣快取仍在供應"
               echo "部署前的舊副本——快取項沿用被快取當下的 TTL，事後調降 max-age 救不了它，"
               echo "要到 Cloudflare Dashboard → Caching → Configuration → Purge Cache 清掉單一 URL。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.assets.outcome }}" = "failure" ]; then
+            echo "::error::正式站頁面引用的資產有拿不到的，見上方 verify-assets 輸出。"
+            {
+              echo "### 資產檢查未通過"
+              echo "頁面上的 \`<link>\`/\`<script>\` 指向拿不到的 URL——這代表訪客看到的是"
+              echo "沒有樣式或功能缺損的頁面。上方輸出會指出是「邊緣把 404 快取住了」"
+              echo "（繞過快取拿得到 200，需 Purge 該 URL）還是「檔案不在該次部署裡」"
+              echo "（建置或部署的問題）。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
           exit 1
