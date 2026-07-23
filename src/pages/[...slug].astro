@@ -112,6 +112,22 @@ const blogPosting = {
           <Content />
         </div>
 
+        <!-- 文章標籤：frontmatter 的 tags 原本只用在 article:tag 與 JSON-LD keywords，
+             頁面上完全沒有出口，導致 54 個標籤頁的唯一入站連結只有 /tag/ 索引頁。
+             列在正文之後而非標題下方，是因為讀完才是想找相關內容的時機。 -->
+        {post.data.tags && post.data.tags.length > 0 && (
+          <nav class="article-tags" aria-label="文章標籤">
+            <span class="article-tags-label">標籤</span>
+            <ul class="article-tags-list">
+              {post.data.tags.map((tag) => (
+                <li>
+                  <TagBadge text={tag} href={`/tag/${encodeURIComponent(tag)}/`} size="sm" />
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )}
+
         <!-- Article Nav (prev / next) -->
         <nav class="article-nav">
           {prevPost ? (
@@ -246,6 +262,39 @@ const blogPosting = {
   .layout-aside {
     width: 240px;
     flex-shrink: 0;
+  }
+
+  /* Article Tags */
+  .article-tags {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-border-subtle);
+  }
+
+  .article-tags-label {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  .article-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* 標籤已接在正文後，prev/next 不需要再畫一條分隔線 */
+  .article-tags + .article-nav {
+    margin-top: 32px;
+    padding-top: 0;
+    border-top: none;
   }
 
   /* Article Nav */
