@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { globSync } from 'glob';
 import matter from 'gray-matter';
+import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
 
 // sitemap serialize callback 只拿得到 URL，先從文章 frontmatter 建 pathname → lastmod 對照。
 // astro.config 內無法使用 astro:content，直接以 gray-matter 讀 frontmatter；
@@ -73,5 +74,6 @@ export default defineConfig({
     shikiConfig: {
       theme: 'tokyo-night',
     },
+    rehypePlugins: [rehypeTableCaption],
   },
 });
