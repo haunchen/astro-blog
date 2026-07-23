@@ -3,11 +3,12 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "astro dev",
-    "build": "node scripts/subset-fonts.mjs && astro build",
+    "dev": "node scripts/build-font-css.mjs && astro dev",
+    "build": "node scripts/build-font-css.mjs && node scripts/subset-fonts.mjs && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "subset-fonts": "node scripts/subset-fonts.mjs"
+    "subset-fonts": "node scripts/subset-fonts.mjs",
+    "fonts": "node scripts/build-font-css.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
