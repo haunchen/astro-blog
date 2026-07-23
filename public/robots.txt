@@ -61,9 +61,12 @@ Allow: /
 
 # — AI 訓練（禁止） —
 # 以下皆為「訓練資料蒐集」型爬蟲，站主刻意選擇退出，讓內容不被拿去訓練模型。
-# 已知且接受的代價：Common Crawl（CCBot）語料與依賴它的 Wayback Machine 收錄
-# 也會連帶受影響（不會被收進 Common Crawl 資料集、間接影響 Wayback 的覆蓋率），
-# 這是退出訓練必然的取捨，不是遺漏。
+# 已知且接受的代價：不會被收進 Common Crawl 資料集，連帶影響所有以它為來源的
+# 衍生語料。這是退出訓練必然的取捨，不是遺漏。
+# 注意代價僅止於此：Wayback Machine 用的是 archive.org 自己的爬蟲
+# （archive.org_bot / ia_archiver），本檔案並未封鎖它們，網站存檔不受影響。
+# 稽核工具會把 CCBot 與 ia_archiver 一併歸類為 archive crawler 而發出警告，
+# 但那是工具的分類方式，不代表本站的 Wayback 收錄真的被擋掉。
 User-agent: GPTBot
 Disallow: /
 

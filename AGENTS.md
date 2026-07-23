@@ -15,7 +15,7 @@ TypeScript strict mode。部署到 Cloudflare Pages（`https://frankchen.tw`）�
 npm run dev          # 開發伺服器（會先跑字型裁切，見下方）
 npm run build         # 正式建置 → dist/
 npm run preview       # 預覽 build 產物
-npm run verify:seo    # build 後的靜態 SEO 驗證（12 條規則，需先 build）
+npm run verify:seo    # build 後的靜態 SEO 驗證（15 條規則，需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
 ```

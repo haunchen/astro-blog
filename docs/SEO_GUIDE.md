@@ -20,11 +20,11 @@ SEO 相關設定只有兩個地方，改動前一律先看這兩個檔案，不�
 | prop | 必填 | 說明 |
 |------|------|------|
 | `title` | 是 | 一律包 `pageTitle('頁名')`，不要自己拼字串，否則品牌後綴規則會不一致 |
-| `description` | 否但實務必填 | 空字串會通過 `verify:seo`（只檢查非空），但等於放棄 SERP 摘要 |
+| `description` | 是（實務上） | `verify:seo` 會擋空值與長度不在 120–160 的可索引頁 |
 | `ogImage` | 否 | 不傳則 fallback `/cover.webp`（`BaseLayout` 內處理，不要在頁面裡重複判斷） |
 | `article` | 文章頁專用 | 傳入才會輸出 `og:type=article` 與 `article:published_time` 等 |
 | `jsonLd` | 否 | 該頁專屬的 JSON-LD 節點陣列；`Organization`/`WebSite` 已由 BaseLayout 自動附加，不要重複塞 |
-| `breadcrumbs` | 列表頁／內頁建議傳 | 傳入才會輸出可見麵包屑與 `BreadcrumbList` JSON-LD；**不含當前頁**，當前頁名取自 `title` 去掉品牌後綴 |
+| `breadcrumbs` | 列表頁／內頁建議傳 | 只負責輸出 `BreadcrumbList` JSON-LD，**不會自己畫出麵包屑**——可見的那條要在頁面裡自己放 `<Breadcrumbs>`（見下方）；**不含當前頁**，當前頁名取自 `title` 去掉品牌後綴 |
 | `noindex` | 404 等頁面 | 會同時關閉 `robotsExtras`（大圖預覽等指令對不索引的頁面沒有意義） |
 | `preloadImage` | 首頁與文章頁的封面圖 | 只有真的是該頁 LCP 元素的圖才傳，亂加反而搶首屏頻寬 |
 
@@ -33,17 +33,28 @@ SEO 相關設定只有兩個地方，改動前一律先看這兩個檔案，不�
 - **title**：30–60 字元（含品牌後綴後的完整字串）。太短沒關鍵字承載，太長會在 SERP 被截斷。
 - **description**：120–160 字元。
 
-**目前的強制程度**（如實記錄，不是每個都自動擋）：
+**目前的強制程度**（如實記錄，擋的時機不同）：
 - 文章 frontmatter 的 `description`：`.githooks/pre-commit` 擋在 commit 當下，120–160 字元硬性檢查。
 - 文章 frontmatter 的 `title`：`src/content.config.ts` 的 zod schema 只擋 `max(60)`，**沒有下限檢查**，
   而且是 build 時才會擋（不是 commit 時）。新增文章時仍要自己注意下限。
-- 靜態頁（`about.astro`、`category/[category].astro`、`contact-frank.astro` 等手寫頁面）的
-  title/description：**完全沒有自動化長度檢查**，全靠寫的人自己數字元。改這些頁面時要手動核對長度。
+- 所有可索引頁（含手寫靜態頁與動態產生的列表頁）的 title/description 長度：由
+  `verify:seo` 在 build 後全站掃描，超出範圍即失敗。這是唯一涵蓋非文章頁的防線，
+  上面兩項都只管 `src/content/posts/` 底下的 markdown。
+- `noindex` 的頁面（目前只有 404）豁免長度檢查——不進 SERP，沒有版位可言。
 
-麵包屑當前頁名與 `<title>` 必須是同一字串（`Breadcrumbs.astro` 元件的 prop 註解也這樣要求）——
-`BaseLayout` 會自動用 `title.replace(' - ${SITE.name}', '')` 取頁名塞進 `BreadcrumbList`
-最後一階，如果頁面自己組的 `pageName` 跟傳給 `<Breadcrumbs current={...}>` 的字串對不上，
-可見麵包屑與結構化資料就會不一致。
+## 麵包屑
+
+有兩個獨立的部分，**都要做才算完整**：
+
+1. `BaseLayout` 的 `breadcrumbs` prop → 輸出 `BreadcrumbList` JSON-LD。
+2. 頁面裡自己放 `<Breadcrumbs items={crumbs} current={pageName} />` → 畫面上可見的那條。
+
+只做 1 會讓結構化資料宣稱一段頁面上看不到的階層。文章頁一度就是這樣（只有 JSON-LD、
+沒有可見麵包屑，與其餘 9 個內頁不一致），後來補上。
+
+兩者的字串必須對得起來：`BaseLayout` 用 `title.replace(' - ${SITE.name}', '')` 取頁名塞進
+`BreadcrumbList` 最後一階，所以頁面自己組的 `pageName`（傳給 `pageTitle()` 的那個）必須跟
+傳給 `<Breadcrumbs current={...}>` 的字串一致。文章頁的情形是兩邊都用 `post.data.title`。
 
 ## 字型管線
 
@@ -117,12 +128,17 @@ CJK 唯一字元數超過 700 會警告、超過 800 會直接 throw（Google Fo
    120–160。啟用靠 `npm install` 觸發的 `prepare` script 設定
    `git config core.hooksPath .githooks`，不是 husky。
 2. **`npm run verify:seo`**（build 後，秒級，純 regex 掃 `dist/*.html`，見
-   `scripts/verify-seo.mjs`）：12 條規則——每頁恰一個 `<title>`、非空
-   description、canonical host 正確、非空 robots、完整 OG 四項、twitter:card、
+   `scripts/verify-seo.mjs`）：15 條規則——每頁恰一個 `<title>`、恰一個非空
+   description、canonical 恰一個且 host 正確、恰一個非空 robots、OG 四項各恰一個、
+   恰一個 twitter:card、可索引頁的 title 長度 30–60、description 長度 120–160、
    恰一個 `<h1>`、JSON-LD 皆可 parse、文章頁有 `BlogPosting`+`BreadcrumbList`
    且 `publisher.name`/`publisher.logo` 齊全、`sitemap.xml` 可解析且無死連結、
-   `robots.txt`/`llms.txt`/`site.webmanifest` 存在、無孤兒頁。實測：104 個 HTML
-   頁面、12 項規則全數通過。
+   `robots.txt`/`llms.txt`/`site.webmanifest` 存在、站內連結皆可解析且無 http://
+   協定降級、無孤兒頁。實測：104 個 HTML 頁面、15 項規則全數通過。
+
+   注意 head 標籤那幾條是「恰好一個」而非「至少一個」。這不是潔癖：先前曾同時
+   輸出兩個 `<meta name="robots">`（astro-seo 自己會輸出一個，我們又手寫了一個），
+   兩者內容還互相矛盾，而只檢查存在性的版本完全抓不到。
 3. **`npx astro check`**：TypeScript / Astro 型別檢查，跟 SEO 內容無關，但能擋下
    `BaseLayout` props 傳錯型別這類低級錯誤。
 
@@ -181,9 +197,11 @@ CI 對應：
 - **FAQPage / HowTo**：Google 已於 2023 大幅限縮這兩種標記的 rich result 資格
   （FAQ 僅限權威醫療／政府網站，HowTo 已全面下架），現有文章也沒有結構化的 FAQ
   區塊，加了拿不到任何 SERP 增益。
-- **web-vitals RUM**：`/privacy-policy/` 明文承諾「未安裝追蹤型分析工具」，裝 RUM
-  會與該承諾衝突；本站為純靜態輸出，多一支監控 JS 反而傷 INP。效能改用 CI 端
-  Lighthouse 定期量測（見上方「驗證流程」）。
+- **web-vitals RUM**：Cloudflare Web Analytics 已經在收 Core Web Vitals 的真實使用者
+  數據，自建 RUM 是重複建設，還要多載一支 JS 傷 INP。實驗室端另有 CI 的 Lighthouse
+  定期量測（見上方「驗證流程」）。
+  （原本記的理由是「隱私權政策承諾未安裝追蹤型分析工具」——該句已在 PR #27 依實情
+  改寫，且 Web Analytics 本身就在收 RUM，那個理由不成立。結論不變，理由換掉。）
 
 （以上決策的完整背景見 `docs/specs/seo-perfection.md` 對應 Requirement；未完成、
 待補的事項見 `docs/SEO_TODO.md`。）
