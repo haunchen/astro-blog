@@ -3,10 +3,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import { pageTitle } from '../utils/site-meta';
 ---
 
-<BaseLayout title={pageTitle('404 — 找不到頁面')}>
-  <div class="error-page">
-    <div class="error-code">404</div>
-    <p class="error-message">找不到這個頁面</p>
+<BaseLayout
+  title={pageTitle('404 — 找不到頁面')}
+  description="這個網址不存在或已經搬家。你可以從首頁重新開始，或到文章總覽找找 n8n 自動化、架站部署、Flutter 與樹莓派的相關內容。"
+  noindex={true}
+>
+  <main class="error-page">
+    <div class="error-code" aria-hidden="true">404</div>
+    <h1 class="error-message">找不到這個頁面</h1>
     <p class="error-desc">你要找的頁面可能已經移除、更改了網址，或是暫時無法使用。</p>
     <div class="error-links">
       <a href="/" class="btn btn--primary">← 回首頁</a>
@@ -17,7 +21,7 @@ import { pageTitle } from '../utils/site-meta';
       <span class="output">HTTP/2 404 Not Found</span><br>
       <span class="prompt">$</span> <span class="cursor"></span>
     </div>
-  </div>
+  </main>
 </BaseLayout>
 
 <style>

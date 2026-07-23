@@ -37,7 +37,7 @@ function isActive(href: string): boolean {
                 aria-expanded="false"
                 aria-controls={`nav-dropdown-${index}`}
                 aria-label={`展開${item.label}子選單`}
-              >▾</button>
+              ><span aria-hidden="true">▾</span></button>
             </div>
             <ul class="nav-dropdown" id={`nav-dropdown-${index}`}>
               {item.children.map((child) => (

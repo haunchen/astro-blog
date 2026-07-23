@@ -11,7 +11,15 @@ const yearLabel = currentYear > startYear ? `${startYear}–${currentYear}` : `$
   <div class="footer-inner">
     <div class="footer-main">
       <div class="footer-brand">
-        <img src="/logo.webp" alt="" class="footer-avatar" width="64" height="64" />
+        <img
+          src="/logo.webp"
+          alt=""
+          class="footer-avatar"
+          width="64"
+          height="64"
+          loading="lazy"
+          decoding="async"
+        />
         <div class="footer-id">
           <div class="footer-title">{SITE.name}</div>
           <p class="footer-desc">{SITE.description}</p>
