@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+# 用 bash 而非 /bin/sh：下面用了陣列處理檔名，dash 等純 POSIX sh 不支援；
+# Git for Windows 內建 bash，Git Bash 環境下這條 shebang 可直接解析。
+#
+# pre-commit：只做秒級檢查，不能跑完整 build（太慢，會拖慢每次 commit）。
+# 只驗證這次要 commit 的文章 frontmatter 必要欄位，把漏標籤／描述長度不合
+# 擋在 commit 當下，而不是等 CI 或事後才發現。
+#
+# 啟用方式：npm install 會跑 package.json 的 "prepare" script
+# （git config core.hooksPath .githooks），不需要額外安裝 husky。
+
+STAGED_POSTS=$(git diff --cached --name-only --diff-filter=ACMR -- 'src/content/posts/**/*.md')
+
+if [ -z "$STAGED_POSTS" ]; then
+  exit 0
+fi
+
+# 用陣列而非直接展開字串，避免檔名含空白被誤拆成多個參數
+FILES=()
+while IFS= read -r line; do
+  [ -n "$line" ] && FILES+=("$line")
+done <<EOF
+$STAGED_POSTS
+EOF
+
+# 讀 staged 內容（git show :path）而非工作目錄檔案：commit 的是索引內容，
+# 若只改了工作目錄還沒 add，檢查工作目錄內容會誤判。
+# frontmatter 解析用專案既有依賴 gray-matter，不為此再裝套件。
+node -e '
+const { execFileSync } = require("node:child_process");
+const matter = require("gray-matter");
+
+const files = process.argv.slice(1);
+let failed = false;
+
+for (const file of files) {
+  let raw;
+  try {
+    raw = execFileSync("git", ["show", `:${file}`], { encoding: "utf8" });
+  } catch (err) {
+    console.error(`[pre-commit] 無法讀取 staged 內容：${file}`);
+    failed = true;
+    continue;
+  }
+
+  let data;
+  try {
+    ({ data } = matter(raw));
+  } catch (err) {
+    console.error(`[pre-commit] ${file}：frontmatter 解析失敗（${err.message}）`);
+    failed = true;
+    continue;
+  }
+
+  const reasons = [];
+  for (const field of ["title", "description", "date", "category"]) {
+    const value = data[field];
+    if (value === undefined || value === null || value === "") {
+      reasons.push(`缺少 ${field}`);
+    }
+  }
+  if (typeof data.description === "string" && data.description !== "") {
+    const len = data.description.length;
+    if (len < 120 || len > 160) {
+      reasons.push(`description 長度為 ${len} 字，須介於 120–160`);
+    }
+  }
+
+  if (reasons.length > 0) {
+    console.error(`[pre-commit] ${file}：${reasons.join("；")}`);
+    failed = true;
+  }
+}
+
+if (failed) {
+  console.error("");
+  console.error("[pre-commit] 文章 frontmatter 檢查未通過，commit 已擋下。");
+  process.exit(1);
+}
+' -- "${FILES[@]}"
+
+exit $?
