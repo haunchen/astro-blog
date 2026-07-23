@@ -148,8 +148,9 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
     />
     <link rel="alternate" type="application/rss+xml" title={SITE.name} href="/rss.xml" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
-    {/* 單一語系站台，hreflang 只需自我宣告 + x-default，避免搜尋引擎誤判地區變體 */}
-    <link rel="alternate" hreflang="zh-Hant-TW" href={canonicalURL.href} />
+    {/* 單一語系站台，hreflang 只需自我宣告 + x-default，避免搜尋引擎誤判地區變體。
+        值必須與 <html lang> 完全一致（zh-TW），否則驗證器認不出這是自我宣告。 */}
+    <link rel="alternate" hreflang="zh-TW" href={canonicalURL.href} />
     <link rel="alternate" hreflang="x-default" href={canonicalURL.href} />
     <JsonLd data={allJsonLd} />
     <ClientRouter />

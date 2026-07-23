@@ -23,15 +23,36 @@ function textOf(node) {
  */
 export function rehypeTableCaption() {
   return (tree) => {
-    // 前序走訪，順序即文件順序，因此可用單一變數追蹤「最近出現過的標題」。
-    let lastHeading = null;
+    // 前序走訪，順序即文件順序，所以「目前所在的標題階層」可以邊走邊維護。
+    // 只取最近的 h2 是不夠的：同一篇文章常出現多個字面相同的 h3
+    //（例如三個平台各有一節「費用與限制」），單取 h3 會產生重複的可及名稱，
+    // 等於沒解決「分不出是哪張表」。因此用 h2 › h3 › h4 的路徑當名稱。
+    const headingByLevel = new Map();
+    // 路徑仍可能撞名（同一節裡連續多張表），最後再用出現次數補序號，
+    // 保證每頁的 caption 全域唯一。
+    const usedLabels = new Map();
 
     const walk = (node) => {
       if (node.type === 'element') {
         if (HEADING_TAGS.has(node.tagName)) {
-          lastHeading = textOf(node).trim() || null;
+          const level = Number(node.tagName.slice(1));
+          headingByLevel.set(level, textOf(node).trim() || null);
+          // 進到新的同級／上層標題時，更深層的標題已經離開作用範圍
+          for (const deeper of [...headingByLevel.keys()]) {
+            if (deeper > level) headingByLevel.delete(deeper);
+          }
         } else if (node.tagName === 'table') {
-          addCaption(node, lastHeading);
+          const path = [...headingByLevel.keys()]
+            .sort((a, b) => a - b)
+            .map((lv) => headingByLevel.get(lv))
+            .filter(Boolean);
+          let label = path.length ? path.join(' › ') : null;
+          if (label) {
+            const seen = (usedLabels.get(label) ?? 0) + 1;
+            usedLabels.set(label, seen);
+            if (seen > 1) label = `${label}（表 ${seen}）`;
+          }
+          addCaption(node, label);
         }
       }
       if (Array.isArray(node.children)) {

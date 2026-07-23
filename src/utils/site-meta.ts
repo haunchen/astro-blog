@@ -62,13 +62,10 @@ export const ORGANIZATION_JSONLD = {
   '@id': `${SITE.url}/#org`,
   name: SITE.name,
   url: SITE.url,
-  // logo 必須是 ImageObject（純字串 URL 會被 Rich Results Test 判為缺欄位）
-  logo: {
-    '@type': 'ImageObject',
-    url: SITE.logo,
-    width: 512,
-    height: 512,
-  },
+  // 這裡刻意用字串而非 ImageObject：schema.org 兩者都合法，但獨立 Organization
+  // 節點上的 logo，部分驗證器（squirrelscan）只接受字串 URL。
+  // Article 內的 publisher 需求相反（見 PUBLISHER_JSONLD），故兩處分開定義。
+  logo: SITE.logo,
   email: SITE.email,
   sameAs: SITE.sameAs,
 };
