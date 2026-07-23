@@ -8,7 +8,8 @@
     "preview": "astro preview",
     "astro": "astro",
     "subset-fonts": "node scripts/subset-fonts.mjs",
-    "fonts": "node scripts/build-font-css.mjs"
+    "fonts": "node scripts/build-font-css.mjs",
+    "verify:seo": "node scripts/verify-seo.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
