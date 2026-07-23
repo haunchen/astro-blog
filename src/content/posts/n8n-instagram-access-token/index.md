@@ -263,7 +263,7 @@ Allow: /wp-content/uploads/
 **參考資料：**
 
 -   [How to Post to Instagram with n8n (Updated 2025)](https://www.youtube.com/watch?v=AGSyWdjN5A4)
--   [如何取得 Instagram API Token 並自動更新：完整教學指南](https://charlsondou.com/get-instagram-api-token-auto-update/#Token_yan_zhang_yu_zi_dong_shua_xin)
+-   [Meta 官方文件：Instagram 商家登入 — 取得與重新整理長期存取權杖](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login)
 
 延伸閱讀：[不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
 

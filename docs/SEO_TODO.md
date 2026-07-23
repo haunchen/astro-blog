@@ -29,18 +29,25 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
 
 ## B. 內容工作（非技術修復，需要站主判斷）
 
-- [ ] **3 條外部死連結**，需站主決定替換或移除：
-  - `https://charlsondou.com/get-instagram-api-token-auto-update/#...`（timeout），
-    出現在 `/n8n-instagram-access-token`。
-  - `https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md`
-    （404），出現在 gemini-cli 那篇（`/google-new-opensource-too-gemini-cli-...`）。
-  - `https://your.wordpress.url/wp-json/wp/v2/media)，WordPress...`（連線失敗），
-    出現在 `/n8n-notion-wordpress-publish-automation`。這條其實不是真的外部連結，
-    是文章內的**範例網址**被 markdown 連結語法誤吞了後面的中文與括號（`)` 被當成
-    連結語法的一部分）。修法：把這段範例網址改成純程式碼片段（` `` ` 包起來）
-    而非 markdown 連結，不需要對外請求就能修好。
-  - 另外 LinkedIn（`https://www.linkedin.com/in/frankchen0130/`）回 999 是該站
-    對爬蟲的反制行為，不是實際死連結，已評估標記為忽略，不需處理。
+- [x] **3 條外部死連結**（已於 2026-07-23 全數處理）：
+  - `charlsondou.com/get-instagram-api-token-auto-update/`（連線失敗，整個網域
+    無回應而非單頁 404），出現在 `/n8n-instagram-access-token` 的參考資料。
+    已換成 Meta 官方文件「Instagram 商家登入」——該頁有「步驟 3：取得長期存取
+    權杖」與「重新整理長期權杖」，正好對應原連結的主題。以真實瀏覽器開啟求證
+    過（curl 會被 Meta 的機器人偵測擋成 400，不能據此判斷死活）；並直接使用
+    `/documentation/` 這個最終網址，避免多一次 `/docs/` 的轉址。
+  - `github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md`
+    （404），出現在 gemini-cli 那篇。上游重整了 `docs/` 目錄結構，該檔已不存在。
+    因為原文那段是在講 `/mcp` 指令，改指 `docs/tools/mcp-server.md`（實測 200），
+    而非範圍較廣的 `docs/reference/configuration.md`。
+  - `your.wordpress.url/wp-json/wp/v2/media)，WordPress...`，出現在
+    `/n8n-notion-wordpress-publish-automation`。不是真的外部連結，是刻意的**佔位
+    範例網址**被 markdown 自動連結時把後面的 `)` 與中文一起吞進 URL。已改成行內
+    程式碼，既不會被轉成連結，也讓讀者更清楚那是要替換的佔位符。同時補回該句
+    原本掉失的內連（WordPress 搬家時遺失，句子停在「請見 。」），指向
+    `/n8n-wordpress-api-integration-guide/`。
+  - LinkedIn（`https://www.linkedin.com/in/frankchen0130/`）回 999 是該站對爬蟲的
+    反制行為，不是實際死連結，已評估標記為忽略，不需處理。
 - [ ] **內容過薄頁面**（squirrelscan word-count 警告，15 篇低於 300 字門檻）。
       屬於內容工作而非技術修復——是否要為這些頁面補內容，或接受它們本來就是
       短篇幅（例如工具速查／單一問題解法），需要站主逐篇判斷。

@@ -93,7 +93,7 @@ gemini
 
 列出已設定的 MCP 伺服器和工具
 
-官方提供的設定方法：[Github](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md)
+官方提供的設定方法：[Github](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
 
 ### /tools
 
