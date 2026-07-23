@@ -6,9 +6,9 @@ import { getCollection } from 'astro:content';
 import { CATEGORIES, collectionPageJsonLd, pageTitle } from '../../utils/site-meta';
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
-const pageName = '分類';
+const pageName = '文章分類｜依主題瀏覽 n8n、架站、Flutter 與樹莓派';
 const crumbs = [{ name: '首頁', href: '/' }];
-const description = '依主題瀏覽所有技術文章分類：n8n 自動化、架站部署、Flutter、樹莓派與開發工具。';
+const description = '依主題瀏覽站上所有技術文章分類：n8n 自動化、架站部署、Flutter、樹莓派與開發工具。每個分類卡片會顯示目前累積的文章篇數，點進去即可看到該主題由新到舊排列的完整文章時間軸，適合想一次補齊某個領域知識的讀者，也方便你先確認哪個主題的內容最完整。';
 
 // 本頁列出的是分類頁而非文章，ItemList 需與 CategoryGrid 的篩選條件（有文章才顯示）一致
 const posts = await getCollection('posts', ({ data }) => !data.draft);

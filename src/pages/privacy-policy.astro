@@ -4,13 +4,13 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE, pageTitle } from '../utils/site-meta';
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
-const pageName = '隱私權政策';
+const pageName = '隱私權政策｜資料蒐集、Cookie 與第三方內容說明';
 const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
   title={pageTitle(pageName)}
-  description="本站如何處理你的資料：本站為靜態網站，不主動蒐集個人資料、未安裝追蹤型分析工具。"
+  description="本站的隱私權政策：說明本站為靜態網站、不提供留言與註冊功能、不主動蒐集個人資料，也未安裝 Google Analytics 等第三方分析工具，並逐項解釋 Cookie、第三方嵌入內容與外部連結的處理方式，以及你可以如何來信提出隱私相關的疑問。"
   breadcrumbs={crumbs}
 >
   <main class="legal">

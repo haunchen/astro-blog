@@ -94,7 +94,7 @@ const portfolio = [
     desc: '使用 Flutter 雙平台開發，採 MVVM 架構、Provider 控制狀態。提供 n8n 工作流管理、執行狀態監控與安全性偵測，可即時掌握 n8n 狀態。',
     tags: ['Flutter', 'Dart', 'Provider', 'MVVM'],
     link: 'https://n8nmanager.frankchen.tw/',
-    linkText: '查看專案',
+    linkText: '查看 n8nManager 介紹頁',
   },
   {
     img: blogShot,
@@ -102,7 +102,7 @@ const portfolio = [
     desc: '分享軟體開發實戰經驗與工具應用的技術部落格。',
     tags: ['WordPress', 'Astro'],
     link: '/',
-    linkText: '前往網站',
+    linkText: '前往部落格首頁',
   },
   {
     img: iset2021,
@@ -110,7 +110,8 @@ const portfolio = [
     desc: '沿用 ISET 研討會官網功能，美化介面並調整細節問題。',
     tags: ['HTML', 'CSS', 'JavaScript', 'Google Sheet', 'Google Apps Script'],
     link: 'https://github.com/haunchen/ISET2021',
-    linkText: 'GitHub',
+    // 兩張作品卡原本都叫「GitHub」卻連往不同 repo，脫離上下文就無法分辨
+    linkText: 'ISET2021 原始碼',
   },
   {
     img: iset2020,
@@ -118,7 +119,7 @@ const portfolio = [
     desc: '碩班時期作品，從零手刻網站完成報名與繳費功能。報名系統串接 Google Sheet 作資料庫，搭配 Google Apps Script 完成功能。',
     tags: ['HTML', 'CSS', 'JavaScript', 'Google Sheet', 'Google Apps Script'],
     link: 'https://github.com/haunchen/ISET2020',
-    linkText: 'GitHub',
+    linkText: 'ISET2020 原始碼',
   },
 ];
 
@@ -130,7 +131,7 @@ const socials = [
 ];
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
-const pageName = '關於我';
+const pageName = '關於我｜Frank Chen 的工程師經歷與作品集';
 const crumbs = [{ name: '首頁', href: '/' }];
 
 // ProfilePage 外層 + mainEntity 指向 Person：告訴搜尋引擎「本頁就是在描述這個人」。
@@ -180,7 +181,7 @@ const personJsonLd = {
 
 <BaseLayout
   title={pageTitle(pageName)}
-  description="Frank Chen，系統整合工程師。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。"
+  description="Frank Chen（法蘭克），落腳台南的系統整合工程師，擁有超過 3 年軟體開發經驗。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。這裡完整整理我的工作經歷、專案經驗、作品集與各種聯絡方式。"
   ogImage="/cover.webp"
   jsonLd={[personJsonLd]}
   breadcrumbs={crumbs}

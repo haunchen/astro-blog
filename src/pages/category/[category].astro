@@ -24,12 +24,12 @@ const { categoryPosts, slug } = Astro.props;
 const label = categoryLabel(slug);
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
-const pageName = label;
+const pageName = `${label}｜相關教學文章、實作紀錄與踩坑經驗整理`;
 const crumbs = [
   { name: '首頁', href: '/' },
   { name: '分類', href: '/category/' },
 ];
-const description = `所有「${label}」分類的技術文章。`;
+const description = `瀏覽「${label}」分類的所有技術文章，目前共 ${categoryPosts.length} 篇，依發表日期由新到舊排列。內容涵蓋完整實作步驟、設定範例、踩坑紀錄與心得整理，都是實際做過一輪後才寫下來的筆記，適合想深入這個主題的讀者依序閱讀，也可以直接挑出目前需要的段落參考，避免重複踩同樣的坑。`;
 
 // ItemList 順序需與畫面一致：ArticleTimeline 以日期新到舊排列
 const listed = [...categoryPosts]
