@@ -77,12 +77,18 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
 
 ### R4: 零 a11y error
 - **Level**: MUST
-- **Status**: 部分完成
+- **Status**: 內容層完成，待全站複審
 - **Description**: squirrelscan a11y 類別 0 error、Lighthouse Accessibility ≥ 95。
-  - caret 按鈕可見文字（▾）與 `aria-label` 不符 → ▾ 改 `aria-hidden`。✅（commit 4058051）
-  - markdown 表格缺可及名稱（8 頁）→ rehype plugin 補視覺隱藏 caption。施工中。
-  - 相同連結文字指向不同 URL（7 組）→ 連結文字帶上目標名稱。施工中。
-  - alt 與檔名重複。施工中。
+  - caret 按鈕可見文字（▾）與 `aria-label` 不符 → ▾ 改 `aria-hidden`。✅（4058051）
+  - markdown 表格缺可及名稱 → rehype plugin 取前方最近的 h2–h4 補視覺隱藏
+    `<caption>`。✅（c992009）驗收：全 dist 掃描 40 個 table／40 個 caption，
+    無一遺漏，fallback 分支未被觸發。
+  - 相同連結文字指向不同 URL（7 組）→ 資源卡連結加視覺隱藏的資源名稱，箭頭
+    `aria-hidden`。✅（1ad07e3）
+  - alt 與檔名重複 → 8 張資源圖皆為 72×72 的影片縮圖／網站截圖，資訊已由同卡
+    h3 與描述承載，一律改 `alt=""`（裝飾性）。✅（1ad07e3）
+- **Decision（rehype plugin 不依賴 unist-util-visit）**: 該套件只是 Astro 的傳遞
+  相依、未列在 package.json，直接 import 會在相依樹變動時無預警壞掉，改自寫走訪。
 
 ### R5: Core Web Vitals 達標
 - **Level**: MUST
@@ -91,7 +97,9 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
   Lighthouse Performance ≥ 95。
   - render-blocking CSS 由 R1 解決。✅
   - 首屏 latin 字型 preload，消除 CSS→@font-face→woff2 三層請求鏈。✅
-  - LCP 圖片 `fetchpriority="high"` + below-fold 圖片 lazy。施工中。
+  - LCP 圖片（首頁 featured 卡封面）改 `loading="eager" decoding="sync"
+    fetchpriority="high"`，其餘卡片維持 lazy；CLS 由 Astro `<Image>` 輸出的
+    `width`/`height` 保證。✅（63ee82b）
 - **Decision（web-vitals RUM）**: **不實作**。`/privacy-policy/` 明文承諾「未安裝
   追蹤型分析工具」，裝 RUM 會與該承諾衝突；且本站為純靜態、加 JS 反而傷 INP。
   效能改用 CI 端 Lighthouse 定期量測（見 R7）。

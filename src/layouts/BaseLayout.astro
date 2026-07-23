@@ -86,15 +86,17 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
       ))
     }
+    <!--
+      robots 一律由 astro-seo 輸出：它無論如何都會產生一個 <meta name="robots">，
+      自己再加第二個會出現互相矛盾的宣告。額外指令走 robotsExtras 併進同一個 meta，
+      讓 Google 出大圖預覽與完整摘要（預設會截短，直接影響 SERP 版位）。
+    -->
     <SEO
       title={title}
       description={description}
       canonical={canonicalURL.href}
       noindex={noindex}
       nofollow={noindex}
-      {/* astro-seo 一定會輸出 <meta name="robots">，自己再加一個會變成兩個互相矛盾的宣告。
-          額外指令走 robotsExtras 併進同一個 meta：允許 Google 出大圖預覽與完整摘要
-          （預設會截短，直接影響 SERP 版位）。noindex 時不需要這些指令。 */}
       robotsExtras={noindex
         ? undefined
         : 'max-image-preview:large, max-snippet:-1, max-video-preview:-1'}

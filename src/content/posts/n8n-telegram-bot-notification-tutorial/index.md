@@ -116,7 +116,7 @@ my_n8n_bot
 建立成功後，BotFather 會提供一組 **Bot Token**，格式類似：
 
 ```text
-1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
+1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN
 ```
 
 **重要提醒：**
@@ -132,7 +132,7 @@ my_n8n_bot
 Done! Congratulations on your new bot. You will find it at t.me/your_bot_name.You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
 
 Use this token to access the HTTP API:
-1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
+1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN
 Keep your token **secure** and **store it safely**, it can be used by anyone to control your bot.
 
 For a description of the Bot API, see this page: https://core.telegram.org/bots/api
@@ -227,7 +227,7 @@ Id: -5228947698
 
 1.  **Access Token**
     -   貼上剛剛在 BotFather 取得的 Bot Token
-    -   格式：`1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890`
+    -   格式：`1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN`
     -   確保沒有多餘的空格或換行
 2.  **Base URL**（通常不需要修改）
     -   預設值：`https://api.telegram.org`
