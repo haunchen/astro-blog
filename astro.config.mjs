@@ -69,6 +69,14 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // 禁止 Astro 把小型 hoisted script 內聯進 HTML。全站因此 0 個 inline script，
+      // CSP 的 script-src 才能收緊成 'self'（見 public/_headers）。
+      // 註：style-src 仍需 'unsafe-inline'——View Transitions 會逐頁產生內容不同的
+      // view-transition-name 樣式且無法外部化，所以這裡不動 build.inlineStylesheets，
+      // 讓小型樣式表維持內聯以減少 render-blocking 請求數。
+      assetsInlineLimit: 0,
+    },
   },
   markdown: {
     shikiConfig: {
