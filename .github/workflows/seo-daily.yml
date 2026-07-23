@@ -27,6 +27,15 @@ jobs:
         continue-on-error: true
         run: node scripts/verify-headers.mjs https://frankchen.tw
 
+      # 與上面同一類問題：repo 裡是對的，但爬蟲實際拿到的不對。實測踩過兩次
+      # （非標準 directive 讓 Lighthouse 判 robots.txt invalid、SEO 掉到 92；
+      # 修好部署後又因為邊緣快取仍供應舊副本而持續扣分）。同樣用
+      # continue-on-error 讓 squirrelscan 照跑，最後再一起讓 job 失敗。
+      - name: 驗證正式站的 robots.txt（語法與內容漂移）
+        id: robots
+        continue-on-error: true
+        run: node scripts/verify-robots.mjs https://frankchen.tw
+
       - name: 對正式站執行 squirrelscan 稽核
         # 版本鎖定而非 npx squirrelscan（取 latest）：squirrelscan 還在 0.0.x，
         # 語意化版號在 1.0 前不保證相容，CLI 參數與計分都可能無預警變動。日檢是
@@ -56,13 +65,27 @@ jobs:
           path: squirrelscan-report.md
           retention-days: 30
 
-      - name: 標頭檢查失敗時讓整個 job 失敗
-        if: steps.headers.outcome == 'failure'
+      - name: 標頭或 robots.txt 檢查失敗時讓整個 job 失敗
+        if: steps.headers.outcome == 'failure' || steps.robots.outcome == 'failure'
         run: |
-          echo "::error::正式站回應標頭與 public/_headers 的意圖不一致，見上方 verify-headers 輸出。"
-          echo "### 標頭檢查未通過" >> "$GITHUB_STEP_SUMMARY"
-          echo "正式站實際回傳的標頭與 \`public/_headers\` 不一致。" >> "$GITHUB_STEP_SUMMARY"
-          echo "Pages 的設定若在 \`*.pages.dev\` 上正確、在正式網域上卻不正確，" >> "$GITHUB_STEP_SUMMARY"
-          echo "問題在 zone 層：Cloudflare Dashboard → Rules → Transform Rules →" >> "$GITHUB_STEP_SUMMARY"
-          echo "Modify Response Header，以及 Rules → Managed Transforms。" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ steps.headers.outcome }}" = "failure" ]; then
+            echo "::error::正式站回應標頭與 public/_headers 的意圖不一致，見上方 verify-headers 輸出。"
+            {
+              echo "### 標頭檢查未通過"
+              echo "正式站實際回傳的標頭與 \`public/_headers\` 不一致。"
+              echo "Pages 的設定若在 \`*.pages.dev\` 上正確、在正式網域上卻不正確，"
+              echo "問題在 zone 層：Cloudflare Dashboard → Rules → Transform Rules →"
+              echo "Modify Response Header，以及 Rules → Managed Transforms。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.robots.outcome }}" = "failure" ]; then
+            echo "::error::正式站的 robots.txt 有未知 directive 或與 repo 不一致，見上方 verify-robots 輸出。"
+            {
+              echo "### robots.txt 檢查未通過"
+              echo "線上供應的 robots.txt 有未知 directive（Lighthouse 會判 invalid 並扣 SEO 分數），"
+              echo "或內容與 repo 的 \`public/robots.txt\` 不一致。後者多半是邊緣快取仍在供應"
+              echo "部署前的舊副本——快取項沿用被快取當下的 TTL，事後調降 max-age 救不了它，"
+              echo "要到 Cloudflare Dashboard → Caching → Configuration → Purge Cache 清掉單一 URL。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
           exit 1
