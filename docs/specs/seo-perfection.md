@@ -285,7 +285,7 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 | GSC sitemap 提交 | 站主已提交（2026-07-23） | — |
 | X / Twitter handle | 已提供 `@frankchen_tw`（2026-07-23） | — |
 | squirrelscan 雲端帳號 | 站主決定不開（2026-07-23） | 以本地 report 的 SEO/Perf/Security/Agents 四項在正式站的實測值當驗收基準 |
-| Cloudflare JS Detections 關不掉 | dashboard 未提供開關，需走 API | Bot Fight 模式已關但 JSD 仍注入 `jsd/main.js`，造成 CSP 違規、Best Practices 92、HTML 無 ETag；修法見下方 R8 |
+| Cloudflare JS Detections | **站主決定不處理（2026-07-23）** | 唯一修法是 API（dashboard 在 Bot Fight 關閉後不提供開關），評估後認為不值得為此建 API token。代價已知並接受：CSP 持續違規、Lighthouse Best Practices 92、HTML 無 ETag（無法走 304）。詳見下方「Cloudflare 機器人設定」 |
 | GA4（`/ql0n/`，176 KB） | 站主決定保留資料連續性（2026-07-23） | 首頁最大單一資源，Cloudflare 邊緣注入、repo 內零痕跡；詳見 R5 |
 | 未雜湊檔名的靜態圖片 | 已開 issue #35 | zone 的瀏覽器 TTL 已改為採用原點 TTL，現況與 `_headers` 一致；但該修正是 dashboard 設定、不在版控裡 |
 | 外部死連結 3 條 | 需站主決定替換或移除 | 見 SEO_TODO.md |
@@ -305,7 +305,10 @@ zone 上有三層互相影響的機器人設定，dashboard 的呈現方式會�
 代價：CSP `script-src 'self'` 持續違規、Lighthouse Best Practices 92、**HTML 沒有 ETag**
 （它在邊緣改寫 HTML body，原本的 entity tag 不再對應）。已與 `astro-blog-6fk.pages.dev`
 對照確認 ETag 是被它拿掉的。唯一修法是 API：
-`PATCH /zones/{zone_id}/bot_management` 帶 `{"enable_js": false}`。
+`PATCH /zones/{zone_id}/bot_management` 帶 `{"enable_js": false}`，需自行建立
+`Zone → Bot Management → Edit` 權限的 token。**站主評估後決定不處理**（2026-07-23）
+——代價已知並接受，不是遺漏。若日後要拿回 Best Practices 100 或 HTML 的 304，
+這是唯一的路。
 
 **3.「設定 AI 機器人政策」的三個下拉在 2026-09-15 前形同虛設。** 這是最容易踩的一個。
 搜尋／代理／訓練看起來是三個獨立選項，實際上在該日之前它們只是去翻動舊版那顆
