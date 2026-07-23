@@ -1,7 +1,7 @@
 ---
 title: "Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線"
 date: 2025-12-17
-description: "設定 Nginx Proxy Cache 作為 WordPress 第二層快取，當 Cloudflare 失效時自動接手，含完整設定範例與 WordPress 排除規則。"
+description: "在 Cloudflare 之外替 WordPress 加上 Nginx 這道第二層快取：說明 Proxy Cache 與 FastCGI Cache 的適用架構與設定範例、後台與登入 Cookie 的排除規則，以及用 X-Cache-Status 驗證命中率的方法。"
 category: "devops"
 tags: ["Cache", "Nginx", "WordPress"]
 cover: "./images/cover.webp"

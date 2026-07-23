@@ -1,7 +1,7 @@
 ---
 title: "NFS 寫入導致應用程式當機？從 NFS4 切換到 NFS3 徹底解決"
 date: 2025-10-07
-description: "本文分析樹莓派系統開機後立即使用 NFS4 寫入會當機，因 NFS4 有狀態設計需 30-120 秒初始化，導致應用程式阻塞於 D 狀態。解決方案為切換至無狀態的 NFS3 協定，徹底消除開機等待時間，確保系統立即可用。"
+description: "樹莓派開機後立即寫入 NFS 會讓應用程式整個卡死。從 Log 與執行緒卡在 D 狀態一路追到 NFS4 有狀態設計需 30 至 120 秒完成初始化，改用無狀態的 NFS3 協定後徹底消除開機等待時間，不必再空等一兩分鐘才能正常寫入檔案。"
 category: "raspberry-pi"
 tags: ["NFS3", "NFS4", "RaspberryPi"]
 cover: "./images/cover.webp"

@@ -1,7 +1,7 @@
 ---
 title: "n8n-skills 技術解密 (1)：打造可擴展的四層式資料處理 Pipeline"
 date: 2026-01-25
-description: "解析 n8n-skills 的四層式 Pipeline 架構設計：Collectors、Parsers、Organizers、Generators。探討如何實現關注點分離、可擴展性與易測試性。"
+description: "解析 n8n-skills 如何用 Collectors、Parsers、Organizers、Generators 四層 Pipeline 處理 500 多個結構各異的 n8n 節點，避免 if-else 地獄，並談關注點分離、可擴展性與易測試性的取捨。"
 category: "n8n"
 tags: []
 cover: "./images/cover.webp"

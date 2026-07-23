@@ -1,7 +1,7 @@
 ---
 title: "【 n8n 模板分享 】探店心願助手"
 date: 2025-08-09
-description: "這篇文章介紹了一個 n8n 模板，可以幫助使用者整理來自社交平台的店家資訊。透過上傳截圖或連結，可迅速獲取店家資料，方便下次打卡。工作流提供新增、查詢、標記、刪除和重置等功能，並附有操作指引。"
+description: "分享一套「探店心願助手」n8n 模板：透過 LINE 上傳截圖或 IG、FB 連結，用 Gemini 分析圖片、SERP 查 Google Map 補齊店家資料並寫入 Google Sheet，支援新增、查詢、標記已踩點、刪除與重置等功能。"
 category: "n8n"
 tags: ["n8n", "工作流程", "模板"]
 cover: "./images/cover.webp"

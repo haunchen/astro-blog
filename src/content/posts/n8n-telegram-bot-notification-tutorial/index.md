@@ -1,7 +1,7 @@
 ---
 title: "n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學"
 date: 2026-01-04
-description: "Telegram Bot 是 n8n 自動化通知的最佳選擇！這篇教學帶你從零開始建立 Bot，設定憑證，並實現即時通知和互動功能。"
+description: "從與 BotFather 對話建立 Telegram Bot、取得 Token 與 Chat ID，到在 n8n 完成憑證設定並實作即時通知與互動指令，並比較 Telegram、LINE、Discord 三種 Bot 的設定難度與費用限制。"
 category: "n8n"
 tags: ["n8n", "Telegram", "教學", "自動化"]
 cover: "./images/cover.webp"

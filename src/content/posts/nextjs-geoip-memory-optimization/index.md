@@ -1,7 +1,7 @@
 ---
 title: "Node.js 記憶體優化實戰：用多層降級策略解決 geoip-lite 的 100MB 記憶體問題"
 date: 2025-12-29
-description: "部署 Next.js 應用到 Zeabur 後發現記憶體使用量高達 300MB，透過分析找出 geoip-lite 套件是主因，最終設計多層降級策略成功減少 100MB 記憶體，PR 已被合併到開源專案。"
+description: "部署 Next.js 短網址專案到 Zeabur 後，閒置狀態記憶體就佔用超過 300MB。追查發現 geoip-lite 會把整個 MaxMind 資料庫載入記憶體，改以 CDN geolocation headers 為主的多層降級策略後省下約 100MB，PR 已合併進原專案。"
 category: "devops"
 tags: ["Node.js", "記憶體優化"]
 cover: "./images/cover.webp"
