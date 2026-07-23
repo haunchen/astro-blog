@@ -1,7 +1,7 @@
 ---
 title: "n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南"
 date: 2025-11-08
-description: "教你設定 n8n x Canva OAuth 2.0 憑證，含 MFA、API 權限與測試步驟，20 分鐘完成整合！圖文教學帶你一步步建立自動化工作流。"
+description: "帶你完成 n8n 串接 Canva 的 OAuth 2.0 憑證設定，從啟用 Canva 帳號 MFA、建立 integration、設定 Export API 權限到憑證測試，約 20 分鐘完成，並說明 Autofill API 僅限企業版帳戶的限制。"
 category: "n8n"
 tags: ["Automation", "Canva", "Credential", "n8n"]
 cover: "./images/cover.webp"

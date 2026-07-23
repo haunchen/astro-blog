@@ -1,7 +1,7 @@
 ---
 title: "不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略 - 基本版"
 date: 2025-07-05
-description: "這篇文章探討如何利用 n8n 自動化工作流程，將 Notion 的內容轉換並上傳到 WordPress。介紹了流程的設計思路，包括對文章區塊的智慧處理、自動化圖片上傳以及錯誤處理機制，有效減少手動搬運的繁瑣，提升內容轉換效率。"
+description: "拆解一套 n8n 工作流程，說明如何把 Notion 頁面的各種 Block 逐一轉成 WordPress 的 HTML 標籤、自動下載圖片再上傳媒體庫並替換連結，最後以草稿發布，遇到不支援的區塊類型則自動停止並透過 Telegram 通知。"
 category: "n8n"
 tags: ["Automation", "n8n", "Notion", "WordPress", "工作流程", "模板"]
 cover: "./images/cover.webp"

@@ -1,7 +1,7 @@
 ---
 title: "n8n 憑證設定懶人包：常用服務快速導覽（持續更新）"
 date: 2025-07-04
-description: "n8n 憑證設定是自動化的第一步！這篇懶人包整理所有常用服務的設定方法，並提供快速導覽連結，讓你快速找到需要的教學。"
+description: "彙整 Telegram、WordPress、Notion、Discord、Line、Google 等常用服務在 n8n 的憑證設定重點，標示每個服務的設定複雜度與預估花費時間，點出容易漏掉的授權步驟，並附上各篇完整教學的連結，方便你快速找到需要的設定方式。"
 category: "n8n"
 tags: ["Automation", "n8n", "憑證"]
 cover: "./images/cover.webp"

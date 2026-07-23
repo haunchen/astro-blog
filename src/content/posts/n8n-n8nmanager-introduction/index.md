@@ -1,7 +1,7 @@
 ---
 title: "【 n8nManager App 】隨時隨地掌控您的自動化工作流程！"
 date: 2025-06-20
-description: "n8n 管理工具 App 將於 Google Play 上線，旨在讓用戶隨時隨地監控和管理 n8n 工作流程。具備安全連線、儀表板概覽和工作流程管理等功能，此 App 邀請用戶參加封閉測試並提供意見以改進產品。未來將增加更多功能。"
+description: "介紹自行開發的 n8nManager App：在手機上管理 n8n 伺服器連線與 API 金鑰、檢視執行次數與成功失敗比例的儀表板、搜尋與啟用停用工作流程，並查看執行記錄與失敗的錯誤詳情，目前已在 Google Play 上架，可免費下載。"
 category: "n8n"
 tags: ["Automation", "n8n", "工作流程", "自動化"]
 cover: "./images/cover.webp"

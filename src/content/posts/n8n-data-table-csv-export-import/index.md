@@ -1,7 +1,7 @@
 ---
 title: "【 n8n 功能更新 】Data Table 終於支援 CSV 匯出匯入功能！模板分享更方便"
 date: 2025-12-09
-description: "n8n 1.122.2 版本新增 Data Table CSV 匯出匯入功能，讓模板分享更方便。本文詳解操作步驟、系統欄位處理、資料型態辨識機制及常見問題排解。"
+description: "n8n 1.122.2 起 Data Table 支援 CSV 匯出與匯入功能。說明匯出匯入的操作位置、匯入前必須刪除 id、createdAt、updatedAt 等系統欄位的踩雷經驗、資料型態自動辨識規則，以及這項更新對模板分享生態的實際幫助。"
 category: "n8n"
 tags: ["Automation", "DataTable", "n8n"]
 cover: "./images/cover.webp"

@@ -1,7 +1,7 @@
 ---
 title: "【 Flutter 學習筆記 】 StatefulWidget vs StatelessWidget"
 date: 2025-06-19
-description: "在 Flutter 中，StatefulWidget 是需要管理內部狀態的動態頁面，適用於用戶交互和數據變化；而 StatelessWidget 是靜態頁面，不會改變內容。這兩者在性能和使用場景上有所不同，應根據需求合理選擇。"
+description: "整理 Flutter 中 StatefulWidget 與 StatelessWidget 的定義、使用時機與常見範例，並用比較表格說明兩者在狀態管理、內容變更、重建機制與效能開銷上的差異，協助你判斷何時該用靜態 Widget 來降低系統負擔。"
 category: "flutter"
 tags: ["Flutter"]
 cover: "./images/cover.webp"

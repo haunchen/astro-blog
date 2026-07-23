@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南"
 date: 2025-12-14
-description: "學習如何設定 Cloudflare Cache Rules 加速 WordPress 網站，包含後台排除、靜態資源、頁面快取等四條核心規則，實測省下 30% 主機費用。"
+description: "完整示範 Cloudflare Cache Rules 如何為 WordPress 網站建立瀏覽器、CDN、伺服器三層快取架構，依序設定後台略過快取、靜態資源長期快取等四條核心規則，實測頁面載入時間降到 1 秒內、主機帳單省下近 30% 費用。"
 category: "devops"
 tags: ["Cache", "Cloudflare", "WordPress", "快取設定", "網站優化"]
 cover: "./images/cover.webp"

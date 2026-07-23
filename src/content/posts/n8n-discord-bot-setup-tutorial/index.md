@@ -1,7 +1,7 @@
 ---
 title: "用 n8n 打造 Discord Bot：不用寫程式的完整設定教學"
 date: 2026-01-07
-description: "想用 Discord Bot 做自動化但不會寫程式？這篇教學用 n8n 帶你從零完成設定，實現自動通知、社群管理等功能。"
+description: "不用寫程式也能建立 Discord Bot。教學涵蓋在 Discord Developer Portal 建立應用程式、OAuth 2.0 授權與 Bot 權限設定、在 n8n 發送第一則訊息，並比較 Discord Bot 與 Webhook 的適用情境。"
 category: "n8n"
 tags: ["Automation", "discord", "n8n"]
 cover: "./images/cover.webp"

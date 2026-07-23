@@ -1,7 +1,7 @@
 ---
 title: "如何使用 Certbot 建立免費的 SSL 網域憑證"
 date: 2025-05-28
-description: "現今網路傳輸服務普遍要求使用 HTTPS，以確保安全性。然而，SSL 憑證 每年需支付維護費用，對個人使用者來說負擔較重。本文將引導讀者如何在 Ubuntu 上搭配 Nginx 使用 Certbot 申請免費 SSL 憑證及設置自動續期。"
+description: "在 Ubuntu 22.04 搭配 Nginx 使用 Certbot 向 Let's Encrypt 申請免費 SSL 憑證的完整步驟，涵蓋 Python 虛擬環境安裝、certonly 取得憑證、憑證路徑說明，以及用 crontab 設定自動續期避免三個月到期。"
 category: "devops"
 tags: ["Certbot", "Let's Encrypt", "Nginx", "SSL", "Ubuntu"]
 cover: "./images/cover.webp"
