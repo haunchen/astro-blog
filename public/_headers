@@ -22,10 +22,17 @@
   #     內容不同的 view-transition-name 樣式並內聯輸出，無法外部化也無法預先算 hash。
   #     這是留 unsafe-inline 的唯一原因；XSS 防護的關鍵面 script-src 已收緊。
   #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
-  #   - 其餘（font/connect/manifest/media/worker 等）皆退回 default-src 'self'：
-  #     全站字型、圖片、指令碼、樣式表皆同源，沒有任何第三方資源。
+  #   - Cloudflare Web Analytics 例外：static.cloudflareinsights.com（beacon 指令碼）
+  #     與 cloudflareinsights.com（回報端點）。這兩個不在 repo 裡，是 Cloudflare 在
+  #     邊緣注入的——只看專案原始碼會漏掉，實測 CSP 違規事件才發現
+  #     （script-src-elem 擋掉 beacon.min.js，window.__cfBeacon 為 undefined）。
+  #     列成具名來源而非放寬成 'unsafe-inline'，攻擊面差距很大。
+  #     註：Bot Management 的 JS Detections 不需要例外——Cloudflare 以同源路徑
+  #     （/ql0n/ 之類的隨機路徑）提供，'self' 本來就允許。
+  #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
+  #     全站字型、圖片、樣式表皆同源。
   #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 鎖到最嚴。
-  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
   # HTML 頁面的預設快取（未被下方更精確規則覆蓋的路徑，含 /、/about/、/articles/、
   # /category/*、/tag/*、各篇文章頁）：內容會持續更新（改字句、補圖、修正），不能比照
   # /_astro/* 用 immutable 長快取；但完全不快取又浪費 CDN 邊緣節點的快取能力，讓每次

@@ -18,6 +18,15 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
+      # 放在 squirrelscan 之前：標頭被 zone 層規則覆寫是「靜默失效」——build 綠燈、
+      # 部署成功、_headers 檔案也沒錯，只有實際回應的標頭被換掉。這種漂移沒有人
+      # 盯著就不會被發現，所以讓它直接讓日檢失敗。continue-on-error 是為了讓後面的
+      # squirrelscan 仍然照跑，不要因為標頭問題就失去當天的完整稽核紀錄。
+      - name: 驗證正式站回應標頭與 _headers 意圖一致
+        id: headers
+        continue-on-error: true
+        run: node scripts/verify-headers.mjs https://frankchen.tw
+
       - name: 對正式站執行 squirrelscan 稽核
         run: |
           # --offline：只關閉雲端功能（雲端渲染／報告發佈／額度檢查），本地審計本體
@@ -40,3 +49,14 @@ jobs:
           name: squirrelscan-report-${{ github.run_id }}
           path: squirrelscan-report.md
           retention-days: 30
+
+      - name: 標頭檢查失敗時讓整個 job 失敗
+        if: steps.headers.outcome == 'failure'
+        run: |
+          echo "::error::正式站回應標頭與 public/_headers 的意圖不一致，見上方 verify-headers 輸出。"
+          echo "### 標頭檢查未通過" >> "$GITHUB_STEP_SUMMARY"
+          echo "正式站實際回傳的標頭與 \`public/_headers\` 不一致。" >> "$GITHUB_STEP_SUMMARY"
+          echo "Pages 的設定若在 \`*.pages.dev\` 上正確、在正式網域上卻不正確，" >> "$GITHUB_STEP_SUMMARY"
+          echo "問題在 zone 層：Cloudflare Dashboard → Rules → Transform Rules →" >> "$GITHUB_STEP_SUMMARY"
+          echo "Modify Response Header，以及 Rules → Managed Transforms。" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
