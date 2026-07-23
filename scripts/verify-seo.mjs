@@ -6,15 +6,14 @@
  * 要嘛要等 Google 重新爬取才看得到結果，沒辦法卡在 PR 階段擋下退化。這支腳本
  * 直接讀 dist/ 的靜態輸出做斷言，能在幾秒內於 CI 跑完、對每個頁面逐一檢查。
  *
- * 只用純 Node + 專案既有依賴（glob / gray-matter / fast-xml-parser），刻意不用
- * DOM 解析套件（jsdom 等）——SEO 要看的都是固定格式的 meta/link/script 標籤，
+ * 只用純 Node + 專案既有依賴（glob / fast-xml-parser），刻意不用 DOM 解析套件
+ * （jsdom 等）——SEO 要看的都是固定格式的 meta/link/script 標籤，
  * regex 抓取夠用且不必多背一個重量級依賴。
  */
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { globSync } from 'glob';
-import matter from 'gray-matter';
 import { XMLParser } from 'fast-xml-parser';
 
 const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
@@ -43,6 +42,12 @@ function getAttr(tag, name) {
 function findTags(html, tagName) {
   const re = new RegExp(`<${tagName}\\b[^>]*>`, 'gi');
   return html.match(re) || [];
+}
+
+// HTML 註解裡的文字（例如原始碼註解說明「astro-seo 會輸出 <meta name="robots">」）
+// 會被上面的 regex 誤判成真的標籤，所以所有頁面內容一律先去除註解再掃描。
+function stripHtmlComments(html) {
+  return html.replace(/<!--[\s\S]*?-->/g, '');
 }
 
 function findMetaByAttr(html, attrName, attrValue) {
@@ -90,7 +95,7 @@ function fileToPathname(relFile) {
 const pages = htmlFiles.map((relFile) => ({
   relFile,
   pathname: fileToPathname(relFile),
-  html: readFileSync(path.join(DIST, relFile), 'utf8'),
+  html: stripHtmlComments(readFileSync(path.join(DIST, relFile), 'utf8')),
 }));
 
 // ---------------------------------------------------------------------------
