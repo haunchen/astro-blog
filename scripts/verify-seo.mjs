@@ -457,6 +457,46 @@ check('無孤兒頁（首頁、404 除外，皆至少被其他頁面連結）', 
   }
 });
 
+// 這條防的是一個完全不會有錯誤訊息的失敗模式：<link rel="preload" as="image"> 與
+// 實際的 <img> 對候選圖的描述不一致時，瀏覽器會先照 preload 抓一張、渲染時再依
+// <img> 的 sizes 挑一次，兩次挑到不同張就等於把 LCP 圖下載兩份——頁面看起來完全
+// 正常，只是變慢，比不 preload 還糟。三個呼叫端目前都從 src/utils/images.ts 取值，
+// 但只要有人在某個頁面改了 sizes 而忘了另一邊，這裡就會擋下來。
+check('LCP 圖 preload 的 imagesrcset/imagesizes 與對應 <img> 一致', (failures) => {
+  for (const { pathname, html } of pages) {
+    const preloads = findTags(html, 'link').filter(
+      (tag) => getAttr(tag, 'rel') === 'preload' && getAttr(tag, 'as') === 'image',
+    );
+    for (const link of preloads) {
+      const href = getAttr(link, 'href');
+      const imgs = findTags(html, 'img');
+      // 用 srcset 比對而非 src：帶 srcset 時 <img> 的 src 只是不支援 srcset 的
+      // 瀏覽器的 fallback，preload 的 href 也是同樣角色，兩者本來就該相等。
+      const img = imgs.find((tag) => getAttr(tag, 'src') === href);
+      if (!img) {
+        failures.push({ page: pathname, reason: `preload 了 ${href}，但頁面上沒有 src 相同的 <img>` });
+        continue;
+      }
+      const pairs = [
+        ['imagesrcset', 'srcset'],
+        ['imagesizes', 'sizes'],
+      ];
+      for (const [linkAttr, imgAttr] of pairs) {
+        const linkValue = getAttr(link, linkAttr) ?? '';
+        const imgValue = getAttr(img, imgAttr) ?? '';
+        if (linkValue !== imgValue) {
+          failures.push({
+            page: pathname,
+            reason:
+              `preload 的 ${linkAttr} 與 <img> 的 ${imgAttr} 不一致，` +
+              `LCP 圖會被下載兩份\n        preload：${linkValue || '（無）'}\n        img    ：${imgValue || '（無）'}`,
+          });
+        }
+      }
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // 輸出報告
 // ---------------------------------------------------------------------------

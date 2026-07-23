@@ -3,6 +3,7 @@ import type { ImageMetadata } from 'astro';
 import { Image } from 'astro:assets';
 import TagBadge from './TagBadge.astro';
 import { categoryLabel } from '../utils/site-meta';
+import { CARD_IMAGE_SIZES, CARD_IMAGE_WIDTHS, FEATURED_IMAGE_SIZES } from '../utils/images';
 
 interface Props {
   title: string;
@@ -25,14 +26,21 @@ const formattedDate = date.toISOString().slice(0, 10);
       /*
         alt=""：封面是裝飾圖，同一張卡片裡的 h3 已經是文章標題，
         重複朗讀一次只是噪音。
-        featured 卡是首頁首屏最大的圖，多半就是 LCP 元素；
-        本站不便在 layout 注入 preload，改用 eager + fetchpriority="high"
-        讓瀏覽器提早取用（Astro 的 Image 會輸出 width/height，CLS 由它保證）。
+        featured 卡是首頁首屏最大的圖，多半就是 LCP 元素，除了 eager +
+        fetchpriority="high" 之外還由 index.astro 交給 BaseLayout 輸出
+        <link rel="preload">（Astro 的 Image 會輸出 width/height，CLS 由它保證）。
+
+        widths/sizes：原本只輸出單一 1200px 來源，而實際版位在行動裝置只有
+        378 CSS px、桌機三欄卡片 368px，PSI 因此估計可省 107 KiB。這裡的值
+        必須與 index.astro 傳給 getImage() 的完全一致，否則 preload 會抓到
+        另一個候選圖而白下載一份——兩邊都從 utils/images 取，不各自寫死。
       */
       <Image
         src={cover}
         alt=""
         class="card-image-img"
+        widths={CARD_IMAGE_WIDTHS}
+        sizes={featured ? FEATURED_IMAGE_SIZES : CARD_IMAGE_SIZES}
         loading={featured ? 'eager' : 'lazy'}
         decoding={featured ? 'sync' : 'async'}
         fetchpriority={featured ? 'high' : 'auto'}
