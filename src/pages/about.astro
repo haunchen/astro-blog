@@ -133,18 +133,46 @@ const socials = [
 const pageName = '關於我';
 const crumbs = [{ name: '首頁', href: '/' }];
 
+// ProfilePage 外層 + mainEntity 指向 Person：告訴搜尋引擎「本頁就是在描述這個人」。
+// 欄位一律只寫頁面上實際可見的內容（經歷、技能、地點皆取自下方區塊），不補未公開資訊。
+// 學歷頁面上未具名（僅提及碩班時期作品），故不輸出 alumniOf。
 const personJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
   url: `${SITE.url}/about/`,
+  name: 'Frank Chen 的個人簡介',
+  inLanguage: 'zh-TW',
+  isPartOf: { '@id': `${SITE.url}/#website` },
   mainEntity: {
     '@type': 'Person',
+    '@id': `${SITE.url}/about/#person`,
     name: 'Frank Chen',
     alternateName: '法蘭克',
-    jobTitle: '系統整合工程師',
+    jobTitle: '系統整合課長',
     email: SITE.email,
+    url: `${SITE.url}/about/`,
+    // 頭像經 astro:assets 處理過，src 為帶雜湊的站內路徑，需補成絕對網址
+    image: new URL(avatar.src, SITE.url).href,
     description: '系統整合工程師，跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。',
-    knowsAbout: ['系統架構規劃', '電子電路開發', '系統整合', 'Flutter', 'n8n'],
+    knowsAbout: [
+      '系統架構規劃',
+      '電子電路開發',
+      '系統整合',
+      'Flutter',
+      'n8n',
+      'Raspberry Pi',
+      'Qt',
+      'RESTful API',
+    ],
+    worksFor: {
+      '@type': 'Organization',
+      name: '澳門商原妙醫學科技有限公司 台灣分公司',
+    },
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: '台南',
+      addressCountry: 'TW',
+    },
     sameAs: SITE.sameAs,
   },
 };
