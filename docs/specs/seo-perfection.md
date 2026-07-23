@@ -1,0 +1,139 @@
+---
+domain: seo-perfection
+status: in-progress
+created: 2026-07-23
+last_modified: 2026-07-23
+---
+
+# SEO Perfection Engine
+
+把 frankchen.tw 從「SEO 基本正確」推到「技術面無可挑剔」：補齊 meta 與結構化資料、
+消除 a11y 阻礙、拆掉效能單點瓶頸、建立 CI 級別的回歸防線，並讓 AI 爬蟲／答案引擎
+能正確理解與引用本站內容。
+
+本文件在施工期間即時維護；每完成一個 Requirement 就更新其狀態與驗收證據。
+
+## 現況基準（2026-07-23，squirrelscan 本地 preview，40 頁）
+
+| 面向 | 分數 | 主要失分項 |
+|------|------|-----------|
+| SEO | 50/100 | meta description 過短（67 頁）、title 過短（23 頁）、caret 按鈕可及名稱不符（40 頁 error） |
+| Performance | 43/100 | 主 CSS 284KB render-blocking、LCP 圖無 preload、DOM 過大 |
+| Security | 30/100 | 缺 CSP、假 token 被判洩漏 |
+| Agents | 47/100 | token weight 過重、封鎖 CCBot（刻意） |
+
+原始報告：`docs/data/seo-baseline-2026-07-23.md`（如未產出，見 scratchpad）。
+
+**假陽性（本地 preview 特有，正式站不成立）**：sitemap 網域不符、canonical
+redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/_headers` 與
+`_redirects` 在 `astro preview` 下不生效，這些規則實際由 Cloudflare Pages 套用。
+驗收一律以正式站或 CI 上的 headers 檢查為準，不看本地 preview 的這幾項。
+
+## Requirements
+
+### R1: 字型載入不得成為 render-blocking 單點
+- **Level**: MUST
+- **Status**: done（commit 67c5c89）
+- **Description**: 打包後的主 CSS 不得超過 150KB。`@fontsource` 的全量 `@font-face`
+  分片（213 個）必須在建置期依「全站實際出現的字元集合」裁切，只保留有交集者，
+  並收斂各分片的 `unicode-range`、逐檔 subset 後自 host。
+- **Rationale**: 分片機制本身有效（瀏覽器只抓需要的片），問題出在宣告本身就有 220KB
+  且擋渲染。裁切不改變分片語意——被砍掉的分片本來就永遠不會命中。
+- **Verification**: `dist/_astro/*.css` 最大者 58KB（原 284KB）；字型檔總量 1.32MB（原 4.42MB）。
+- **Risk**: 字元集合取自 `src/content/**` 與 `src/**`，本站全靜態無使用者產生內容，
+  故集合即完整值域。若日後引入動態內容，未涵蓋的字會 fallback 系統字型（不會是豆腐字）。
+
+### R2: 每頁 meta 覆蓋率 100%
+- **Level**: MUST
+- **Status**: done（commit 23c2380）
+- **Description**: 所有頁面必須有唯一 title、非空 description、canonical、robots、
+  完整 OG（含 image:alt/width/height/type）、完整 Twitter Card、manifest、theme-color、
+  hreflang 自我宣告。robots 必須帶 `max-image-preview:large` 與 `max-snippet:-1`。
+- **Decision**: robots 一律走 astro-seo 的 `robotsExtras`，不自行輸出第二個
+  `<meta name="robots">`——兩邊同時給會產生互相矛盾的宣告（實際踩到過）。
+- **Decision**: `twitter:site` 與 `google-site-verification` 有值才輸出。前者目前無
+  X 帳號故留空（空字串優於假帳號）；後者走 `PUBLIC_GOOGLE_SITE_VERIFICATION`
+  環境變數，避免驗證碼進版控。**待站主提供實際值。**
+
+### R3: 結構化資料通過 Rich Results Test
+- **Level**: MUST
+- **Status**: 部分完成
+- **Description**:
+  - Organization：`logo` 必須是 `ImageObject`（純字串 URL 會被判缺欄位）。✅
+  - BlogPosting：`publisher` 必須內聯（`@id` 外部參照會被 Google 判缺
+    `publisher.name` / `publisher.logo`，28 頁受影響）。✅
+  - BreadcrumbList：所有內頁。文章頁 ✅，列表頁與靜態頁施工中。
+  - CollectionPage：列表頁。施工中。
+  - ProfilePage + Person：/about/。施工中。
+- **Decision（WebSite SearchAction）**: **不實作**。本站沒有站內搜尋功能，宣告
+  SearchAction 卻無對應端點屬於錯誤標記，Google 會忽略甚至視為垃圾訊號。
+  若日後加了搜尋頁再補。
+- **Decision（SoftwareApplication / Product）**: **不實作**。本站是部落格，
+  n8nManager 只在首頁與 /about/ 以作品集卡片形式出現，沒有專屬產品頁與可驗證的
+  價格／評分／下載資訊，硬掛會是無對應內容的標記。
+- **Decision（FAQPage / HowTo）**: **暫不實作**。Google 已於 2023 大幅限縮這兩種
+  標記的 rich result 資格（FAQ 僅限權威醫療／政府網站，HowTo 已全面下架）。
+  現有文章也沒有結構化的 FAQ 區塊。列入 SEO_TODO 待日後內容型態改變再評估。
+
+### R4: 零 a11y error
+- **Level**: MUST
+- **Status**: 部分完成
+- **Description**: squirrelscan a11y 類別 0 error、Lighthouse Accessibility ≥ 95。
+  - caret 按鈕可見文字（▾）與 `aria-label` 不符 → ▾ 改 `aria-hidden`。✅（commit 4058051）
+  - markdown 表格缺可及名稱（8 頁）→ rehype plugin 補視覺隱藏 caption。施工中。
+  - 相同連結文字指向不同 URL（7 組）→ 連結文字帶上目標名稱。施工中。
+  - alt 與檔名重複。施工中。
+
+### R5: Core Web Vitals 達標
+- **Level**: MUST
+- **Status**: 部分完成
+- **Description**: LCP ≤ 2.5s、CLS ≤ 0.1、INP ≤ 200ms、FCP ≤ 1.8s、TTFB ≤ 800ms，
+  Lighthouse Performance ≥ 95。
+  - render-blocking CSS 由 R1 解決。✅
+  - 首屏 latin 字型 preload，消除 CSS→@font-face→woff2 三層請求鏈。✅
+  - LCP 圖片 `fetchpriority="high"` + below-fold 圖片 lazy。施工中。
+- **Decision（web-vitals RUM）**: **不實作**。`/privacy-policy/` 明文承諾「未安裝
+  追蹤型分析工具」，裝 RUM 會與該承諾衝突；且本站為純靜態、加 JS 反而傷 INP。
+  效能改用 CI 端 Lighthouse 定期量測（見 R7）。
+
+### R6: AI / GEO 可讀性
+- **Level**: SHOULD
+- **Status**: 施工中
+- **Description**: llms.txt 需含 Answer Capsule 與 E-E-A-T 段落、robots.txt 的 AI 爬蟲
+  政策需明確、語意化 HTML、每頁唯一 H1、描述性連結文字。
+- **Decision（封鎖 CCBot）**: **維持封鎖**。這是站主刻意的訓練資料退出決定，
+  已知會連帶影響 Common Crawl 語料與 Wayback 收錄，接受此代價。審計工具的警告
+  標記為「已評估接受」，不視為未修項。
+
+### R7: CI 級別的 SEO 回歸防線
+- **Level**: MUST
+- **Status**: 施工中
+- **Description**: PR 觸發的建置後靜態驗證（meta 覆蓋率、canonical host、JSON-LD
+  可解析性、sitemap 死連結、孤兒頁）+ Lighthouse 門檻；生產環境每日 squirrelscan
+  回歸；pre-commit 快速檢查文章 frontmatter。
+- **Decision（CI Performance 門檻 90 而非 95）**: GitHub runner 的效能量測波動大，
+  95 會造成大量假失敗。95 的目標以本機／正式站量測為準，CI 只擋明顯退步。
+
+### R8: 安全標頭
+- **Level**: MUST
+- **Status**: 施工中
+- **Description**: 補 CSP（本站無任何第三方資源，可寫得很嚴）、HTML 快取策略、
+  `/fonts/*` 長期 immutable 快取、COOP。目標 Security Headers A+。
+- **Risk**: CSP 上線有弄壞站的風險，需在合併前於 preview 環境實測。
+
+## 已知未解 / 需站主提供
+
+| 項目 | 阻塞內容 | 現行 fallback |
+|------|---------|--------------|
+| Google Search Console 驗證碼 | 需實際 content 字串 | 走 `PUBLIC_GOOGLE_SITE_VERIFICATION`，未設定則不輸出 |
+| X / Twitter handle | 站主無 X 帳號 | 不輸出 `twitter:site` |
+| squirrelscan 雲端帳號 | 總分需 `squirrel auth login` | 以本地 report 的 SEO/Perf/Security/Agents 四項分數當驗收基準 |
+| 外部死連結 3 條 | 需站主決定替換或移除 | 見 SEO_TODO.md |
+| 內容過薄頁面 15 頁 | 屬內容工作非技術修復 | 見 SEO_TODO.md |
+
+## 非目標
+
+- 不做站內搜尋（連帶不做 WebSite SearchAction）
+- 不做多語系（hreflang 僅自我宣告）
+- 不引入任何第三方 JS（分析、RUM、字型 CDN）
+- 不改寫文章正文（僅 frontmatter description 與 a11y 相關的 markdown 渲染）
