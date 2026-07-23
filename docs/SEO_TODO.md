@@ -8,25 +8,24 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
 
 ## A. 需要站主提供資料才能完成
 
-- [ ] **Google Search Console 驗證碼**。現況：程式端已備妥，走
-      `PUBLIC_GOOGLE_SITE_VERIFICATION` 環境變數（`src/utils/site-meta.ts` 的
-      `SITE.googleSiteVerification`），未設定時 `BaseLayout.astro` 不會輸出
-      `<meta name="google-site-verification">`。需要站主到 GSC 註冊網域資源後，
-      取得驗證用的 `content` 字串，設到 Cloudflare Pages 專案的環境變數
-      `PUBLIC_GOOGLE_SITE_VERIFICATION`，重新部署即可生效。
-- [ ] **GSC 提交 sitemap 與監控配置**。需要站主登入 GSC 帳號操作（新增資源、提交
-      `https://frankchen.tw/sitemap.xml`、後續觀察索引涵蓋率與效能報表）。程式端
-      已備妥 `/sitemap.xml`（單一檔案，見 `astro.config.mjs` 的
-      `sitemapAsSingleFile()`），沒有阻塞項。
-- [ ] **X / Twitter handle**。現況：站主目前無 X 帳號，`SITE.twitterHandle` 為空
-      字串，`twitter:site` / `twitter:creator` 不輸出（`site-meta.ts` 註解：空字串
-      優於掛一個假帳號）。若站主日後申請帳號，把 handle 填進
-      `SITE.twitterHandle` 即可自動輸出。
-- [ ] **squirrelscan 雲端帳號**。現況：總分（Overall/SEO/Performance/Security/
-      Agents 的排行榜式分數）需要 `squirrel auth login` 綁定雲端帳號才能取得；
-      CI 的 `seo-daily.yml` 用 `--offline` 執行，只取本地稽核的四項分數（SEO/
-      Performance/Security/Agents），不受影響。目前以這四項本地分數當驗收基準，
-      沒有雲端總分可比對。若要接雲端帳號，需要站主提供 squirrelscan 帳號憑證。
+本節四項已於 2026-07-23 全數結案，保留紀錄供日後追溯。
+
+- [x] **Google Search Console 驗證碼**（已完成）。網域主要以 DNS TXT 驗證，另在
+      `SITE.googleSiteVerification` 直接寫入驗證碼作為第二道錨點——DNS 若搬移或
+      改寫，驗證不會跟著斷。值直接進版控而非走環境變數：它本來就會原樣出現在每
+      一頁的 HTML 裡，不是秘密，藏進環境變數只多一道部署設定卻沒換到任何保護。
+      仍保留 `PUBLIC_GOOGLE_SITE_VERIFICATION` 覆寫，方便 fork 或預覽環境替換。
+- [x] **GSC 提交 sitemap 與監控配置**（已完成）。站主已提交
+      `https://frankchen.tw/sitemap.xml`。後續觀察索引涵蓋率與效能報表屬日常維運，
+      不再列為待辦。
+- [x] **X / Twitter handle**（已完成）。`SITE.twitterHandle` 設為 `@frankchen_tw`，
+      `twitter:site` / `twitter:creator` 已輸出；同時把 `https://x.com/frankchen_tw`
+      加進 `SITE.sameAs`，讓搜尋引擎把該帳號歸到同一個實體。注意該筆刻意排在
+      `sameAs` 第五位——`SOCIAL` 圖示列是以固定索引 0–3 取值，新增不影響版面。
+- [x] **squirrelscan 雲端帳號**（已評估，不做）。站主決定不開帳號。影響：拿不到
+      雲端的排行榜式總分，因此清單原訂的「squirrelscan ≥ 95/100」改以本地稽核的
+      四項分數（SEO/Performance/Security/Agents）在正式站的實測值當驗收基準。
+      `seo-daily.yml` 本來就以 `--offline` 執行，不受影響。
 
 ## B. 內容工作（非技術修復，需要站主判斷）
 

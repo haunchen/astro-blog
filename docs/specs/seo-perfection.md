@@ -100,9 +100,13 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
   hreflang 自我宣告。robots 必須帶 `max-image-preview:large` 與 `max-snippet:-1`。
 - **Decision**: robots 一律走 astro-seo 的 `robotsExtras`，不自行輸出第二個
   `<meta name="robots">`——兩邊同時給會產生互相矛盾的宣告（實際踩到過）。
-- **Decision**: `twitter:site` 與 `google-site-verification` 有值才輸出。前者目前無
-  X 帳號故留空（空字串優於假帳號）；後者走 `PUBLIC_GOOGLE_SITE_VERIFICATION`
-  環境變數，避免驗證碼進版控。**待站主提供實際值。**
+- **Decision**: `twitter:site` 與 `google-site-verification` 有值才輸出。兩者已於
+  2026-07-23 由站主提供並填入：handle `@frankchen_tw`（同步加進 `SITE.sameAs`），
+  GSC 驗證碼直接寫在 `site-meta.ts`。
+- **Decision（驗證碼進版控）**: 原本走 `PUBLIC_GOOGLE_SITE_VERIFICATION` 環境變數，
+  理由是「避免驗證碼進版控」——但該值本來就會原樣出現在每一頁的 HTML 裡，不是
+  秘密，藏進環境變數只是多一道部署設定卻沒換到任何保護，故改為直接寫入並保留
+  環境變數覆寫。網域主要仍以 DNS TXT 驗證，meta 是第二道錨點，DNS 搬移時不會斷。
 
 ### R3: 結構化資料通過 Rich Results Test
 - **Level**: MUST
@@ -215,9 +219,10 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 
 | 項目 | 阻塞內容 | 現行 fallback |
 |------|---------|--------------|
-| Google Search Console 驗證碼 | 需實際 content 字串 | 走 `PUBLIC_GOOGLE_SITE_VERIFICATION`，未設定則不輸出 |
-| X / Twitter handle | 站主無 X 帳號 | 不輸出 `twitter:site` |
-| squirrelscan 雲端帳號 | 總分需 `squirrel auth login` | 以本地 report 的 SEO/Perf/Security/Agents 四項分數當驗收基準 |
+| Google Search Console 驗證碼 | 已提供並填入（2026-07-23） | — |
+| GSC sitemap 提交 | 站主已提交（2026-07-23） | — |
+| X / Twitter handle | 已提供 `@frankchen_tw`（2026-07-23） | — |
+| squirrelscan 雲端帳號 | 站主決定不開（2026-07-23） | 以本地 report 的 SEO/Perf/Security/Agents 四項在正式站的實測值當驗收基準 |
 | 外部死連結 3 條 | 需站主決定替換或移除 | 見 SEO_TODO.md |
 | 內容過薄頁面 15 頁 | 屬內容工作非技術修復 | 見 SEO_TODO.md |
 

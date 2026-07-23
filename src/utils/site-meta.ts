@@ -12,15 +12,24 @@ export const SITE = {
   email: 'frank@frankchen.tw',
   // <meta name="theme-color">：對齊 global.css 的 --color-bg-primary，行動裝置網址列同色
   themeColor: '#0f172a',
-  // twitter:site / twitter:creator。目前無 X 帳號，留空即不輸出（空字串比假帳號好）。
-  twitterHandle: '',
-  // Google Search Console 驗證碼。走環境變數以免驗證碼進版控；未設定則不輸出該 meta。
-  googleSiteVerification: import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION ?? '',
+  // twitter:site / twitter:creator
+  twitterHandle: '@frankchen_tw',
+  // Google Search Console 驗證碼。
+  // 本站主要靠 DNS TXT 驗證，這個 meta 是第二道錨點——DNS 若哪天搬移或改寫，
+  // 驗證不會跟著斷。值直接寫在這裡而非環境變數：它本來就會原樣出現在每一頁的
+  // HTML 裡，不是秘密，藏進環境變數只是多一道部署設定卻沒有換到任何保護。
+  // 仍保留環境變數覆寫，方便 fork 或預覽環境換成自己的驗證碼。
+  googleSiteVerification:
+    import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION ??
+    '6YGhgUvPOUW51Ju7lVpEX69-wEKZpewvpDWE_EX7kJ4',
   sameAs: [
     'https://www.threads.com/@frankchen.tw',
     'https://www.instagram.com/frankchen.tw/',
     'https://github.com/haunchen',
     'https://www.linkedin.com/in/frankchen0130/',
+    // 下面這筆不進 SOCIAL 圖示列（那裡是固定的四個索引），只用於
+    // Organization.sameAs——讓搜尋引擎把 X 帳號歸到同一個實體。
+    'https://x.com/frankchen_tw',
   ],
 } as const;
 
