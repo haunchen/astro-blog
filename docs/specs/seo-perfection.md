@@ -41,7 +41,7 @@ Lighthouse（`astro preview`，首頁與文章頁、手機與桌機共四組）�
 Accessibility / Best Practices / SEO / Agentic Browsing **全數 100**。
 效能 trace（首頁，本機無節流）：LCP 265ms、CLS 0.00、TTFB 3ms。
 
-`npm run verify:seo`：104 頁、12 項規則全數通過。`npx astro check`：0 error。
+`npm run verify:seo`：104 頁、15 項規則全數通過。`npx astro check`：0 error。
 
 ### 正式環境驗證（Cloudflare Pages preview，真實 HTTPS）
 
@@ -115,8 +115,11 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
   - Organization：獨立節點的 `logo` 用**字串 URL**。✅
   - BlogPosting：`publisher` 內聯且 `logo` 用 **ImageObject**（`@id` 外部參照會被
     Google 判缺 `publisher.name` / `publisher.logo`，28 頁受影響）。✅
-  - BreadcrumbList：文章頁與 9 個內頁，由 BaseLayout 的 `breadcrumbs` prop 統一產生，
-    可見麵包屑與結構化資料同一字串來源。✅
+  - BreadcrumbList：文章頁與 9 個內頁。JSON-LD 由 BaseLayout 的 `breadcrumbs` prop
+    產生，可見的那條是頁面各自放的 `<Breadcrumbs>` 元件——兩者是獨立的，prop 本身
+    不會畫出麵包屑。文章頁一度只有 JSON-LD 而畫面上沒有對應導覽（等於結構化資料
+    宣稱了頁面上看不到的階層），已補上；實測 102 個有 BreadcrumbList 的頁面，
+    可見末階與 JSON-LD 末階全數一致。✅
   - CollectionPage + ItemList：/articles/、/category/、/category/[c]/、/tag/、
     /tag/[t]/，items 順序與畫面一致。✅
   - ProfilePage + Person：/about/。欄位一律取自頁面可見內容，未提及校名故不輸出
@@ -169,9 +172,12 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 - **Verification**: 效能 trace（首頁，本機無節流）LCP 265ms、CLS 0.00、TTFB 3ms。
   Lighthouse Performance 未列入本輪驗收數字——本機無節流的分數不具代表性，
   改由 CI workflow 對每個 PR 量測（門檻見 R7）。
-- **Decision（web-vitals RUM）**: **不實作**。`/privacy-policy/` 明文承諾「未安裝
-  追蹤型分析工具」，裝 RUM 會與該承諾衝突；且本站為純靜態、加 JS 反而傷 INP。
-  效能改用 CI 端 Lighthouse 定期量測（見 R7）。
+- **Decision（web-vitals RUM）**: **不實作**。理由是 Cloudflare Web Analytics 已經
+  在收 Core Web Vitals 的真實使用者數據，自建 RUM 是重複建設，還要多載一支 JS
+  傷 INP。實驗室端另有 CI 的 Lighthouse 定期量測（見 R7）。
+  （原本寫的理由是「隱私權政策承諾未安裝追蹤型分析工具，裝 RUM 會衝突」——
+  該句已在 PR #27 依實情改寫，且 Web Analytics 本來就在收 RUM，這個理由不成立。
+  結論不變，但理由換掉。）
 
 ### R6: AI / GEO 可讀性
 - **Level**: SHOULD
@@ -179,8 +185,10 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 - **Description**: llms.txt 需含 Answer Capsule 與 E-E-A-T 段落、robots.txt 的 AI 爬蟲
   政策需明確、語意化 HTML、每頁唯一 H1、描述性連結文字。
 - **Decision（封鎖 CCBot）**: **維持封鎖**。這是站主刻意的訓練資料退出決定，
-  已知會連帶影響 Common Crawl 語料與 Wayback 收錄，接受此代價。審計工具的警告
-  標記為「已評估接受」，不視為未修項。
+  代價限於 Common Crawl 及其衍生語料。**不影響 Wayback Machine 收錄**——
+  archive.org 用的是自己的爬蟲（`archive.org_bot` / `ia_archiver`），robots.txt
+  並未封鎖它們（先前這裡誤寫成會連帶影響 Wayback）。審計工具的警告標記為
+  「已評估接受」，不視為未修項。
 
 ### R7: CI 級別的 SEO 回歸防線
 - **Level**: MUST
@@ -190,8 +198,10 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
   回歸；pre-commit 快速檢查文章 frontmatter。
 - **Decision（CI Performance 門檻 90 而非 95）**: GitHub runner 的效能量測波動大，
   95 會造成大量假失敗。95 的目標以本機／正式站量測為準，CI 只擋明顯退步。
-- **Verification**: `npm run verify:seo` 104 頁 12 項規則全過；該腳本以刻意注入
-  重複 title 與 sitemap 死連結驗證過確實會攔截，不是空跑。
+- **Verification**: `npm run verify:seo` 104 頁 15 項規則全過；該腳本以刻意注入
+  重複 title、重複 robots/canonical/og:image 與 sitemap 死連結驗證過確實會攔截，
+  不是空跑。verify-headers 的 CSP 比對亦以「zone 層多注入一個來源」的情境反向
+  驗證過——舊的整串 includes 寫法在該情境下會判通過，屬實質漏洞，已改為集合比對。
 - **Risk**: 兩個 workflow 的 YAML 語法、`run:` 區塊 shell 語法、分數比對腳本都已
   在本地驗證，但完整的 GitHub Actions 執行環境無法本地模擬。合併後需看第一次
   實跑結果。
@@ -230,5 +240,7 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 
 - 不做站內搜尋（連帶不做 WebSite SearchAction）
 - 不做多語系（hreflang 僅自我宣告）
-- 不引入任何第三方 JS（分析、RUM、字型 CDN）
+- 不主動引入第三方 JS（自建分析、RUM、字型 CDN 一律不做）。唯一的例外不是我們
+  加的：Cloudflare 在邊緣注入 Web Analytics 的 beacon 與 Bot Fight 模式的 JS
+  Detections，前者已在 CSP 列為具名來源（見 R8）
 - 不改寫文章正文（僅 frontmatter description 與 a11y 相關的 markdown 渲染）

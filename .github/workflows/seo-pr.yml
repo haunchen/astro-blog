@@ -62,20 +62,25 @@ jobs:
           echo "path=$ARTICLE_PATH" >> "$GITHUB_OUTPUT"
 
       - name: 執行 Lighthouse 稽核（首頁 / 文章列表 / 關於我 / 一篇文章頁）
+        # 版本鎖定而非 npx lighthouse（取 latest）：Lighthouse 每個大版本都會調整
+        # 稽核項目與計分權重，同一份程式碼在不同版本下分數可以差好幾分。若放任
+        # 取 latest，某天上游一發版就會有一批與該 PR 內容完全無關的紅燈，而且
+        # 分數的跨時間比較也失去意義。要升版請開一支獨立 PR，把分數變化看清楚。
+        # 不放進 devDependencies 是因為 Lighthouse 會連帶拖進 Chromium 相關依賴，
+        # 只有 CI 這一步用得到，沒必要讓每次 npm ci 與本機開發都付這個成本。
+        env:
+          LIGHTHOUSE_VERSION: 13.4.1
         run: |
           mkdir -p lighthouse-reports
-          npx lighthouse "http://localhost:4321/" \
-            --output=json --output-path=lighthouse-reports/home.json \
-            --chrome-flags="--headless --no-sandbox" --quiet
-          npx lighthouse "http://localhost:4321/articles/" \
-            --output=json --output-path=lighthouse-reports/articles.json \
-            --chrome-flags="--headless --no-sandbox" --quiet
-          npx lighthouse "http://localhost:4321/about/" \
-            --output=json --output-path=lighthouse-reports/about.json \
-            --chrome-flags="--headless --no-sandbox" --quiet
-          npx lighthouse "http://localhost:4321${{ steps.sample.outputs.path }}" \
-            --output=json --output-path=lighthouse-reports/article.json \
-            --chrome-flags="--headless --no-sandbox" --quiet
+          run_lh() {
+            npx --yes "lighthouse@${LIGHTHOUSE_VERSION}" "$1" \
+              --output=json --output-path="$2" \
+              --chrome-flags="--headless --no-sandbox" --quiet
+          }
+          run_lh "http://localhost:4321/" lighthouse-reports/home.json
+          run_lh "http://localhost:4321/articles/" lighthouse-reports/articles.json
+          run_lh "http://localhost:4321/about/" lighthouse-reports/about.json
+          run_lh "http://localhost:4321${{ steps.sample.outputs.path }}" lighthouse-reports/article.json
 
       - name: 檢查分數門檻並寫入 Job Summary
         run: |

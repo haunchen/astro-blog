@@ -51,9 +51,10 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
-# 字型子目錄：檔名固定（無雜湊），比照雜湊資產給長期 immutable 快取。
-# 前提是「換字型檔案必須同時改檔名」——若直接覆蓋同名檔案，舊的 immutable 快取
-# 不會失效，使用者會繼續吃到舊字型，換檔時務必連檔名一起改。
+# 字型子目錄：檔名含內容雜湊（scripts/build-font-css.mjs 以 subset 後的位元組算
+# sha256 前 8 碼塞進檔名），內容一變檔名就變，因此可以安全地給長期 immutable 快取。
+# 這件事一度不成立：subset 內容每次 build 依站上字元集重算，檔名卻沿用 fontsource
+# 原名，回訪讀者會在快取期內拿到舊 subset、新字掉回系統字型。修正見 PR #29。
 /fonts/*
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable

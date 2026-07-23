@@ -56,6 +56,31 @@ function findMetaByAttr(html, attrName, attrValue) {
   );
 }
 
+// 為什麼 head 標籤要檢查「恰好一個」而不是「至少一個」：重複的標籤會讓爬蟲取到
+// 不確定的那一個，最糟的是兩個彼此矛盾。實際踩過——astro-seo 自己會輸出一個
+// <meta name="robots">，我們又手寫了一個，同一頁同時出現 index 與 noindex，
+// 後來改用 robotsExtras 才解決；當時的腳本只檢查存在性，這種頁面照樣 PASS。
+// 回傳 trim 後的屬性值；有任何問題則記錄 failure 並回傳 null。
+function requireSingleTag(failures, pathname, tags, label, valueAttr = 'content') {
+  if (tags.length === 0) {
+    failures.push({ page: pathname, reason: `缺少 ${label}` });
+    return null;
+  }
+  if (tags.length > 1) {
+    // 只說「找到 2 個」沒辦法判斷嚴不嚴重（兩個相同 vs 一個 index 一個 noindex
+    // 是完全不同的事），所以把實際內容列出來。
+    const values = tags.map((tag) => (getAttr(tag, valueAttr) ?? `（無 ${valueAttr}）`).trim() || '（空值）');
+    failures.push({ page: pathname, reason: `找到 ${tags.length} 個 ${label}：${values.join(' / ')}` });
+    return null;
+  }
+  const value = (getAttr(tags[0], valueAttr) ?? '').trim();
+  if (!value) {
+    failures.push({ page: pathname, reason: `${label} 為空` });
+    return null;
+  }
+  return value;
+}
+
 function findJsonLdBlocks(html) {
   const re = /<script\b[^>]*type\s*=\s*["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   const blocks = [];
@@ -138,14 +163,9 @@ check('每頁恰有一個 <title>', (failures) => {
   }
 });
 
-check('每頁有非空 <meta name="description">', (failures) => {
+check('每頁恰有一個非空 <meta name="description">', (failures) => {
   for (const { pathname, html } of pages) {
-    const tags = findMetaByAttr(html, 'name', 'description');
-    if (tags.length === 0) {
-      failures.push({ page: pathname, reason: '缺少 meta description' });
-    } else if (!(getAttr(tags[0], 'content') ?? '').trim()) {
-      failures.push({ page: pathname, reason: 'meta description 為空' });
-    }
+    requireSingleTag(failures, pathname, findMetaByAttr(html, 'name', 'description'), 'meta description');
   }
 });
 
@@ -157,6 +177,10 @@ check('每頁有非空 <meta name="description">', (failures) => {
 const TITLE_RANGE = [30, 60];
 const DESC_RANGE = [120, 160];
 
+// 刻意用 some 而非「唯一那個」：爬蟲的實際行為是多個 robots 指示取最嚴格的，
+// 任一個說 noindex 就不會被索引。和下面的唯一性檢查不衝突——真的出現重複標籤時，
+// 唯一性那項會獨立報 FAIL，這裡只負責決定長度檢查要不要豁免這一頁（從嚴豁免，
+// 避免同一個問題在兩項規則裡重複噴訊息）。
 function isNoindex(html) {
   const tags = findMetaByAttr(html, 'name', 'robots');
   return tags.some((t) => (getAttr(t, 'content') ?? '').includes('noindex'));
@@ -188,8 +212,9 @@ check(`可索引頁的 meta description 長度介於 ${DESC_RANGE[0]}–${DESC_R
   for (const { pathname, html } of pages) {
     if (isNoindex(html)) continue;
     const tags = findMetaByAttr(html, 'name', 'description');
-    const content = (getAttr(tags[0] ?? '', 'content') ?? '').trim();
-    if (!content) continue; // 缺 description 由上一項檢查負責回報
+    if (tags.length !== 1) continue; // 缺少或重複由上面的唯一性檢查負責回報
+    const content = (getAttr(tags[0], 'content') ?? '').trim();
+    if (!content) continue;
     const len = decodeEntities(content).length;
     if (len < DESC_RANGE[0] || len > DESC_RANGE[1]) {
       failures.push({ page: pathname, reason: `description 長度 ${len}（需 ${DESC_RANGE[0]}–${DESC_RANGE[1]}）` });
@@ -197,16 +222,15 @@ check(`可索引頁的 meta description 長度介於 ${DESC_RANGE[0]}–${DESC_R
   }
 });
 
-check('每頁有 <link rel="canonical">，host 為 frankchen.tw', (failures) => {
+check('每頁恰有一個 <link rel="canonical">，host 為 frankchen.tw', (failures) => {
   for (const { pathname, html } of pages) {
     const tags = findTags(html, 'link').filter(
       (tag) => (getAttr(tag, 'rel') ?? '').toLowerCase() === 'canonical',
     );
-    if (tags.length === 0) {
-      failures.push({ page: pathname, reason: '缺少 canonical' });
-      continue;
-    }
-    const href = getAttr(tags[0], 'href');
+    // 重複的 canonical 對搜尋引擎等同「沒有 canonical」——Google 的文件明講
+    // 多個 rel=canonical 會讓它全部忽略，改用自己的判斷挑代表網址。
+    const href = requireSingleTag(failures, pathname, tags, 'canonical', 'href');
+    if (href === null) continue;
     let host;
     try {
       host = new URL(href).host;
@@ -220,38 +244,28 @@ check('每頁有 <link rel="canonical">，host 為 frankchen.tw', (failures) => 
   }
 });
 
-check('每頁有 <meta name="robots">', (failures) => {
+check('每頁恰有一個非空 <meta name="robots">', (failures) => {
   for (const { pathname, html } of pages) {
-    const tags = findMetaByAttr(html, 'name', 'robots');
-    if (tags.length === 0) {
-      failures.push({ page: pathname, reason: '缺少 meta robots' });
-    } else if (!(getAttr(tags[0], 'content') ?? '').trim()) {
-      failures.push({ page: pathname, reason: 'meta robots 為空' });
-    }
+    requireSingleTag(failures, pathname, findMetaByAttr(html, 'name', 'robots'), 'meta robots');
   }
 });
 
-check('每頁有 og:title / og:description / og:image / og:url', (failures) => {
+// og:image 一併納入唯一性檢查的理由：Open Graph 規格本身允許同一頁給多張圖
+// （消費端通常取第一張），所以「多個」在語意上不算違規；但本站設計上每頁只輸出
+// 一張 OG 圖，2026-07-23 實測 dist/ 的 104 頁全部都是恰好 1 個。既然實際只有一個，
+// 多出來的就代表有非預期的重複來源（例如 layout 與頁面各輸出一次），該被擋下。
+check('每頁恰有一個非空 og:title / og:description / og:image / og:url', (failures) => {
   const props = ['og:title', 'og:description', 'og:image', 'og:url'];
   for (const { pathname, html } of pages) {
-    const missing = props.filter((prop) => {
-      const tags = findMetaByAttr(html, 'property', prop);
-      return tags.length === 0 || !(getAttr(tags[0], 'content') ?? '').trim();
-    });
-    if (missing.length > 0) {
-      failures.push({ page: pathname, reason: `缺少或為空：${missing.join(', ')}` });
+    for (const prop of props) {
+      requireSingleTag(failures, pathname, findMetaByAttr(html, 'property', prop), prop);
     }
   }
 });
 
-check('每頁有 twitter:card', (failures) => {
+check('每頁恰有一個非空 twitter:card', (failures) => {
   for (const { pathname, html } of pages) {
-    const tags = findMetaByAttr(html, 'name', 'twitter:card');
-    if (tags.length === 0) {
-      failures.push({ page: pathname, reason: '缺少 twitter:card' });
-    } else if (!(getAttr(tags[0], 'content') ?? '').trim()) {
-      failures.push({ page: pathname, reason: 'twitter:card 為空' });
-    }
+    requireSingleTag(failures, pathname, findMetaByAttr(html, 'name', 'twitter:card'), 'twitter:card');
   }
 });
 

@@ -28,12 +28,18 @@ jobs:
         run: node scripts/verify-headers.mjs https://frankchen.tw
 
       - name: 對正式站執行 squirrelscan 稽核
+        # 版本鎖定而非 npx squirrelscan（取 latest）：squirrelscan 還在 0.0.x，
+        # 語意化版號在 1.0 前不保證相容，CLI 參數與計分都可能無預警變動。日檢是
+        # 用來看「站台狀態隨時間的變化」的，工具版本跟著飄就分不出分數變化是站台
+        # 退步還是換了把尺。要升版請開獨立 PR，對照前後報告再合併。
+        env:
+          SQUIRRELSCAN_VERSION: 0.0.79
         run: |
           # --offline：只關閉雲端功能（雲端渲染／報告發佈／額度檢查），本地審計本體
           # （SEO / Performance / Security / Agents 四項分數）完全不受影響，因此就算
           # 這台 runner 沒設定 squirrelscan 雲端帳號或 API key，稽核依然會正常完成。
           # -y：跳過互動式確認提示——CI 環境沒有 TTY 可以回應 prompt。
-          npx squirrelscan audit https://frankchen.tw \
+          npx --yes "squirrelscan@${SQUIRRELSCAN_VERSION}" audit https://frankchen.tw \
             --max-pages 60 \
             --offline \
             -y \

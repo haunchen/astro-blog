@@ -36,6 +36,39 @@ const EXPECTED_CSP_DIRECTIVES = [
   'upgrade-insecure-requests',
 ];
 
+/**
+ * 把 CSP 值解析成 `指令名 -> 來源集合`。
+ *
+ * 為什麼不能用 `value.includes('script-src ...')` 那種整串比對：
+ *   (a) 來源順序改變（語意完全相同）會誤報失敗；
+ *   (b) 更嚴重——zone 層若偷偷多塞一個來源，例如
+ *       `script-src 'self' https://static.cloudflareinsights.com https://evil.example`，
+ *       includes 仍然為真，完全偵測不到。而這支腳本存在的唯一理由就是偵測
+ *       zone 層的靜默竄改，漏掉「多出來的來源」等於漏掉最該抓的那種攻擊。
+ * 改成集合比對後，順序無關、多一個少一個都會報。
+ *
+ * 來源一律轉小寫：CSP 的關鍵字（'self' / 'none'）與主機名稱都是大小寫不敏感的，
+ * 不正規化會把 'SELF' 誤判成多出來的來源。
+ */
+function parseCsp(value) {
+  const directives = new Map();
+  const duplicated = [];
+  for (const part of value.split(';')) {
+    const tokens = part.trim().split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) continue;
+    const name = tokens[0].toLowerCase();
+    // CSP 規格：同一指令重複出現時，後面的會被忽略，只有第一次出現的生效。
+    // 這裡照規格取第一個，同時把重複的記下來另外報——重複本身就代表有人（或
+    // 某條 zone 規則）在串接 CSP，即使結果無害也該被看見。
+    if (directives.has(name)) {
+      duplicated.push(name);
+      continue;
+    }
+    directives.set(name, new Set(tokens.slice(1).map((s) => s.toLowerCase())));
+  }
+  return { directives, duplicated };
+}
+
 const CHECKS = [
   {
     path: '/',
@@ -43,11 +76,33 @@ const CHECKS = [
     name: 'CSP 完整生效（未被 zone 層規則覆寫）',
     verify: (value) => {
       if (!value) return '沒有 CSP 標頭';
-      const missing = EXPECTED_CSP_DIRECTIVES.filter((d) => !value.includes(d));
-      if (missing.length) {
-        return `缺少指令：${missing.join(' / ')}｜實際收到：${value}`;
+      const expected = parseCsp(EXPECTED_CSP_DIRECTIVES.join('; ')).directives;
+      const { directives: actual, duplicated } = parseCsp(value);
+      const problems = [];
+
+      for (const [name, expectedSources] of expected) {
+        const actualSources = actual.get(name);
+        if (!actualSources) {
+          problems.push(`缺少指令 ${name}`);
+          continue;
+        }
+        const missing = [...expectedSources].filter((s) => !actualSources.has(s));
+        const extra = [...actualSources].filter((s) => !expectedSources.has(s));
+        if (missing.length) problems.push(`${name} 缺少來源：${missing.join(' ')}`);
+        if (extra.length) {
+          problems.push(`${name} 多出未預期來源：${extra.join(' ')}（可能是 zone 層規則注入）`);
+        }
       }
-      return null;
+      for (const name of actual.keys()) {
+        if (!expected.has(name)) {
+          problems.push(`多出未預期的指令 ${name}（可能是 zone 層規則注入）`);
+        }
+      }
+      if (duplicated.length) {
+        problems.push(`指令重複出現（規格上後者會被忽略）：${[...new Set(duplicated)].join(' ')}`);
+      }
+
+      return problems.length ? `${problems.join('｜')}｜實際收到：${value}` : null;
     },
   },
   {
@@ -86,13 +141,6 @@ const CHECKS = [
     header: 'cache-control',
     name: 'HTML 有短期快取（非 no-store）',
     verify: (v) => (v && /max-age=\d+/.test(v) && !v.includes('no-store') ? null : `實際為 ${v ?? '（無）'}`),
-  },
-  {
-    path: '/fonts/inter-latin-400-normal.woff2',
-    header: 'cache-control',
-    name: '字型長期 immutable 快取',
-    verify: (v) =>
-      v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
   },
   // Cloudflare Pages 的 _headers 對同一個標頭是合併不是覆蓋，多條規則命中同一路徑
   // 時值會被逗號串起來，產生兩組 max-age。瀏覽器只認第一個，等於後面那條規則靜默
@@ -140,22 +188,92 @@ const VALIDATOR_CHECK = {
   name: 'HTML 有 ETag 或 Last-Modified（可走 304）',
 };
 
+/**
+ * 取回某路徑的回應標頭。
+ *
+ * 回傳 `{ headers }` 或 `{ error }`——刻意不 throw：以前非 200 直接 throw 會讓
+ * 整支腳本在第一個壞掉的路徑就中斷，後面所有檢查連跑都沒跑，結果只看得到一行
+ * 例外訊息，不知道其他項目是好是壞。現在該路徑記成一項 FAIL，其餘照跑。
+ *
+ * 失敗結果也要進快取：同一路徑會被多項檢查共用（'/' 就有七項），不快取失敗的話
+ * 站台掛掉時每項都會各自重打一次請求，慢且沒有意義。
+ */
 const cache = new Map();
 async function head(path) {
   if (!cache.has(path)) {
-    const res = await fetch(ORIGIN + path, { redirect: 'follow' });
-    if (!res.ok) throw new Error(`${path} 回應 ${res.status}`);
-    cache.set(path, res.headers);
+    let entry;
+    try {
+      const res = await fetch(ORIGIN + path, { redirect: 'follow' });
+      entry = res.ok
+        ? { headers: res.headers }
+        : { error: `請求回應 ${res.status}${res.statusText ? ` ${res.statusText}` : ''}` };
+    } catch (err) {
+      entry = { error: `請求失敗：${err.message}` };
+    }
+    cache.set(path, entry);
   }
   return cache.get(path);
+}
+
+/**
+ * 從線上站首頁 HTML 取一個字型檔路徑當受測對象。
+ *
+ * 為什麼不寫死 `/fonts/inter-latin-400-normal.woff2`：PR #29 起字型子集檔名改成
+ * 「原名 + sha256 前 8 碼」（例如 inter-latin-400-normal.1a37bf8f.woff2），
+ * 每次 build 內容有變檔名就變，寫死必定 404。
+ * 為什麼也不讀 src/styles/font-preloads.json 或 dist/：這支腳本是對線上站發請求的，
+ * 日檢 workflow 並不會先 build，本地也未必有建置產物；而且線上站當下用的檔名
+ * 未必等於本地剛 build 出來的。從首頁 HTML 抓，受測對象永遠是線上站真正在用的那支。
+ */
+async function resolveFontPath() {
+  let html;
+  try {
+    const res = await fetch(`${ORIGIN}/`, { redirect: 'follow' });
+    if (!res.ok) return { error: `首頁請求回應 ${res.status}` };
+    html = await res.text();
+  } catch (err) {
+    return { error: `首頁請求失敗：${err.message}` };
+  }
+  for (const tag of html.match(/<link\b[^>]*>/gi) ?? []) {
+    if (!/\brel\s*=\s*["']?preload\b/i.test(tag)) continue;
+    if (!/\bas\s*=\s*["']?font\b/i.test(tag)) continue;
+    const href = tag.match(/\bhref\s*=\s*"([^"]*)"|\bhref\s*=\s*'([^']*)'/i);
+    const value = href?.[1] ?? href?.[2];
+    if (!value) continue;
+    try {
+      // 相對路徑與絕對 URL 都接受，統一取回 pathname 供 head() 接原點使用
+      return { path: new URL(value, `${ORIGIN}/`).pathname };
+    } catch {
+      continue;
+    }
+  }
+  // 抓不到本身就是問題：字型 preload 消失代表 LCP 會退化，或建置流程壞了。
+  return { error: '首頁沒有任何 <link rel="preload" as="font">' };
 }
 
 let failed = 0;
 console.log(`檢查來源：${ORIGIN}\n`);
 
-for (const check of CHECKS) {
-  const headers = await head(check.path);
-  const problem = check.verify(headers.get(check.header));
+const checks = [...CHECKS];
+const fontPath = await resolveFontPath();
+if (fontPath.path) {
+  checks.push({
+    path: fontPath.path,
+    header: 'cache-control',
+    name: `字型長期 immutable 快取（${fontPath.path}）`,
+    verify: (v) =>
+      v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+  });
+} else {
+  checks.push({ path: '/', name: '首頁可取得字型 preload 路徑', staticProblem: fontPath.error });
+}
+
+for (const check of checks) {
+  let problem = check.staticProblem;
+  if (!problem) {
+    const { headers, error } = await head(check.path);
+    problem = error ?? check.verify(headers.get(check.header));
+  }
   if (problem) {
     failed++;
     console.log(`[FAIL] ${check.name}`);
@@ -166,9 +284,14 @@ for (const check of CHECKS) {
 }
 
 {
-  const headers = await head(VALIDATOR_CHECK.path);
-  const has = headers.get('etag') || headers.get('last-modified');
-  if (has) {
+  const { headers, error } = await head(VALIDATOR_CHECK.path);
+  // 抓不到回應是真的失敗，不適用下面那個「已知例外」——那項豁免只針對
+  // 「請求成功但沒有 ETag／Last-Modified」這個特定狀況。
+  if (error) {
+    failed++;
+    console.log(`[FAIL] ${VALIDATOR_CHECK.name}`);
+    console.log(`       ${VALIDATOR_CHECK.path} → ${error}`);
+  } else if (headers.get('etag') || headers.get('last-modified')) {
     console.log(`[PASS] ${VALIDATOR_CHECK.name}`);
   } else {
     // 刻意不 failed++：見上方註解，這是已評估接受的取捨，不是待修的缺陷。

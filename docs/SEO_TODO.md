@@ -147,9 +147,10 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
       真正的堆砌寫法。日後若新增文章，判準看散文而非工具分數。
 
 - [x] **封鎖 CCBot 等訓練型爬蟲**。已評估，不做（維持封鎖）。這是站主刻意的訓練
-      資料退出決定，已知會連帶影響 Common Crawl 語料收錄與依賴它的 Wayback
-      Machine 覆蓋率，接受此代價。詳見 `public/robots.txt` 與
-      `docs/SEO_GUIDE.md`。
+      資料退出決定，代價限於 Common Crawl 及其衍生語料，接受。**不影響 Wayback
+      Machine**——archive.org 用自己的爬蟲（archive.org_bot / ia_archiver），
+      robots.txt 並未封鎖；稽核工具把兩者歸為同一類才讓警告看起來牽連更廣。
+      詳見 `public/robots.txt` 與 `docs/SEO_GUIDE.md`。
 - [x] **裝飾性圖片 `alt=""` 被 squirrelscan 判為缺 alt**。已評估，不做。
       `alt=""` 才是裝飾性圖片的正確寫法（螢幕閱讀器會跳過，不會念出檔名或
       「圖片」），本站這幾張圖的資訊已由同卡片的標題與描述文字承載。
