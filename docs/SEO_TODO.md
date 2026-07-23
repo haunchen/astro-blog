@@ -48,9 +48,28 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
     `/n8n-wordpress-api-integration-guide/`。
   - LinkedIn（`https://www.linkedin.com/in/frankchen0130/`）回 999 是該站對爬蟲的
     反制行為，不是實際死連結，已評估標記為忽略，不需處理。
-- [ ] **內容過薄頁面**（squirrelscan word-count 警告，15 篇低於 300 字門檻）。
-      屬於內容工作而非技術修復——是否要為這些頁面補內容，或接受它們本來就是
-      短篇幅（例如工具速查／單一問題解法），需要站主逐篇判斷。
+- [x] **內容過薄頁面**（squirrelscan word-count 警告，15 頁）。已評估，接受現況。
+      該規則以空白切詞計算，對中文有系統性低估——例如
+      `/raspberry-pi-gpio-high-frequency-noise/` 實際有 1535 個漢字、是篇完整的
+      踩坑紀錄，卻只被算成 219 個 word。15 頁逐一量測後的歸類：
+  - **規則對中文失準、內容其實不薄（8 頁）**：`/`、`/about/`、`/privacy-policy/`、
+    `/threads-data-export-tutorial/`、`/n8n-template-store-wish-list/`、
+    `/samsung-wallet-nfc-access-card-.../`、`/raspberry-pi-gpio-high-frequency-noise/`、
+    `/n8n-data-table-csv-export-import/`（漢字數 358–1535）。
+  - **版面本來就該短（6 頁）**：5 個分類頁與 `/contact-frank/`。分類頁的功能是
+    導覽（一列文章連結），聯絡頁就是 email 與社群連結；硬塞字會傷可用性，
+    換來的只有一條審計規則的分數。
+  - 剩下 1 篇（gemini-cli）另列於下方，原因不是字數。
+
+- [ ] **`/google-new-opensource-too-gemini-cli-...` 內容已過時，待站主更新**。
+      這篇不是字數問題（雖然它確實是 15 頁裡唯一偏薄的，468 漢字）。真正的問題是
+      **前提已不成立**：Gemini CLI 的免費額度政策改了，一般訂閱戶已不再適用，而
+      文章標題仍寫「提供大量免費額度」、description 仍寫「每分鐘 60 次，每天
+      1000 次」。過時的事實陳述對 E-E-A-T 的傷害遠大於篇幅不足，且標題與現況不符
+      會直接影響點擊後的跳出率。站主已表示後續會維護。
+      過渡期的低成本作法（若更新會拖較久）：在文章開頭加一段標註日期的更新說明，
+      並同步修正 title 與 description 的額度數字；`updated` 欄位一併更新，
+      sitemap 的 lastmod 會自動跟著改（見 `astro.config.mjs` 的 `POST_LASTMOD`）。
 - [ ] **Keyword stuffing 警告**（squirrelscan 標記 25 頁有詞彙過度重複的疑慮）。
       需要站主逐篇檢視是否為技術文件常見的必要重複用詞（例如同一個 API 名稱、
       工具名稱反覆出現），或是真的需要改寫，非技術面可自動判斷的問題。
