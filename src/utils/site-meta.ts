@@ -115,6 +115,52 @@ export const WEBSITE_JSONLD = {
   publisher: { '@id': `${SITE.url}/#org` },
 };
 
+/** SERP 的 description 版位：低於這個長度是浪費版位，超過會被截斷。 */
+const DESC_MIN = 120;
+const DESC_MAX = 160;
+
+/**
+ * 列表頁（分類／標籤）的 meta description 產生器。
+ *
+ * 為什麼要有這支：站上有 5 個分類頁 + 55 個標籤頁，若共用同一句樣板只換名稱與
+ * 篇數，搜尋引擎會視為近似重複的描述而讓它失去作用。改以該頁實際的資料組出
+ * 描述——篇數、最新幾篇的標題——每頁的組合天然不同，而且內容是真的，不是為了
+ * 差異化硬湊出來的字。
+ *
+ * 加標題前必須先確認整句放得下：直接串完再截斷，會從標題中間硬切，產生
+ * 「另有〈不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPre…」這種〈〉
+ * 不閉合的殘句（正式站上實際出現過）。寧可短一點也不要切半。
+ *
+ * @param lead 開場句，需自行帶入頁名與篇數
+ * @param titles 文章標題，順序需與畫面一致（新到舊）
+ * @param padding 冷門頁湊不到下限時逐句補上的句子；分類與標籤頁請各自給不同的
+ *                句子，否則補完之後兩種列表頁的結尾又會撞在一起
+ */
+export function listPageDescription(opts: {
+  lead: string;
+  titles: string[];
+  padding: string[];
+}): string {
+  let description = opts.lead;
+
+  for (const [i, title] of opts.titles.entries()) {
+    if (description.length >= DESC_MIN) break;
+    const clause = i === 0 ? `最新一篇是〈${title}〉，` : `另有〈${title}〉，`;
+    if (description.length + clause.length > DESC_MAX) break;
+    description += clause;
+  }
+  description = description.replace(/，$/, '。');
+
+  for (const sentence of opts.padding) {
+    if (description.length >= DESC_MIN) break;
+    description += sentence;
+  }
+
+  // 補完仍可能超出上限（padding 的最後一句可能把長度推過去）。這裡的截斷只會
+  // 落在 padding 的句子上——標題已在上面逐句確認過放得下，不會被切到。
+  return description.length <= DESC_MAX ? description : `${description.slice(0, DESC_MAX - 1)}…`;
+}
+
 /** 列表頁（分類／標籤／文章總覽）共用的 CollectionPage JSON-LD */
 export function collectionPageJsonLd(opts: {
   name: string;

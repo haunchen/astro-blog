@@ -3,7 +3,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { CATEGORIES, categoryLabel, collectionPageJsonLd, pageTitle } from '../../utils/site-meta';
+import {
+  CATEGORIES,
+  categoryLabel,
+  collectionPageJsonLd,
+  listPageDescription,
+  pageTitle,
+} from '../../utils/site-meta';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -29,12 +35,21 @@ const crumbs = [
   { name: '首頁', href: '/' },
   { name: '分類', href: '/category/' },
 ];
-const description = `瀏覽「${label}」分類的所有技術文章，目前共 ${categoryPosts.length} 篇，依發表日期由新到舊排列。內容涵蓋完整實作步驟、設定範例、踩坑紀錄與心得整理，都是實際做過一輪後才寫下來的筆記，適合想深入這個主題的讀者依序閱讀，也可以直接挑出目前需要的段落參考，避免重複踩同樣的坑。`;
-
 // ItemList 順序需與畫面一致：ArticleTimeline 以日期新到舊排列
-const listed = [...categoryPosts]
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .map((p) => ({ title: p.data.title, path: `/${p.id}/` }));
+const sorted = [...categoryPosts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const listed = sorted.map((p) => ({ title: p.data.title, path: `/${p.id}/` }));
+
+// 與標籤頁用同一支產生器：原本 5 個分類頁共用同一句樣板、只換標籤名與篇數，
+// 跟標籤頁修正前是同一個問題（近似重複的描述）。padding 句子與標籤頁刻意不同，
+// 否則兩種列表頁補完之後結尾又會撞在一起。
+const description = listPageDescription({
+  lead: `「${label}」分類目前收錄 ${categoryPosts.length} 篇技術文章，依發表日期由新到舊排列，內容涵蓋完整實作步驟、設定範例與踩坑紀錄。`,
+  titles: sorted.map((p) => p.data.title),
+  padding: [
+    '每篇都是實際做過一輪之後才寫下來的筆記。',
+    '可以依序讀完，也可以直接挑出目前需要的段落參考。',
+  ],
+});
 ---
 
 <BaseLayout
