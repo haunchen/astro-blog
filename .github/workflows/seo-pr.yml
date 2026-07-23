@@ -1,0 +1,156 @@
+name: SEO PR 稽核
+
+# 分支不限：任何 PR 都可能動到 SEO 相關檔案（layout、頁面、sitemap 設定等），
+# 不值得用 branches filter 排除，讓漏網的改動有機會逃過檢查。
+on:
+  pull_request:
+
+jobs:
+  seo-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: 安裝依賴
+        run: npm ci
+
+      - name: 建置
+        run: npm run build
+
+      - name: 靜態 SEO 驗證（meta / JSON-LD / sitemap / 孤兒頁）
+        run: npm run verify:seo
+
+      - name: 啟動 preview server（背景執行）
+        run: |
+          # nohup + disown：避免這個 step 的 shell 結束時把 preview server 一併 SIGHUP 掉，
+          # 讓它能撐到後面 Lighthouse 那幾個 step 使用。
+          nohup npm run preview > preview.log 2>&1 &
+          disown
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:4321/ > /dev/null; then
+              echo "preview server 已就緒"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::preview server 30 秒內未就緒"
+          cat preview.log
+          exit 1
+
+      - name: 決定要稽核的文章頁 URL
+        id: sample
+        run: |
+          # 不寫死特定 slug：文章會增減，寫死遲早對到已下架或改名的文章。
+          # 直接從 build 產出的 sitemap 挑第一篇「非列表頁」當代表樣本。
+          ARTICLE_PATH=$(node -e "
+            const fs = require('fs');
+            const xml = fs.readFileSync('dist/sitemap.xml', 'utf8');
+            const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+            const skip = new Set(['/', '/articles/', '/about/', '/n8n-resources/', '/contact-frank/', '/privacy-policy/', '/category/', '/tag/']);
+            const article = locs
+              .map((loc) => new URL(loc).pathname)
+              .find((p) => !skip.has(p) && !p.startsWith('/category/') && !p.startsWith('/tag/'));
+            if (!article) { console.error('sitemap 內找不到可用的文章頁'); process.exit(1); }
+            process.stdout.write(article);
+          ")
+          echo "找到樣本文章頁：$ARTICLE_PATH"
+          echo "path=$ARTICLE_PATH" >> "$GITHUB_OUTPUT"
+
+      - name: 執行 Lighthouse 稽核（首頁 / 文章列表 / 關於我 / 一篇文章頁）
+        run: |
+          mkdir -p lighthouse-reports
+          npx lighthouse "http://localhost:4321/" \
+            --output=json --output-path=lighthouse-reports/home.json \
+            --chrome-flags="--headless --no-sandbox" --quiet
+          npx lighthouse "http://localhost:4321/articles/" \
+            --output=json --output-path=lighthouse-reports/articles.json \
+            --chrome-flags="--headless --no-sandbox" --quiet
+          npx lighthouse "http://localhost:4321/about/" \
+            --output=json --output-path=lighthouse-reports/about.json \
+            --chrome-flags="--headless --no-sandbox" --quiet
+          npx lighthouse "http://localhost:4321${{ steps.sample.outputs.path }}" \
+            --output=json --output-path=lighthouse-reports/article.json \
+            --chrome-flags="--headless --no-sandbox" --quiet
+
+      - name: 檢查分數門檻並寫入 Job Summary
+        run: |
+          cat <<'SCRIPT_EOF' > check-lighthouse-scores.mjs
+          import { readFileSync, appendFileSync } from 'node:fs';
+
+          const TARGETS = [
+            { name: '首頁', file: 'lighthouse-reports/home.json' },
+            { name: '文章列表', file: 'lighthouse-reports/articles.json' },
+            { name: '關於我', file: 'lighthouse-reports/about.json' },
+            { name: '文章頁樣本', file: 'lighthouse-reports/article.json' },
+          ];
+
+          // Performance 門檻刻意設 90 而非 95：GitHub Actions 共用 runner 的 CPU/IO
+          // 效能會隨當下負載波動，同一頁面在本機量測與 CI 上可能相差 5~10 分。
+          // 設 95 在 CI 上會頻繁偽陽性擋下與效能無關的 PR，90 是務實下限，
+          // 真正的效能回歸要靠數值下滑的趨勢觀察，不是單次門檻卡死。
+          const THRESHOLDS = {
+            seo: 100,
+            accessibility: 95,
+            'best-practices': 100,
+            performance: 90,
+          };
+
+          const LABELS = {
+            seo: 'SEO',
+            accessibility: 'Accessibility',
+            'best-practices': 'Best Practices',
+            performance: 'Performance',
+          };
+
+          let anyFailed = false;
+          const rows = ['| 頁面 | SEO | Accessibility | Best Practices | Performance |', '|---|---|---|---|---|'];
+          const failureLines = [];
+
+          for (const { name, file } of TARGETS) {
+            const report = JSON.parse(readFileSync(file, 'utf8'));
+            const categories = report.categories;
+            const scores = Object.fromEntries(
+              Object.keys(THRESHOLDS).map((key) => [key, Math.round((categories[key]?.score ?? 0) * 100)]),
+            );
+
+            rows.push(
+              `| ${name} | ${scores.seo} | ${scores.accessibility} | ${scores['best-practices']} | ${scores.performance} |`,
+            );
+
+            for (const [key, min] of Object.entries(THRESHOLDS)) {
+              if (scores[key] < min) {
+                anyFailed = true;
+                failureLines.push(`${name}：${LABELS[key]} = ${scores[key]}（門檻 ${min}）`);
+              }
+            }
+          }
+
+          const summary = [
+            '## Lighthouse SEO 稽核結果',
+            '',
+            ...rows,
+            '',
+            `門檻：SEO ${THRESHOLDS.seo} / Accessibility ≥${THRESHOLDS.accessibility} / Best Practices ${THRESHOLDS['best-practices']} / Performance ≥${THRESHOLDS.performance}`,
+            '',
+          ];
+
+          if (failureLines.length > 0) {
+            summary.push('### 未達標項目', '', ...failureLines.map((line) => `- ${line}`), '');
+          }
+
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, summary.join('\n') + '\n');
+
+          if (anyFailed) {
+            console.error('Lighthouse 分數未達門檻：');
+            failureLines.forEach((line) => console.error(`  - ${line}`));
+            process.exit(1);
+          }
+
+          console.log('Lighthouse 分數全數達標。');
+          SCRIPT_EOF
+          node check-lighthouse-scores.mjs
