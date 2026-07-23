@@ -86,7 +86,7 @@ draft: false
 
 ### 第四步：Instagram 帳號端確認：接受測試邀請
 
--   前往 [instagram.com/accounts/manage\_access](http://instagram.com/accounts/manage_access) 接受來自 Meta App 的邀請
+-   前往 [instagram.com/accounts/manage\_access](https://www.instagram.com/accounts/manage_access/) 接受來自 Meta App 的邀請
 -   進入頁面後，首先最左邊的個人檔案 Icon 先確認是否是你邀請的測試人員：若不是，請先到個人檔案頁面登入你上一步驟邀請的測試人員帳號，再重新點擊上一步的連結進入
 -   確認沒問題後，再確認右手邊是否是在「應用程式和網路」的畫面
     -   如果是，那請點擊「測試員邀請」，就會看到接受的按鈕，點擊下去即可完成邀請。

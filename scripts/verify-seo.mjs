@@ -369,6 +369,35 @@ check('dist/robots.txt、llms.txt、site.webmanifest 存在', (failures) => {
 // 孤兒頁檢查：對每個非首頁、非 404 的頁面，至少要被另一頁以站內連結指到
 // ---------------------------------------------------------------------------
 
+// 站內死連結是 SEO 與使用者體驗的雙重扣分，但完全靠爬線上站來抓很不可靠——
+// CDN 對密集請求會重置連線、preview 部署與本地 dist 的資產雜湊也不一致，
+// 兩者都會產生假的 4xx。改成在 dist 上做確定性檢查：每個站內 href 都必須
+// 對應到實際輸出的檔案。同時擋下協定降級的 http:// 外連。
+check('站內連結皆可解析為實際輸出的檔案，且無 http:// 協定降級', (failures) => {
+  const existsInDist = (pathname) => {
+    const rel = decodeURIComponent(pathname).replace(/^\//, '');
+    const candidates = [rel, path.posix.join(rel, 'index.html'), `${rel.replace(/\/$/, '')}.html`];
+    return candidates.some((c) => existsSync(path.join(DIST, c)));
+  };
+
+  for (const { pathname, html } of pages) {
+    for (const tag of findTags(html, 'a')) {
+      const href = (getAttr(tag, 'href') ?? '').trim();
+      if (!href) continue;
+      if (href.startsWith('http://')) {
+        failures.push({ page: pathname, reason: `協定降級的連結：${href}` });
+        continue;
+      }
+      if (!href.startsWith('/')) continue; // 外連與錨點不在此檢查範圍
+      const clean = href.split('#')[0].split('?')[0];
+      if (!clean || clean === '/') continue;
+      if (!existsInDist(clean)) {
+        failures.push({ page: pathname, reason: `站內連結指向不存在的檔案：${href}` });
+      }
+    }
+  }
+});
+
 check('無孤兒頁（首頁、404 除外，皆至少被其他頁面連結）', (failures) => {
   const pageSet = new Map(pages.map((p) => [p.pathname, p.relFile]));
   const inbound = new Map(pages.map((p) => [p.pathname, new Set()]));
