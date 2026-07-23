@@ -12,7 +12,8 @@
     "verify:seo": "node scripts/verify-seo.mjs",
     "prepare": "git config core.hooksPath .githooks",
     "verify:headers": "node scripts/verify-headers.mjs",
-    "verify:robots": "node scripts/verify-robots.mjs"
+    "verify:robots": "node scripts/verify-robots.mjs",
+    "verify:assets": "node scripts/verify-assets.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
