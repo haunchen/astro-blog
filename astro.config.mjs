@@ -81,6 +81,22 @@ export default defineConfig({
   markdown: {
     shikiConfig: {
       theme: 'tokyo-night',
+      transformers: [
+        {
+          // tokyo-night 的註解色 #51597D 在其自身背景 #1a1b26 上對比只有 2.54:1，
+          // 遠低於 WCAG AA 小字所需的 4.5:1（Lighthouse color-contrast 在每篇有
+          // 程式碼的文章都會失敗）。程式碼註解往往是理解範例的關鍵，不該是最難讀的。
+          // Shiki 把顏色寫成 inline style，CSS 覆蓋要靠 !important，改用 transformer
+          // 在產生 HTML 時直接換掉，語意乾淨且不影響其他 token 的配色。
+          // #7A82AB 對 #1a1b26 為 4.56:1，色相與原色一致，只是提高明度。
+          span(node) {
+            const style = node.properties?.style;
+            if (typeof style === 'string' && style.toLowerCase().includes('#51597d')) {
+              node.properties.style = style.replace(/#51597[dD]/g, '#7A82AB');
+            }
+          },
+        },
+      ],
     },
     rehypePlugins: [rehypeTableCaption],
   },
