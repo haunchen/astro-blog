@@ -10,7 +10,8 @@
     "subset-fonts": "node scripts/subset-fonts.mjs",
     "fonts": "node scripts/build-font-css.mjs",
     "verify:seo": "node scripts/verify-seo.mjs",
-    "prepare": "git config core.hooksPath .githooks"
+    "prepare": "git config core.hooksPath .githooks",
+    "verify:headers": "node scripts/verify-headers.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
