@@ -149,7 +149,9 @@ const personJsonLd = {
     '@id': `${SITE.url}/about/#person`,
     name: 'Frank Chen',
     alternateName: '法蘭克',
-    jobTitle: '系統整合課長',
+    // 對外署名沿用「系統整合工程師」而非頁面上的現職職稱「系統整合課長」：
+    // 前者是搜尋與社群語境下更通用、更可被理解的身分描述（站主決定）。
+    jobTitle: '系統整合工程師',
     email: SITE.email,
     url: `${SITE.url}/about/`,
     // 頭像經 astro:assets 處理過，src 為帶雜湊的站內路徑，需補成絕對網址

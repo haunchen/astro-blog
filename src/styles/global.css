@@ -13,7 +13,11 @@
   /* Text */
   --color-text-primary: #E2E8F0;
   --color-text-secondary: #94A3B8;
-  --color-text-muted: #64748B;
+  /* 原為 slate-500 #64748B，在 --color-bg-secondary(#212A37) 上對比只有 3.19:1，
+     未達 WCAG AA 小字所需的 4.5:1（Lighthouse color-contrast 實測失敗）。
+     調亮到 #8593A8：bg-secondary 上 4.71:1、bg-primary 上 5.66:1，
+     仍明顯低於 --color-text-secondary，維持原本的三層文字階層。 */
+  --color-text-muted: #8593A8;
 
   /* Brand */
   --color-brand-blue: #0084ff;

@@ -95,4 +95,8 @@ User-agent: *
 Allow: /
 
 Sitemap: https://frankchen.tw/sitemap.xml
-Llms-txt: https://frankchen.tw/llms.txt
+# llms.txt 位置。刻意寫成註解而非 directive：robots.txt 沒有 Llms-txt 這個
+# 標準欄位，寫成 directive 會被 Lighthouse 等驗證器判為 invalid robots.txt
+# （SEO 分數直接扣分），且爬蟲本來就只認 User-agent/Allow/Disallow/Sitemap。
+# 真正讓 AI 爬蟲找到 llms.txt 的途徑是站台根目錄的慣例路徑本身。
+# https://frankchen.tw/llms.txt
