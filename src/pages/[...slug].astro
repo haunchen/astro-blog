@@ -4,6 +4,7 @@ import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
 import TableOfContents from '../components/TableOfContents.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE, CATEGORY_LABEL, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 
 export async function getStaticPaths() {
@@ -67,6 +68,12 @@ const blogPosting = {
   isPartOf: { '@id': `${SITE.url}/#website` },
   inLanguage: 'zh-TW',
 };
+
+// 可見麵包屑與 BreadcrumbList JSON-LD 的上層階層共用同一個陣列，避免兩邊走鐘
+const crumbs = [
+  { name: '首頁', href: '/' },
+  { name: '文章', href: '/articles/' },
+];
 ---
 
 <BaseLayout
@@ -80,14 +87,16 @@ const blogPosting = {
     tags: post.data.tags,
   }}
   jsonLd={[blogPosting]}
-  breadcrumbs={[
-    { name: '首頁', href: '/' },
-    { name: '文章', href: '/articles/' },
-  ]}
+  breadcrumbs={crumbs}
 >
   <main>
     <!-- Article Header -->
     <div class="article-header">
+      <!-- 可見麵包屑：文章頁原本只有 BreadcrumbList JSON-LD 而畫面上沒有對應的
+           導覽，與站上其餘 9 個內頁不一致，也讓結構化資料宣稱了頁面上看不到的
+           階層。current 直接用 post.data.title——BaseLayout 的 JSON-LD 末階是
+           title 去掉品牌後綴後的結果，兩者必須是同一字串。 -->
+      <Breadcrumbs items={crumbs} current={post.data.title} />
       <div class="article-header-meta">
         <TagBadge text={categoryLabel} href={`/category/${post.data.category}/`} />
         <span class="article-header-date">{formattedDate}</span>
