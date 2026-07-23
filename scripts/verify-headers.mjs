@@ -96,8 +96,24 @@ const CHECKS = [
   },
 ];
 
-// HTML 的快取驗證器（ETag / Last-Modified）。缺了會讓重複造訪無法走 304，
-// 每次都得重下整份 HTML。Pages 本身會給 ETag，zone 設定可能把它吃掉。
+/**
+ * HTML 的快取驗證器（ETag / Last-Modified）——**已知例外，不計入失敗**。
+ *
+ * 根因（2026-07-23 逐項量測）：Bot Fight 模式的 JS Detections 會在邊緣把
+ * `__CF$cv$params` 那段注入 HTML，回應內容因此與來源不同，Cloudflare 就把
+ * Pages 送出的 ETag 丟掉。證據——同一份部署、三種路徑：
+ *   frankchen.tw   /about/  31998 B  含 JSD 注入  無 ETag
+ *   *.pages.dev    /about/  31079 B  無注入      有 ETag
+ *   frankchen.tw   .woff2   （不被改寫）          有 ETag
+ *
+ * 為什麼接受而不修：要讓 ETag 回來得關掉 Bot Fight 模式（失去全站機器人防護），
+ * 或加 Cache Rule 快取 HTML（部署後可能短暫服務舊內容）。換到的效益很小——
+ * HTML 已有 max-age=600，10 分鐘內不會重新驗證；真的驗證時 304 相對於
+ * brotli 壓縮後的 200 只省約 9.5 KB。crawl budget 也不是 104 頁網站的瓶頸。
+ *
+ * 保留這項檢查而不刪除：日檢仍會印出目前狀態，狀況若改變（ETag 回來了、或
+ * 換了別的原因）看得出來，不會讓後人以為是沒人檢查過的漏網之魚。
+ */
 const VALIDATOR_CHECK = {
   path: '/about/',
   name: 'HTML 有 ETag 或 Last-Modified（可走 304）',
@@ -134,9 +150,12 @@ for (const check of CHECKS) {
   if (has) {
     console.log(`[PASS] ${VALIDATOR_CHECK.name}`);
   } else {
-    failed++;
-    console.log(`[FAIL] ${VALIDATOR_CHECK.name}`);
-    console.log(`       ${VALIDATOR_CHECK.path} → 兩者皆無（cf-cache-status: ${headers.get('cf-cache-status') ?? '?'}）`);
+    // 刻意不 failed++：見上方註解，這是已評估接受的取捨，不是待修的缺陷。
+    console.log(`[已知例外] ${VALIDATOR_CHECK.name}`);
+    console.log(
+      `           ${VALIDATOR_CHECK.path} → 兩者皆無（cf-cache-status: ${headers.get('cf-cache-status') ?? '?'}）。` +
+        'Bot Fight 模式的 JS Detections 改寫 HTML 導致 ETag 被丟棄，已評估接受。',
+    );
   }
 }
 

@@ -88,6 +88,38 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
 
 ## C. 已評估後決定不做／接受現況
 
+- [x] **HTML 沒有 ETag / Last-Modified**（正式站，2026-07-23）。已評估，接受現況。
+      根因不是快取設定，是**邊緣改寫 HTML**：Bot Fight 模式的 JS Detections 會把
+      `__CF$cv$params` 那段注入 HTML，回應內容與來源不同，Cloudflare 因此丟棄
+      Pages 送出的 ETag。同一份部署、三種路徑的量測：
+
+      | 來源 | 路徑 | 大小 | 含 JSD 注入 | ETag |
+      |---|---|---:|---|---|
+      | frankchen.tw | /about/ | 31998 B | 有 | 無 |
+      | *.pages.dev | /about/ | 31079 B | 無 | 有 |
+      | frankchen.tw | .woff2 | — | 不被改寫 | 有 |
+
+      要修得付出的代價：關掉 Bot Fight 模式（失去全站機器人防護），或加 Cache Rule
+      快取 HTML（部署後可能短暫服務舊內容）。換到的效益很小——HTML 已有
+      `max-age=600`，10 分鐘內不會重新驗證；真的驗證時 304 相對於 brotli 壓縮後的
+      200 只省約 9.5 KB（實測：wire 9484 B、304 為 0 B）。crawl budget 也不是
+      104 頁網站的瓶頸。`verify-headers.mjs` 保留這項檢查但標記為「已知例外」、
+      不計入失敗，狀況若改變仍看得出來。
+
+- [x] **Cloudflare zone 的 Security Headers transform rule**（2026-07-23）。已處理：
+      停用（保留規則本體可還原）。該規則以「設定靜態」覆寫六個標頭，其中四個與
+      `_headers` 相同、兩個是倒退（CSP 被砍到只剩 `upgrade-insecure-requests`、
+      X-Frame-Options 從 DENY 放寬為 SAMEORIGIN）。是 WordPress 時期建的，搬到
+      Pages 之後就變成重複且有害。往後由 `scripts/verify-headers.mjs` 每日把關，
+      同類漂移會讓日檢失敗並指向後台位置。
+
+- [x] **Cloudflare Web Analytics 與 CSP 的衝突**（2026-07-23）。已處理：CSP 加入
+      具名來源。完整 CSP 生效後才發現 Cloudflare 在邊緣注入的 beacon
+      （`static.cloudflareinsights.com`）被 `script-src 'self'` 擋掉——這是只看
+      repo 不會發現的問題，靠 `securitypolicyviolation` 監聽器實測才抓到。
+      選擇放行而非關閉分析：站主有在使用該數據。隱私權政策同步據實揭露。
+      註：Bot Management 的 JS Detections 不需例外，Cloudflare 以同源路徑提供。
+
 - [x] **Keyword stuffing 警告（25 頁）**。已評估，接受現況。與 word-count 那條
       同一個病根：該規則以空白切詞計算密度，中文散文沒有空白，2000 個漢字在它
       眼中幾乎是空的，分母只剩程式碼識別字、指令名與網址。結果是任何「中文的、
