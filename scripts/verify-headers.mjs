@@ -23,7 +23,10 @@ const ORIGIN = (process.argv[2] ?? 'https://frankchen.tw').replace(/\/$/, '');
 // 刻意不從 _headers 自動解析：那樣兩邊會一起錯，就失去對照的意義了。
 const EXPECTED_CSP_DIRECTIVES = [
   "default-src 'self'",
-  "script-src 'self'",
+  // Cloudflare Web Analytics 的 beacon 與回報端點：邊緣注入的第三方資源，
+  // 不在 repo 裡，只看原始碼會漏掉（2026-07-23 實測 CSP 違規才發現）。
+  "script-src 'self' https://static.cloudflareinsights.com",
+  "connect-src 'self' https://cloudflareinsights.com",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data:",
   "base-uri 'self'",

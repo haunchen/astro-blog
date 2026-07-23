@@ -10,20 +10,21 @@ const crumbs = [{ name: '首頁', href: '/' }];
 
 <BaseLayout
   title={pageTitle(pageName)}
-  description="本站的隱私權政策：說明本站為靜態網站、不提供留言與註冊功能、不主動蒐集個人資料，也未安裝 Google Analytics 等第三方分析工具，並逐項解釋 Cookie、第三方嵌入內容與外部連結的處理方式，以及你可以如何來信提出隱私相關的疑問。"
+  description="本站的隱私權政策：說明本站為靜態網站、不提供留言與註冊功能、不主動蒐集個人資料，僅使用無 Cookie 的 Cloudflare Web Analytics 統計流量，並逐項解釋 Cookie、第三方嵌入內容與外部連結的處理方式，以及如何來信提出隱私疑問。"
   breadcrumbs={crumbs}
 >
   <main class="legal">
     <Breadcrumbs items={crumbs} current={pageName} />
     <h1 class="legal-title">隱私權政策</h1>
-    <p class="legal-updated">最後更新：2026-06-26</p>
+    <p class="legal-updated">最後更新：2026-07-23</p>
 
     <div class="prose">
       <h2>我們是誰</h2>
       <p>本網站網址為 {SITE.url}，由 Frank Chen 經營。如有任何隱私相關問題，歡迎來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。</p>
 
       <h2>我們蒐集哪些資料</h2>
-      <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站目前未安裝第三方分析工具（例如 Google Analytics），不會建立你的瀏覽行為輪廓。</p>
+      <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站未安裝 Google Analytics 這類會建立跨站瀏覽輪廓的分析工具。</p>
+      <p>代管平台 Cloudflare 提供的 Web Analytics 為啟用狀態。它以無 Cookie 的方式運作，僅彙總網頁瀏覽量、來源網站、裝置類型等統計資訊，不使用 Cookie、不追蹤個別使用者，也不會跨網站建立你的行為輪廓。相關說明見 <a href="https://developers.cloudflare.com/web-analytics/" rel="noopener noreferrer" target="_blank">Cloudflare Web Analytics 文件</a>。</p>
 
       <h2>Cookie</h2>
       <p>本站本身不使用追蹤型 Cookie。網站由 Cloudflare Pages 代管，平台可能基於資訊安全與效能設置必要性 Cookie；這類 Cookie 不用於識別你的身分。</p>
