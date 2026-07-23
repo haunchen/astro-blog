@@ -3,19 +3,26 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleTimeline from '../components/ArticleTimeline.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { getCollection } from 'astro:content';
-import { pageTitle } from '../utils/site-meta';
+import { collectionPageJsonLd, pageTitle } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
 const pageName = '文章';
 const crumbs = [{ name: '首頁', href: '/' }];
+const description = '所有技術文章，涵蓋 n8n 自動化、架站部署、Flutter、樹莓派與開發工具的實戰經驗與踩坑紀錄。';
+
+// ItemList 順序需與畫面一致：ArticleTimeline 以日期新到舊排列
+const listed = [...posts]
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((p) => ({ title: p.data.title, path: `/${p.id}/` }));
 ---
 
 <BaseLayout
   title={pageTitle(pageName)}
-  description="所有技術文章，涵蓋 n8n 自動化、架站部署、Flutter、樹莓派與開發工具的實戰經驗與踩坑紀錄。"
+  description={description}
   breadcrumbs={crumbs}
+  jsonLd={[collectionPageJsonLd({ name: pageName, description, path: '/articles/', items: listed })]}
 >
   <main class="list-page">
     <Breadcrumbs items={crumbs} current={pageName} />
