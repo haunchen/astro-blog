@@ -45,7 +45,14 @@ jobs:
         continue-on-error: true
         run: node scripts/verify-assets.mjs https://frankchen.tw
 
+      # continue-on-error 與上面三步同理，但這條是 2026-07-23 首次實跑才補的：原本
+      # 這步沒有 continue-on-error，於是它一失敗，後面「寫入 Job Summary」「上傳報告
+      # artifact」與最後彙整錯誤訊息的步驟全部被 skip——job 紅燈但 GitHub 上看不到
+      # 任何說明，得去挖原始 log 才知道發生什麼事。日檢的價值就在於「不用人盯」，
+      # 失敗時看不到原因等於沒有這條檢查。
       - name: 對正式站執行 squirrelscan 稽核
+        id: squirrelscan
+        continue-on-error: true
         # 版本鎖定而非 npx squirrelscan（取 latest）：squirrelscan 還在 0.0.x，
         # 語意化版號在 1.0 前不保證相容，CLI 參數與計分都可能無預警變動。日檢是
         # 用來看「站台狀態隨時間的變化」的，工具版本跟著飄就分不出分數變化是站台
@@ -57,25 +64,65 @@ jobs:
           # （SEO / Performance / Security / Agents 四項分數）完全不受影響，因此就算
           # 這台 runner 沒設定 squirrelscan 雲端帳號或 API key，稽核依然會正常完成。
           # -y：跳過互動式確認提示——CI 環境沒有 TTY 可以回應 prompt。
+          set -o pipefail
           npx --yes "squirrelscan@${SQUIRRELSCAN_VERSION}" audit https://frankchen.tw \
             --max-pages 60 \
             --offline \
             -y \
             -f markdown \
-            -o squirrelscan-report.md
+            -o squirrelscan-report.md 2>&1 | tee squirrelscan-run.log
 
+      # 「跑完了」不等於「量到東西」。2026-07-23 首次實跑時 squirrelscan 印的是
+      # `warn Site uses cloudflare protection` 與 `✓ Audited 0 pages in 0.5s`——
+      # 一個頁面都沒抓到，因為 GitHub runner 是資料中心 IP，被站上的 Bot Fight 模式
+      # 擋掉了。那次它剛好以非零退出碼結束所以有紅燈，但工具沒有義務永遠這樣做：
+      # 若哪天它對「0 頁」回傳 0，這條稽核就會變成每天綠燈卻什麼都沒驗。
+      # 因此這裡不倚賴退出碼，直接對輸出斷言。
+      - name: 確認 squirrelscan 真的有抓到頁面
+        id: squirrelscan_coverage
+        if: always()
+        continue-on-error: true
+        run: |
+          if [ ! -f squirrelscan-run.log ]; then
+            echo "::error::找不到 squirrelscan-run.log，稽核步驟可能根本沒執行。"
+            exit 1
+          fi
+          if grep -qE 'Audited 0 pages' squirrelscan-run.log; then
+            echo "::error::squirrelscan audited 0 pages——工具有跑完但沒有量到任何東西。"
+            grep -iE 'cloudflare|blocked|403|challenge|Audited' squirrelscan-run.log || true
+            exit 1
+          fi
+          grep -E 'Audited [0-9]+ pages' squirrelscan-run.log || true
+
+      # if: always()：報告是診斷失敗用的，正因為失敗才更需要它。原本沒有這個條件，
+      # 於是稽核一失敗就連報告都拿不到（見上方 continue-on-error 的註解）。
       - name: 寫入 Job Summary
-        run: cat squirrelscan-report.md >> "$GITHUB_STEP_SUMMARY"
+        if: always()
+        run: |
+          {
+            if [ -f squirrelscan-report.md ]; then
+              cat squirrelscan-report.md
+            else
+              echo "### squirrelscan 未產出報告"
+              echo '```'
+              tail -n 40 squirrelscan-run.log 2>/dev/null || echo "（連 run log 都沒有，稽核步驟可能未執行）"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: 上傳報告 artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: squirrelscan-report-${{ github.run_id }}
-          path: squirrelscan-report.md
+          path: |
+            squirrelscan-report.md
+            squirrelscan-run.log
           retention-days: 30
+          if-no-files-found: warn
 
       - name: 線上檢查有任一項失敗時讓整個 job 失敗
-        if: steps.headers.outcome == 'failure' || steps.robots.outcome == 'failure' || steps.assets.outcome == 'failure'
+        if: steps.headers.outcome == 'failure' || steps.robots.outcome == 'failure' || steps.assets.outcome == 'failure' || steps.squirrelscan.outcome == 'failure' || steps.squirrelscan_coverage.outcome == 'failure'
         run: |
           if [ "${{ steps.headers.outcome }}" = "failure" ]; then
             echo "::error::正式站回應標頭與 public/_headers 的意圖不一致，見上方 verify-headers 輸出。"
@@ -105,6 +152,17 @@ jobs:
               echo "沒有樣式或功能缺損的頁面。上方輸出會指出是「邊緣把 404 快取住了」"
               echo "（繞過快取拿得到 200，需 Purge 該 URL）還是「檔案不在該次部署裡」"
               echo "（建置或部署的問題）。"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ "${{ steps.squirrelscan.outcome }}" = "failure" ] || [ "${{ steps.squirrelscan_coverage.outcome }}" = "failure" ]; then
+            echo "::error::squirrelscan 稽核未成功或沒有抓到任何頁面，見 Job Summary 與 artifact 內的 run log。"
+            {
+              echo "### squirrelscan 稽核未通過"
+              echo "先看它抓了幾頁。若是 \`Audited 0 pages\`，站台本身多半沒問題——"
+              echo "是 GitHub runner 的資料中心 IP 被 Cloudflare 擋掉了（實測 2026-07-23，"
+              echo "工具會同時印出 \`Site uses cloudflare protection\`）。"
+              echo "對應設定：Cloudflare Dashboard → 安全性 → Bots → Bot Fight 模式。"
+              echo "若抓到頁數正常而分數退步，那才是站台的問題，比對前一次的 artifact。"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
           exit 1

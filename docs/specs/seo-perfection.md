@@ -285,10 +285,52 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 | GSC sitemap 提交 | 站主已提交（2026-07-23） | — |
 | X / Twitter handle | 已提供 `@frankchen_tw`（2026-07-23） | — |
 | squirrelscan 雲端帳號 | 站主決定不開（2026-07-23） | 以本地 report 的 SEO/Perf/Security/Agents 四項在正式站的實測值當驗收基準 |
+| Cloudflare JS Detections 關不掉 | dashboard 未提供開關，需走 API | Bot Fight 模式已關但 JSD 仍注入 `jsd/main.js`，造成 CSP 違規、Best Practices 92、HTML 無 ETag；修法見下方 R8 |
 | GA4（`/ql0n/`，176 KB） | 站主決定保留資料連續性（2026-07-23） | 首頁最大單一資源，Cloudflare 邊緣注入、repo 內零痕跡；詳見 R5 |
 | 未雜湊檔名的靜態圖片 | 已開 issue #35 | zone 的瀏覽器 TTL 已改為採用原點 TTL，現況與 `_headers` 一致；但該修正是 dashboard 設定、不在版控裡 |
 | 外部死連結 3 條 | 需站主決定替換或移除 | 見 SEO_TODO.md |
 | 內容過薄頁面 15 頁 | 屬內容工作非技術修復 | 見 SEO_TODO.md |
+
+## Cloudflare 機器人設定（2026-07-23 實測，不在版控裡）
+
+zone 上有三層互相影響的機器人設定，dashboard 的呈現方式會讓人誤判，實測結論記在這裡。
+
+**1. Bot Fight 模式已關閉。** 它擋掉的是資料中心 IP，實際受害者是 GitHub Actions runner
+——日檢的 squirrelscan 因此 `Audited 0 pages`，從加進 CI 到 2026-07-23 首次實跑之間
+從未產生過任何資料。關閉後同一條稽核量到 48 頁。
+
+**2. JavaScript Detections 仍開啟且關不掉。** Bot Fight 關閉後，`安全性 → 設定 → 機器人流量`
+只顯示「JS 偵測: 開啟」而沒有可操作的控制項，舊的 `/security/bots` 網址也會導回同一頁。
+它注入的 inline script 每次請求內容都不同（含 per-request token），無法用 CSP hash 放行。
+代價：CSP `script-src 'self'` 持續違規、Lighthouse Best Practices 92、**HTML 沒有 ETag**
+（它在邊緣改寫 HTML body，原本的 entity tag 不再對應）。已與 `astro-blog-6fk.pages.dev`
+對照確認 ETag 是被它拿掉的。唯一修法是 API：
+`PATCH /zones/{zone_id}/bot_management` 帶 `{"enable_js": false}`。
+
+**3.「設定 AI 機器人政策」的三個下拉在 2026-09-15 前形同虛設。** 這是最容易踩的一個。
+搜尋／代理／訓練看起來是三個獨立選項，實際上在該日之前它們只是去翻動舊版那顆
+粗粒度的「封鎖 AI 機器人範圍」開關。實測把「訓練」設為封鎖之後：
+
+| 爬蟲 | 類別 | 政策設定 | 實際 |
+|---|---|---|---|
+| GPTBot / ClaudeBot / CCBot / Bytespider | AI Crawler | 封鎖 | 403（符合預期） |
+| Claude-SearchBot / PerplexityBot / OAI-SearchBot | AI Search | **允許** | **403** |
+| ChatGPT-User / Claude-User / Perplexity-User | AI Assistant | **允許** | **403** |
+| Googlebot / bingbot / DuckDuckBot | 一般搜尋 | — | 200 |
+
+也就是「只擋訓練、放行 AI 搜尋」在該日之前做不到，只能全擋或全放。由於本站的
+AI/GEO 投資（llms.txt、AGENTS.md、Agentic Browsing 100）目標正是讓 AI 讀得到並引用
+內容，而 `Claude-SearchBot` 是站上 24 小時內流量第二高的爬蟲（82 次請求），該設定
+已還原為「允許」。要精準控制只能回 AI Crawl Control 逐一勾選，但那份清單本身會在
+2026-09-15 退場。
+
+**4. robots.txt 與 Cloudflare 是兩份獨立且不同步的清單。** 前者是請求、後者是強制，
+zone 設定不在版控裡。兩份目前刻意不同（交集只有 CCBot 與 Bytespider），細節與
+驗證方式見 `public/robots.txt` 的註解。曾因此讓 `archive.org_bot` 在 repo 說明宣稱
+未被封鎖的情況下實際被 403 擋掉，Wayback 完全抓不到本站；已修正並實測確認 200。
+
+**驗證方式**：這幾件事都只能靠「帶該 UA 打正式站看回應碼」確認，dashboard 的顯示
+與實際行為對不上是常態。另外設定變更有約 45 秒的傳播延遲，改完立刻量到的結果不可信。
 
 ## 非目標
 

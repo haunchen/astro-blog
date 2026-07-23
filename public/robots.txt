@@ -67,6 +67,17 @@ Allow: /
 # （archive.org_bot / ia_archiver），本檔案並未封鎖它們，網站存檔不受影響。
 # 稽核工具會把 CCBot 與 ia_archiver 一併歸類為 archive crawler 而發出警告，
 # 但那是工具的分類方式，不代表本站的 Wayback 收錄真的被擋掉。
+#
+# 但「本檔案沒擋」不等於「站上沒擋」——2026-07-23 實測發現 Cloudflare 的
+# AI Crawl Control 在 zone 層硬擋了 archive.org_bot（回 403），Wayback 其實
+# 完全抓不到本站，與上面這段說明矛盾了好一陣子。該設定已改回放行並實測確認
+# （archive.org_bot → 200）。
+#
+# 教訓：本檔案是「請求」，Cloudflare 那層是「強制」，兩者是各自獨立的清單且
+# 不會互相同步——zone 的設定也不在版控裡。改動任一邊時請一併檢查另一邊，
+# 驗證方式是直接帶該 UA 打正式站看回應碼，不要只讀這個檔案就下結論。
+# 兩份清單目前刻意不同：本檔案退出的是「訓練」（GPTBot/ClaudeBot 等），
+# Cloudflare 那邊擋的是另外 11 個冷門爬蟲，兩者的交集只有 CCBot 與 Bytespider。
 User-agent: GPTBot
 Disallow: /
 
