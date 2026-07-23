@@ -1,7 +1,7 @@
 ---
 title: "Flutter x Firebase 身份驗證超簡單！手把手教你串接 Google 登入功能"
 date: 2025-06-13
-description: "在學習 Flutter 串接 Firebase Authentication 服務，記錄一下操作過程。"
+description: "從建立 Firebase 專案、安裝 Firebase CLI 與執行 flutterfire configure，到開啟 Authentication、產生 Android SHA 指紋並實作 Google 登入的完整流程，附 main.dart 範例程式碼與原始碼連結。"
 category: "flutter"
 tags: ["Firebase", "Flutter", "google"]
 cover: "./images/cover.webp"

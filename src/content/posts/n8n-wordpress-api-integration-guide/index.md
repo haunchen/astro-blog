@@ -1,7 +1,7 @@
 ---
 title: "n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略"
 date: 2025-12-25
-description: "透過 n8n 串接 WordPress API，實現自動發文、圖片上傳、內容更新等自動化操作。這篇教學帶你從零開始設定憑證，並分享實用的自動化技巧。"
+description: "說明如何在 WordPress 後台申請應用程式密碼並在 n8n 完成憑證設定，比較 WordPress.com 與自架站台的差異，並整理 REST API 可做的文章發布、媒體庫上傳、分類與標籤管理等自動化操作，適合用於自動發文與內容搬運。"
 category: "n8n"
 tags: ["n8n", "WordPress", "憑證"]
 cover: "./images/cover.webp"

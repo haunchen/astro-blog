@@ -1,7 +1,7 @@
 ---
 title: "n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學"
 date: 2026-01-04
-description: "Telegram Bot 是 n8n 自動化通知的最佳選擇！這篇教學帶你從零開始建立 Bot，設定憑證，並實現即時通知和互動功能。"
+description: "從與 BotFather 對話建立 Telegram Bot、取得 Token 與 Chat ID，到在 n8n 完成憑證設定並實作即時通知與互動指令，並比較 Telegram、LINE、Discord 三種 Bot 的設定難度與費用限制。"
 category: "n8n"
 tags: ["n8n", "Telegram", "教學", "自動化"]
 cover: "./images/cover.webp"
@@ -116,7 +116,7 @@ my_n8n_bot
 建立成功後，BotFather 會提供一組 **Bot Token**，格式類似：
 
 ```text
-1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
+1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN
 ```
 
 **重要提醒：**
@@ -132,7 +132,7 @@ my_n8n_bot
 Done! Congratulations on your new bot. You will find it at t.me/your_bot_name.You can now add a description, about section and profile picture for your bot, see /help for a list of commands. By the way, when you've finished creating your cool bot, ping our Bot Support if you want a better username for it. Just make sure the bot is fully operational before you do this.
 
 Use this token to access the HTTP API:
-1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890
+1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN
 Keep your token **secure** and **store it safely**, it can be used by anyone to control your bot.
 
 For a description of the Bot API, see this page: https://core.telegram.org/bots/api
@@ -227,7 +227,7 @@ Id: -5228947698
 
 1.  **Access Token**
     -   貼上剛剛在 BotFather 取得的 Bot Token
-    -   格式：`1234567890:ABCdefGHIjklMNOpqrsTUVwxyz1234567890`
+    -   格式：`1234567890:AAAA-THIS-IS-A-PLACEHOLDER-NOT-A-REAL-TOKEN`
     -   確保沒有多餘的空格或換行
 2.  **Base URL**（通常不需要修改）
     -   預設值：`https://api.telegram.org`

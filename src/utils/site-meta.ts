@@ -10,11 +10,26 @@ export const SITE = {
   url: 'https://frankchen.tw',
   logo: 'https://frankchen.tw/logo.webp',
   email: 'frank@frankchen.tw',
+  // <meta name="theme-color">：對齊 global.css 的 --color-bg-primary，行動裝置網址列同色
+  themeColor: '#0f172a',
+  // twitter:site / twitter:creator
+  twitterHandle: '@frankchen_tw',
+  // Google Search Console 驗證碼。
+  // 本站主要靠 DNS TXT 驗證，這個 meta 是第二道錨點——DNS 若哪天搬移或改寫，
+  // 驗證不會跟著斷。值直接寫在這裡而非環境變數：它本來就會原樣出現在每一頁的
+  // HTML 裡，不是秘密，藏進環境變數只是多一道部署設定卻沒有換到任何保護。
+  // 仍保留環境變數覆寫，方便 fork 或預覽環境換成自己的驗證碼。
+  googleSiteVerification:
+    import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION ??
+    '6YGhgUvPOUW51Ju7lVpEX69-wEKZpewvpDWE_EX7kJ4',
   sameAs: [
     'https://www.threads.com/@frankchen.tw',
     'https://www.instagram.com/frankchen.tw/',
     'https://github.com/haunchen',
     'https://www.linkedin.com/in/frankchen0130/',
+    // 下面這筆不進 SOCIAL 圖示列（那裡是固定的四個索引），只用於
+    // Organization.sameAs——讓搜尋引擎把 X 帳號歸到同一個實體。
+    'https://x.com/frankchen_tw',
   ],
 } as const;
 
@@ -45,9 +60,16 @@ export function categoryLabel(slug: string): string {
   return CATEGORY_DISPLAY[slug] ?? slug;
 }
 
-// 頁面 <title> 單一來源：有頁名則「頁名 - 品牌名」，首頁等無頁名則純品牌名
+/** Google SERP 大約在 60 個字元處截斷標題，超出的部分等於沒有版位。 */
+const TITLE_MAX = 60;
+
+// 頁面 <title> 單一來源：有頁名則「頁名 - 品牌名」，首頁等無頁名則純品牌名。
+// 若加上品牌後綴會超過 60 字元，就不加——被截掉的本來就是尾端的品牌名，
+// 留著只是把 SERP 版位讓給一段顯示不完的字，不如全部留給頁名本身。
 export function pageTitle(title?: string): string {
-  return title ? `${title} - ${SITE.name}` : SITE.name;
+  if (!title) return SITE.name;
+  const withBrand = `${title} - ${SITE.name}`;
+  return withBrand.length <= TITLE_MAX ? withBrand : title;
 }
 
 export const ORGANIZATION_JSONLD = {
@@ -56,9 +78,29 @@ export const ORGANIZATION_JSONLD = {
   '@id': `${SITE.url}/#org`,
   name: SITE.name,
   url: SITE.url,
+  // 這裡刻意用字串而非 ImageObject：schema.org 兩者都合法，但獨立 Organization
+  // 節點上的 logo，部分驗證器（squirrelscan）只接受字串 URL。
+  // Article 內的 publisher 需求相反（見 PUBLISHER_JSONLD），故兩處分開定義。
   logo: SITE.logo,
   email: SITE.email,
   sameAs: SITE.sameAs,
+};
+
+/**
+ * Article/BlogPosting 的 publisher 專用：Google 要求 publisher.name 與 publisher.logo
+ * 必須在該筆 Article 內可解析，用 { '@id': ... } 外部參照會被判為缺欄位，故此處內聯。
+ */
+export const PUBLISHER_JSONLD = {
+  '@type': 'Organization',
+  '@id': `${SITE.url}/#org`,
+  name: SITE.name,
+  url: SITE.url,
+  logo: {
+    '@type': 'ImageObject',
+    url: SITE.logo,
+    width: 512,
+    height: 512,
+  },
 };
 
 export const WEBSITE_JSONLD = {
@@ -66,10 +108,40 @@ export const WEBSITE_JSONLD = {
   '@type': 'WebSite',
   '@id': `${SITE.url}/#website`,
   name: SITE.name,
+  alternateName: SITE.author,
+  description: SITE.description,
   url: SITE.url,
   inLanguage: 'zh-TW',
   publisher: { '@id': `${SITE.url}/#org` },
 };
+
+/** 列表頁（分類／標籤／文章總覽）共用的 CollectionPage JSON-LD */
+export function collectionPageJsonLd(opts: {
+  name: string;
+  description: string;
+  path: string;
+  items: { title: string; path: string }[];
+}) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: opts.name,
+    description: opts.description,
+    url: new URL(opts.path, SITE.url).href,
+    inLanguage: 'zh-TW',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: opts.items.length,
+      itemListElement: opts.items.map((item, i) => ({
+        '@type': 'ListItem',
+        position: i + 1,
+        name: item.title,
+        url: new URL(item.path, SITE.url).href,
+      })),
+    },
+  };
+}
 
 // header/footer 導覽與連結單一來源 ---------------------------------
 

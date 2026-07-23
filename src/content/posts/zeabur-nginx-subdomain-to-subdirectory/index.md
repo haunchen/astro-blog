@@ -1,7 +1,7 @@
 ---
 title: "Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰"
 date: 2025-10-20
-description: "本文分享如何透過 Zeabur 平台部署 Nginx 反向代理，將分散的子網域流量統一導向主網域底下的子目錄，成功集中 SEO 權重，並簡化 SSL 憑證等管理，實現網站架構優化。"
+description: "把分散在多個子網域的服務，用 Zeabur 部署的 Nginx 反向代理整合到主網域底下的子目錄。比較子網域與子目錄在 SEO 權重、SSL 與 DNS 管理上的差異，並說明 Zeabur Internal 與 External URL 的運作方式。"
 category: "devops"
 tags: ["Nginx", "SEO", "WordPress"]
 cover: "./images/cover.webp"

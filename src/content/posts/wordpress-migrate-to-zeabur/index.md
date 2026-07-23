@@ -1,7 +1,7 @@
 ---
 title: "網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學（新手友善）"
 date: 2025-07-15
-description: "這篇內容介紹了如何將自架的 WordPress 轉移到 Zeabur 平台，過程簡單，即使新手也能完成。Zeabur 是一個平台即服務，提供快速部署並支持自訂子網域和 SSL。轉移前需使用外掛備份，然後依步驟初始化並匯入資料。"
+description: "把自架 WordPress 搬到 PaaS 平台 Zeabur 的完整步驟：用 All-in-One WP Migration 外掛備份成 .wpress 檔、開通開發者方案、選用 WordPress 模板部署，再匯入備份資料並綁定網域，新手也能照著完成。"
 category: "devops"
 tags: ["WordPress", "Zeabur"]
 cover: "./images/cover.webp"

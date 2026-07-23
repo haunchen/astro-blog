@@ -1,0 +1,74 @@
+---
+interface Props {
+  /** 上層階層（不含當前頁），需與 BaseLayout 的 breadcrumbs prop 相同 */
+  items: { name: string; href: string }[];
+  /** 當前頁名稱；須與 pageTitle() 傳入的頁名一致，否則可見內容會與 BreadcrumbList 不符 */
+  current: string;
+}
+
+const { items, current } = Astro.props;
+---
+
+<nav class="breadcrumbs" aria-label="麵包屑">
+  <ol>
+    {items.map((item) => (
+      <li>
+        <a href={item.href}>{item.name}</a>
+        {/* 分隔符純裝飾，讀給螢幕閱讀器只會變成雜訊 */}
+        <span class="breadcrumbs-sep" aria-hidden="true">/</span>
+      </li>
+    ))}
+    <li class="breadcrumbs-current" aria-current="page">{current}</li>
+  </ol>
+</nav>
+
+<style>
+  .breadcrumbs {
+    margin-bottom: 20px;
+  }
+
+  .breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 20px;
+    color: var(--color-text-muted);
+  }
+
+  .breadcrumbs li {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .breadcrumbs a {
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 300ms steps(3), border-color 300ms steps(3);
+  }
+
+  .breadcrumbs a:hover {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-brand-orange);
+  }
+
+  .breadcrumbs-sep {
+    color: var(--color-border-strong);
+  }
+
+  /* 當前頁名含描述性後綴，窄螢幕以單行省略避免撐開版面 */
+  .breadcrumbs-current {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+</style>

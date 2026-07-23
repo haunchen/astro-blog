@@ -1,7 +1,7 @@
 ---
 title: "Flutter App 在 Android 系統啟動卡死問題：完整除錯與解決指南"
 date: 2025-08-02
-description: "本文探討了Flutter應用在Google Play上啟動卡死的問題，經測試發現是flutter_secure_storage套件導致的。通過重設錯誤選項來解決此問題，並強調了錯誤處理及多方測試的重要性，以避免類似過程中的潛在問題。"
+description: "Flutter App 在 Debug 與 Release 都正常，上架 Google Play 後卻卡在啟動畫面。記錄從 ProGuard、廣告初始化到 Android 備份機制的除錯歷程，最後以 flutter_secure_storage 的 resetOnError 解決。"
 category: "flutter"
 tags: ["Flutter", "GooglePlay", "Secure"]
 cover: "./images/cover.webp"

@@ -1,12 +1,19 @@
 ---
-title: "Google 推出全新開源工具 Gemini CLI 提供大量免費額度"
+title: "Gemini CLI 安裝與常用指令教學（免費額度政策已異動）"
 date: 2025-06-26
-description: "Google 推出了免費的 Gemini CLI 工具，提供安裝教學及多種指令選項。用戶需安裝 Node.js 18 以上版本，並可選用多種登入方法。工具包括對話管理、API 設定、主題變更等功能，使用額度為每分鐘 60 次，每天 1000 次。"
+updated: 2026-07-23
+description: "Google 開源的 Gemini CLI 安裝教學與常用指令整理：Node.js 環境需求、Google 帳號與 API Key 等三種登入方式，以及 /chat、/mcp、/tools 等指令用法。注意免費額度政策已於發文後調整，文中數字僅代表 2025-06 當時狀況。"
 category: "tools"
 tags: ["AI", "Gemini"]
 cover: "./images/cover.webp"
 draft: false
 ---
+
+> **2026-07-23 更新**：本文發表於 2025-06，當時 Gemini CLI 提供相當寬鬆的免費額度。
+> 之後 Google 調整了額度政策，一般訂閱方案已不再適用文中所述的免費用量，
+> 下方「使用額度」一節的數字僅代表發文當時的狀況。實際可用額度請以
+> [官方 Github](https://github.com/google-gemini/gemini-cli) 的最新說明為準。
+> 本文的安裝步驟與指令用法仍然適用。
 
 Google 推出了免費的 Gemini CLI 工具，看來 Claude Code 遇到對手了。安裝教學，指令列表。
 
@@ -93,7 +100,7 @@ gemini
 
 列出已設定的 MCP 伺服器和工具
 
-官方提供的設定方法：[Github](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/configuration.md)
+官方提供的設定方法：[Github](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
 
 ### /tools
 
@@ -141,11 +148,14 @@ gemini
 
 ## Gemini CLI 使用額度
 
+> 這一節的數字是 2025-06 發文當時的狀況，Google 之後已調整額度政策，
+> 一般訂閱方案不再適用。保留原文供對照，實際額度請查閱官方最新說明。
+
 根據官方文件，一分鐘可調用 60 次模型，一天可調用 1000 次模型
 
-這對於一班使用者來說額度絕對夠用，而且還是使用最新的 `gemini-2.5-pro` 模型
+這對於一般使用者來說額度絕對夠用，而且還是使用最新的 `gemini-2.5-pro` 模型
 
-免費使用不知道會持續多久，大家快點把握機會試試看吧～～
+當時就在想免費使用不知道會持續多久——結果一年多後政策果然收緊了。
 
 ---
 

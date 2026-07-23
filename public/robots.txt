@@ -48,7 +48,22 @@ Allow: /
 User-agent: Bravebot
 Allow: /
 
+# Apple 本體爬蟲（Siri、Spotlight Suggestions、Safari 等即時查詢／索引用途）。
+# 與下方 Applebot-Extended（Apple Intelligence 訓練專用退出）是兩個獨立 token，
+# 退出訓練不代表要連一般搜尋索引也一起擋掉。
+User-agent: Applebot
+Allow: /
+
+# Meta 的即時抓取 agent：使用者在 Meta 產品分享連結／向 Meta AI 詢問特定網址時
+# 觸發的單次抓取，不用於訓練語料，與下方 meta-externalagent（訓練用、禁止）分開。
+User-agent: meta-externalfetcher
+Allow: /
+
 # — AI 訓練（禁止） —
+# 以下皆為「訓練資料蒐集」型爬蟲，站主刻意選擇退出，讓內容不被拿去訓練模型。
+# 已知且接受的代價：Common Crawl（CCBot）語料與依賴它的 Wayback Machine 收錄
+# 也會連帶受影響（不會被收進 Common Crawl 資料集、間接影響 Wayback 的覆蓋率），
+# 這是退出訓練必然的取捨，不是遺漏。
 User-agent: GPTBot
 Disallow: /
 
@@ -80,4 +95,8 @@ User-agent: *
 Allow: /
 
 Sitemap: https://frankchen.tw/sitemap.xml
-Llms-txt: https://frankchen.tw/llms.txt
+# llms.txt 位置。刻意寫成註解而非 directive：robots.txt 沒有 Llms-txt 這個
+# 標準欄位，寫成 directive 會被 Lighthouse 等驗證器判為 invalid robots.txt
+# （SEO 分數直接扣分），且爬蟲本來就只認 User-agent/Allow/Disallow/Sitemap。
+# 真正讓 AI 爬蟲找到 llms.txt 的途徑是站台根目錄的慣例路徑本身。
+# https://frankchen.tw/llms.txt

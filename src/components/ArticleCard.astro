@@ -22,7 +22,21 @@ const formattedDate = date.toISOString().slice(0, 10);
 <a href={`/${slug}/`} class:list={[featured ? 'card--featured' : 'card']}>
   <div class="card-image">
     {cover ? (
-      <Image src={cover} alt={title} class="card-image-img" />
+      /*
+        alt=""：封面是裝飾圖，同一張卡片裡的 h3 已經是文章標題，
+        重複朗讀一次只是噪音。
+        featured 卡是首頁首屏最大的圖，多半就是 LCP 元素；
+        本站不便在 layout 注入 preload，改用 eager + fetchpriority="high"
+        讓瀏覽器提早取用（Astro 的 Image 會輸出 width/height，CLS 由它保證）。
+      */
+      <Image
+        src={cover}
+        alt=""
+        class="card-image-img"
+        loading={featured ? 'eager' : 'lazy'}
+        decoding={featured ? 'sync' : 'async'}
+        fetchpriority={featured ? 'high' : 'auto'}
+      />
     ) : (
       <span>▨ IMAGE</span>
     )}

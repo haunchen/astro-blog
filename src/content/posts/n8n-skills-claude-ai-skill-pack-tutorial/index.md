@@ -1,7 +1,7 @@
 ---
 title: "從 0 到 1 打造 n8n AI 技能包：讓 Claude 掌握 500+ 個自動化節點的開源專案實戰"
 date: 2026-01-21
-description: "手把手教你打造 n8n AI 技能包，讓 Claude 直接掌握 500+ 個自動化節點的知識。完整分享開源專案從構思到實作的全過程，包含四層式 Pipeline 架構與分層合併策略。"
+description: "記錄 n8n-skills 開源專案的誕生過程：為了解決 Claude 亂掰不存在節點的幻覺問題，自動從 NPM 套件與官方文件收集 500 多個 n8n 節點資訊，產生可直接載入的 Skill Pack，並附上安裝步驟與使用前後的實際對比。"
 category: "tools"
 tags: ["n8n", "n8n-skills", "skill"]
 cover: "./images/cover.webp"

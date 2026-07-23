@@ -15,9 +15,13 @@ const { name, desc, image, links } = Astro.props;
 ---
 
 <div class="res-card">
+  <!--
+    縮圖一律 alt=""：這些是第三方影片／網站／工作流截圖，72px 下圖內文字也讀不出來，
+    資訊全數已由旁邊的 h3 名稱與描述文字承載，補 alt 只會讓螢幕閱讀器重複朗讀。
+  -->
   <img
     src={image}
-    alt={name}
+    alt=""
     class="res-thumb"
     width="72"
     height="72"
@@ -28,9 +32,16 @@ const { name, desc, image, links } = Astro.props;
     <h3 class="res-name">{name}</h3>
     <p class="res-desc">{desc}</p>
     <div class="res-links">
+      {/*
+        「Threads →」這種標籤在全頁有 5 個不同去向，脫離卡片脈絡後無從分辨。
+        補上視覺隱藏的資源名稱，讓可及名稱成為「Darrell 的 Threads」；
+        名稱不做成可見文字，是因為同卡 h3 已寫著同一個名字，
+        三個連結各重複一次視覺上是噪音，而隱藏文字同樣存在於 HTML，AI 爬蟲讀得到。
+      */}
       {links.map((l) => (
         <a class="res-link" href={l.href} target="_blank" rel="noopener noreferrer">
-          {l.label} &rarr;
+          <span class="visually-hidden">{name} 的 </span>{l.label}
+          <span aria-hidden="true"> &rarr;</span>
         </a>
       ))}
     </div>

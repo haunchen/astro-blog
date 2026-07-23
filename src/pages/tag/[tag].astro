@@ -1,8 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
-import { pageTitle } from '../../utils/site-meta';
+import { categoryLabel, collectionPageJsonLd, pageTitle } from '../../utils/site-meta';
 
 export async function getStaticPaths() {
   const posts = await getCollection('posts', ({ data }) => !data.draft);
@@ -20,39 +21,64 @@ interface Props {
 }
 
 const { tag, tagPosts } = Astro.props;
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = `標籤：${tag}｜相關技術文章與實作筆記整理`;
+const crumbs = [
+  { name: '首頁', href: '/' },
+  { name: '標籤', href: '/tag/' },
+];
+// ItemList 順序需與畫面一致：ArticleTimeline 以日期新到舊排列
+const sorted = [...tagPosts].sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const listed = sorted.map((p) => ({ title: p.data.title, path: `/${p.id}/` }));
+
+// 55 個標籤頁若共用同一句樣板，搜尋引擎會視為近似重複的描述而失去作用。
+// 改用該標籤實際的資料組出描述：篇數、涵蓋分類、最新一到兩篇的標題——
+// 每個標籤的組合都不同，且內容是真的，不是為了差異化而硬湊。
+const tagCategories = [...new Set(sorted.map((p) => p.data.category))].map(categoryLabel);
+const clamp = (s: string) => (s.length <= 160 ? s : `${s.slice(0, 159)}…`);
+
+let description = `站上標記「${tag}」的技術文章共 ${tagPosts.length} 篇，涵蓋${tagCategories.join('、')}，依發表日期由新到舊排列。`;
+// 補到 120 字元以上：逐篇加入最新文章標題，避免文章數少的冷門標籤描述過短。
+for (const [i, post] of sorted.entries()) {
+  if (description.length >= 120) break;
+  description += i === 0 ? `最新一篇是〈${post.data.title}〉，` : `另有〈${post.data.title}〉，`;
+}
+description = description.replace(/，$/, '。');
+// 只有一兩篇文章的冷門標籤，光靠篇數與標題湊不到 120 字元，逐句補到達標為止。
+// 分成多句而非一長句，是為了讓補到不同長度的頁面結尾也不同，不會整批撞在同一句。
+const padding = [
+  '每篇都是實際做過一輪後留下的設定步驟與踩坑紀錄。',
+  '想一次看完這個主題在站上累積的內容，從這裡進入最快。',
+  '文章會隨著新的實作經驗持續補充。',
+];
+for (const sentence of padding) {
+  if (description.length >= 120) break;
+  description += sentence;
+}
+description = clamp(description);
 ---
 
 <BaseLayout
-  title={pageTitle(`標籤：${tag}`)}
-  description={`所有標記「${tag}」的技術文章。`}
+  title={pageTitle(pageName)}
+  description={description}
+  breadcrumbs={crumbs}
+  jsonLd={[
+    collectionPageJsonLd({
+      name: pageName,
+      description,
+      path: `/tag/${encodeURIComponent(tag)}/`,
+      items: listed,
+    }),
+  ]}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">標籤：{tag}</h1>
       <p class="list-sub">共 {tagPosts.length} 篇</p>
-      <a class="list-back" href="/tag/">← 所有標籤</a>
     </header>
 
     <ArticleTimeline posts={tagPosts} />
   </main>
 </BaseLayout>
-
-<style>
-  .list-back {
-    display: inline-block;
-    margin-top: 12px;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
-    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
-    transition: border-color 300ms steps(3), background-color 300ms steps(3);
-  }
-
-  .list-back:hover {
-    border-bottom-color: var(--color-brand-orange);
-    background-color: rgba(251, 146, 60, 0.1);
-    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
-  }
-</style>

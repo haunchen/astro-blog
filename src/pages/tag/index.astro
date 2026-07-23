@@ -1,7 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getCollection } from 'astro:content';
-import { pageTitle } from '../../utils/site-meta';
+import { collectionPageJsonLd, pageTitle } from '../../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 const counts = new Map<string, number>();
@@ -23,13 +24,24 @@ const tags = [...counts.entries()]
     tier: tier(count),
     href: `/tag/${encodeURIComponent(name)}/`,
   }));
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '所有文章標籤｜以標籤雲瀏覽全站主題關鍵字';
+const crumbs = [{ name: '首頁', href: '/' }];
+const description = '以標籤雲瀏覽站上所有文章關鍵字，字級大小代表該標籤累積的文章數量，一眼就能看出本站主要著墨的主題。想找特定工具、框架或使用情境（例如模板、Docker、WordPress）的相關文章時，從標籤切入會比逐頁翻閱文章列表更快，也能順手發現原本沒注意到的主題。';
+
+// 本頁列出的是標籤頁而非文章，ItemList 順序與標籤雲一致（篇數多到少）
+const listed = tags.map((t) => ({ title: t.name, path: t.href }));
 ---
 
 <BaseLayout
-  title={pageTitle('標籤')}
-  description="以標籤雲瀏覽所有技術文章標籤。"
+  title={pageTitle(pageName)}
+  description={description}
+  breadcrumbs={crumbs}
+  jsonLd={[collectionPageJsonLd({ name: pageName, description, path: '/tag/', items: listed })]}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">標籤</h1>
       <p class="list-sub">共 {tags.length} 個標籤</p>

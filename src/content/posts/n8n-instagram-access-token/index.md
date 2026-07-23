@@ -86,7 +86,7 @@ draft: false
 
 ### 第四步：Instagram 帳號端確認：接受測試邀請
 
--   前往 [instagram.com/accounts/manage\_access](http://instagram.com/accounts/manage_access) 接受來自 Meta App 的邀請
+-   前往 [instagram.com/accounts/manage\_access](https://www.instagram.com/accounts/manage_access/) 接受來自 Meta App 的邀請
 -   進入頁面後，首先最左邊的個人檔案 Icon 先確認是否是你邀請的測試人員：若不是，請先到個人檔案頁面登入你上一步驟邀請的測試人員帳號，再重新點擊上一步的連結進入
 -   確認沒問題後，再確認右手邊是否是在「應用程式和網路」的畫面
     -   如果是，那請點擊「測試員邀請」，就會看到接受的按鈕，點擊下去即可完成邀請。
@@ -263,7 +263,7 @@ Allow: /wp-content/uploads/
 **參考資料：**
 
 -   [How to Post to Instagram with n8n (Updated 2025)](https://www.youtube.com/watch?v=AGSyWdjN5A4)
--   [如何取得 Instagram API Token 並自動更新：完整教學指南](https://charlsondou.com/get-instagram-api-token-auto-update/#Token_yan_zhang_yu_zi_dong_shua_xin)
+-   [Meta 官方文件：Instagram 商家登入 — 取得與重新整理長期存取權杖](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login)
 
 延伸閱讀：[不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略](/n8n-notion-wordpress-publish-automation/)
 

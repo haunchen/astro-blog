@@ -1,7 +1,7 @@
 ---
 title: "n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例"
 date: 2025-12-21
-description: "透過 n8n 整合 Notion API，實現內容管理、任務追蹤、資料備份等自動化。這篇教學帶你完成憑證設定，並分享實用的自動化應用。"
+description: "從建立 Notion Integration、取得 Internal Integration Secret 到把頁面授權給 Integration，完整說明 n8n 串接 Notion API 的設定步驟，以及 Database 與 Block 可執行的操作與自動化應用情境。"
 category: "n8n"
 tags: ["API", "Automation", "n8n", "Notion"]
 cover: "./images/cover.webp"

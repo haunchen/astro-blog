@@ -22,3 +22,11 @@ pnpm-debug.log*
 
 # build-time subset fonts (regenerated each build)
 src/assets/og-fonts/
+
+# build artifacts（由 scripts/build-font-css.mjs 產生）
+public/fonts/
+src/styles/fonts.css
+src/styles/font-preloads.json
+
+# wrangler pages dev 的本地狀態目錄
+.wrangler/

@@ -1,7 +1,7 @@
 ---
 title: "Threads 資料匯出教學 - 完整圖文步驟指南"
 date: 2025-12-31
-description: "完整圖文教學，教你如何從 Instagram 帳號管理中心匯出 Threads 資料，用於 Threads Wrapped 年度回顧分析。"
+description: "從 Instagram 帳號管理中心匯出 Threads 資料的完整圖文步驟：選擇自訂資料與日期範圍、格式選 JSON、設定影像畫質後開始匯出，再把下載的 ZIP 壓縮檔上傳到 Threads Wrapped 產生年度回顧統計圖，全程約 5 分鐘。"
 category: "tools"
 tags: ["threads", "教學", "資料匯出"]
 cover: "./images/cover.webp"

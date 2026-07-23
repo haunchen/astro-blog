@@ -1,7 +1,7 @@
 ---
 title: "【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統"
 date: 2025-12-04
-description: "透過 n8n 建立 Line Bot 自動化工作流，只需傳送 Canva 連結即可一鍵匯出 PNG 並上傳到 WordPress   媒體庫。完整教學包含 Data table 設定、憑證準備與工作流程說明，讓你告別繁瑣的轉檔上傳步驟。"
+description: "分享一套 n8n 模板：在 LINE 傳送 Canva 設計連結，就自動匯出圖片、備份到 Google Drive 並上傳 WordPress 媒體庫。文章內容包含模板匯入方式、所需的憑證清單，以及 Data Table 欄位的建立步驟說明。"
 category: "n8n"
 tags: ["Canva", "LineBot", "n8n", "WordPress", "模板"]
 cover: "./images/cover.webp"

@@ -6,6 +6,7 @@ import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { globSync } from 'glob';
 import matter from 'gray-matter';
+import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
 
 // sitemap serialize callback 只拿得到 URL，先從文章 frontmatter 建 pathname → lastmod 對照。
 // astro.config 內無法使用 astro:content，直接以 gray-matter 讀 frontmatter；
@@ -68,10 +69,35 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      // 禁止 Astro 把小型 hoisted script 內聯進 HTML。全站因此 0 個 inline script，
+      // CSP 的 script-src 才能收緊成 'self'（見 public/_headers）。
+      // 註：style-src 仍需 'unsafe-inline'——View Transitions 會逐頁產生內容不同的
+      // view-transition-name 樣式且無法外部化，所以這裡不動 build.inlineStylesheets，
+      // 讓小型樣式表維持內聯以減少 render-blocking 請求數。
+      assetsInlineLimit: 0,
+    },
   },
   markdown: {
     shikiConfig: {
       theme: 'tokyo-night',
+      transformers: [
+        {
+          // tokyo-night 的註解色 #51597D 在其自身背景 #1a1b26 上對比只有 2.54:1，
+          // 遠低於 WCAG AA 小字所需的 4.5:1（Lighthouse color-contrast 在每篇有
+          // 程式碼的文章都會失敗）。程式碼註解往往是理解範例的關鍵，不該是最難讀的。
+          // Shiki 把顏色寫成 inline style，CSS 覆蓋要靠 !important，改用 transformer
+          // 在產生 HTML 時直接換掉，語意乾淨且不影響其他 token 的配色。
+          // #7A82AB 對 #1a1b26 為 4.56:1，色相與原色一致，只是提高明度。
+          span(node) {
+            const style = node.properties?.style;
+            if (typeof style === 'string' && style.toLowerCase().includes('#51597d')) {
+              node.properties.style = style.replace(/#51597[dD]/g, '#7A82AB');
+            }
+          },
+        },
+      ],
     },
+    rehypePlugins: [rehypeTableCaption],
   },
 });

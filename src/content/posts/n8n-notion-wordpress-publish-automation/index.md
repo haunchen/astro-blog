@@ -1,7 +1,7 @@
 ---
 title: "不用再當搬運工！ n8n 助你實現 Notion 無縫轉移 WordPress 的完美攻略 - 基本版"
 date: 2025-07-05
-description: "這篇文章探討如何利用 n8n 自動化工作流程，將 Notion 的內容轉換並上傳到 WordPress。介紹了流程的設計思路，包括對文章區塊的智慧處理、自動化圖片上傳以及錯誤處理機制，有效減少手動搬運的繁瑣，提升內容轉換效率。"
+description: "拆解一套 n8n 工作流程，說明如何把 Notion 頁面的各種 Block 逐一轉成 WordPress 的 HTML 標籤、自動下載圖片再上傳媒體庫並替換連結，最後以草稿發布，遇到不支援的區塊類型則自動停止並透過 Telegram 通知。"
 category: "n8n"
 tags: ["Automation", "n8n", "Notion", "WordPress", "工作流程", "模板"]
 cover: "./images/cover.webp"
@@ -112,7 +112,7 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 -   這裡要先上傳到 Wordpress 的原因是因為上傳完成後，WordPress 會回傳圖片的 ID 及連結，這在後面轉換格式時需要使用。
 
--   Upload Image to Wordpress 節點裡的 URL 請輸入你自己的 WordPress 網址，並在後面加上 /wp-json/wp/v2/media (如：https://your.wordpress.url/wp-json/wp/v2/media)，WordPress API 設定方法請見 。
+-   Upload Image to Wordpress 節點裡的 URL 請輸入你自己的 WordPress 網址，並在後面加上 `/wp-json/wp/v2/media`（如：`https://your.wordpress.url/wp-json/wp/v2/media`）。WordPress API 設定方法請見[「n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略」](/n8n-wordpress-api-integration-guide/)。
 
 ![Upload Image to WordPress 節點設定，填入 wp-json/wp/v2/media API 端點](./images/image-handling-wordpress-node.webp)
 
