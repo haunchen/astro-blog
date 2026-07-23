@@ -71,11 +71,28 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: {
       // 禁止 Astro 把小型 hoisted script 內聯進 HTML。全站因此 0 個 inline script，
-      // CSP 的 script-src 才能收緊成 'self'（見 public/_headers）。
-      // 註：style-src 仍需 'unsafe-inline'——View Transitions 會逐頁產生內容不同的
-      // view-transition-name 樣式且無法外部化，所以這裡不動 build.inlineStylesheets，
-      // 讓小型樣式表維持內聯以減少 render-blocking 請求數。
+      // CSP 的 script-src 才能收緊成 'self'（見 public/_headers）。實測把這個值改成
+      // 4096，Nav.astro 的 script 就會被內聯回 HTML，CSP 會當場擋掉導覽選單。
+      //
+      // 副作用：Astro 的 build.inlineStylesheets 預設是 'auto'，判斷門檻用的正是這個
+      // 值，所以設 0 等於連小型樣式表的內聯也一併關掉——首頁因此有 5 支外部 CSS 全部
+      // 阻斷算繪。兩者共用同一顆旋鈕，不能只開其中一邊，故改用下面的 cssCodeSplit。
       assetsInlineLimit: 0,
+
+      // 把全站 CSS 併成單一檔案，取代原本按頁面切出的 14 個 chunk。
+      //
+      // 動機：PSI 行動裝置版量到首頁有 5 支阻斷算繪的樣式表（估計延後算繪 790 毫秒），
+      // 其中 4 支加起來只有 7.9 KB 卻各佔一次 round trip——在慢速 4G 上請求數比位元組
+      // 數貴得多。合併後首頁 CSS 從「5 個請求 / 13,525 B (gzip)」變成「1 個請求 /
+      // 15,293 B」，多 1.7 KB 換掉 4 次往返。
+      //
+      // 第二個好處是跨頁：合併前每種版面各自拉不同的 chunk 組合，換頁就要下載新檔；
+      // 合併後全站共用同一支且帶內容雜湊與長 TTL，第二頁起 CSS 請求數為 0。
+      //
+      // 代價是首次載入會拿到用不到的樣式（例如首頁也含文章頁的 prose 樣式）。以本站
+      // 全站 CSS 僅 15 KB (gzip) 的量體，這比多 4 次往返划算；若哪天 CSS 膨脹到數十 KB，
+      // 要重新評估這個取捨。
+      cssCodeSplit: false,
     },
   },
   markdown: {
