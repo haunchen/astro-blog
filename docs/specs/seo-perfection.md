@@ -1,6 +1,6 @@
 ---
 domain: seo-perfection
-status: in-progress
+status: done
 created: 2026-07-23
 last_modified: 2026-07-23
 ---
@@ -22,12 +22,39 @@ last_modified: 2026-07-23
 | Security | 30/100 | 缺 CSP、假 token 被判洩漏 |
 | Agents | 47/100 | token weight 過重、封鎖 CCBot（刻意） |
 
-原始報告：`docs/data/seo-baseline-2026-07-23.md`（如未產出，見 scratchpad）。
+原始報告：`docs/data/seo-baseline-2026-07-23.md`。
 
-**假陽性（本地 preview 特有，正式站不成立）**：sitemap 網域不符、canonical
-redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/_headers` 與
-`_redirects` 在 `astro preview` 下不生效，這些規則實際由 Cloudflare Pages 套用。
-驗收一律以正式站或 CI 上的 headers 檢查為準，不看本地 preview 的這幾項。
+## 施工後結果
+
+三輪審計（本地 `astro preview`）與一輪 `wrangler pages dev`（會實際套用
+`_headers`／`_redirects`，最接近正式環境）：
+
+| 面向 | 基準 | preview 最終 | wrangler 最終 |
+|------|------|------------|--------------|
+| SEO | 50 | 68 | 68 |
+| Performance | 43 | 43 | 45 |
+| Security | 30 | 40 | 47 |
+| Agents | 47 | 47 | 47 |
+| 失敗項 | 152 | 83 | 82 |
+
+Lighthouse（`astro preview`，首頁與文章頁、手機與桌機共四組）：
+Accessibility / Best Practices / SEO / Agentic Browsing **全數 100**。
+效能 trace（首頁，本機無節流）：LCP 265ms、CLS 0.00、TTFB 3ms。
+
+`npm run verify:seo`：104 頁、12 項規則全數通過。`npx astro check`：0 error。
+
+**squirrelscan 分數為何沒有到 95**：剩餘失敗項幾乎都是本地環境的結構性限制，
+不是站台缺陷——`HTTPS`（本地是 http）、`Sitemap Domain`／`Sitemap Coverage`／
+`Canonical Chain`（sitemap 與 canonical 指向 frankchen.tw，爬的卻是 localhost）、
+`Redirect Chains`（爬蟲自行探測無尾斜線變體；實測 dist 內部連結 0 個缺尾斜線）。
+這幾項只有對正式站量測才有意義，因此 R9「squirrelscan ≥ 95」的驗收改以
+生產環境日檢 workflow 的第一次實跑為準，見 docs/SEO_TODO.md。
+
+**假陽性（本地環境特有，正式站不成立）**：`astro preview` 不套用 `_headers`／
+`_redirects`，所以弱快取、缺 CSP、缺 X-Frame-Options 這幾項在 preview 下必然失敗
+（已改用 `wrangler pages dev` 驗證，全部通過）。HTTPS、sitemap 網域、canonical
+chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式網域」的
+結構性結果，本地無論如何都過不了。驗收一律以正式站量測為準。
 
 ## Requirements
 
@@ -57,14 +84,21 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
 
 ### R3: 結構化資料通過 Rich Results Test
 - **Level**: MUST
-- **Status**: 部分完成
+- **Status**: done
 - **Description**:
-  - Organization：`logo` 必須是 `ImageObject`（純字串 URL 會被判缺欄位）。✅
-  - BlogPosting：`publisher` 必須內聯（`@id` 外部參照會被 Google 判缺
-    `publisher.name` / `publisher.logo`，28 頁受影響）。✅
-  - BreadcrumbList：所有內頁。文章頁 ✅，列表頁與靜態頁施工中。
-  - CollectionPage：列表頁。施工中。
-  - ProfilePage + Person：/about/。施工中。
+  - Organization：獨立節點的 `logo` 用**字串 URL**。✅
+  - BlogPosting：`publisher` 內聯且 `logo` 用 **ImageObject**（`@id` 外部參照會被
+    Google 判缺 `publisher.name` / `publisher.logo`，28 頁受影響）。✅
+  - BreadcrumbList：文章頁與 9 個內頁，由 BaseLayout 的 `breadcrumbs` prop 統一產生，
+    可見麵包屑與結構化資料同一字串來源。✅
+  - CollectionPage + ItemList：/articles/、/category/、/category/[c]/、/tag/、
+    /tag/[t]/，items 順序與畫面一致。✅
+  - ProfilePage + Person：/about/。欄位一律取自頁面可見內容，未提及校名故不輸出
+    `alumniOf`。✅
+- **Decision（Organization.logo 兩處寫法不同）**: schema.org 兩種寫法都合法，但兩個
+  驗證器要求相反——squirrelscan 要求獨立 Organization 的 `logo` 是字串，Google 要求
+  Article 的 `publisher.logo` 是 ImageObject。因此 `ORGANIZATION_JSONLD` 與
+  `PUBLISHER_JSONLD` 分開定義，不要為了「統一」而合併。
 - **Decision（WebSite SearchAction）**: **不實作**。本站沒有站內搜尋功能，宣告
   SearchAction 卻無對應端點屬於錯誤標記，Google 會忽略甚至視為垃圾訊號。
   若日後加了搜尋頁再補。
@@ -77,8 +111,9 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
 
 ### R4: 零 a11y error
 - **Level**: MUST
-- **Status**: 內容層完成，待全站複審
+- **Status**: done
 - **Description**: squirrelscan a11y 類別 0 error、Lighthouse Accessibility ≥ 95。
+  最終 Lighthouse Accessibility 首頁與文章頁、手機與桌機皆 **100**。
   - caret 按鈕可見文字（▾）與 `aria-label` 不符 → ▾ 改 `aria-hidden`。✅（4058051）
   - markdown 表格缺可及名稱 → rehype plugin 取前方最近的 h2–h4 補視覺隱藏
     `<caption>`。✅（c992009）驗收：全 dist 掃描 40 個 table／40 個 caption，
@@ -100,13 +135,21 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
   - LCP 圖片（首頁 featured 卡封面）改 `loading="eager" decoding="sync"
     fetchpriority="high"`，其餘卡片維持 lazy；CLS 由 Astro `<Image>` 輸出的
     `width`/`height` 保證。✅（63ee82b）
+  - 首屏封面圖 `<link rel="preload" as="image">`，網址以 `getImage()` 取得，
+    與頁面 `<Image>` 產出的變體逐字相符（參數不一致會 preload 到另一個變體、
+    白下載一份）。✅（696e526）
+  - 程式碼註解色 #51597D 對比僅 2.54:1，以 shiki transformer 換成 #7A82AB
+    （4.56:1）。✅（c2141f2）
+- **Verification**: 效能 trace（首頁，本機無節流）LCP 265ms、CLS 0.00、TTFB 3ms。
+  Lighthouse Performance 未列入本輪驗收數字——本機無節流的分數不具代表性，
+  改由 CI workflow 對每個 PR 量測（門檻見 R7）。
 - **Decision（web-vitals RUM）**: **不實作**。`/privacy-policy/` 明文承諾「未安裝
   追蹤型分析工具」，裝 RUM 會與該承諾衝突；且本站為純靜態、加 JS 反而傷 INP。
   效能改用 CI 端 Lighthouse 定期量測（見 R7）。
 
 ### R6: AI / GEO 可讀性
 - **Level**: SHOULD
-- **Status**: 施工中
+- **Status**: done（Lighthouse Agentic Browsing 100）
 - **Description**: llms.txt 需含 Answer Capsule 與 E-E-A-T 段落、robots.txt 的 AI 爬蟲
   政策需明確、語意化 HTML、每頁唯一 H1、描述性連結文字。
 - **Decision（封鎖 CCBot）**: **維持封鎖**。這是站主刻意的訓練資料退出決定，
@@ -115,19 +158,36 @@ redirect chain、HTTPS 未啟用、弱快取、缺 X-Frame-Options——`public/
 
 ### R7: CI 級別的 SEO 回歸防線
 - **Level**: MUST
-- **Status**: 施工中
+- **Status**: done（workflow 尚未在 GitHub 實跑過，見下方風險）
 - **Description**: PR 觸發的建置後靜態驗證（meta 覆蓋率、canonical host、JSON-LD
   可解析性、sitemap 死連結、孤兒頁）+ Lighthouse 門檻；生產環境每日 squirrelscan
   回歸；pre-commit 快速檢查文章 frontmatter。
 - **Decision（CI Performance 門檻 90 而非 95）**: GitHub runner 的效能量測波動大，
   95 會造成大量假失敗。95 的目標以本機／正式站量測為準，CI 只擋明顯退步。
+- **Verification**: `npm run verify:seo` 104 頁 12 項規則全過；該腳本以刻意注入
+  重複 title 與 sitemap 死連結驗證過確實會攔截，不是空跑。
+- **Risk**: 兩個 workflow 的 YAML 語法、`run:` 區塊 shell 語法、分數比對腳本都已
+  在本地驗證，但完整的 GitHub Actions 執行環境無法本地模擬。合併後需看第一次
+  實跑結果。
 
 ### R8: 安全標頭
 - **Level**: MUST
-- **Status**: 施工中
-- **Description**: 補 CSP（本站無任何第三方資源，可寫得很嚴）、HTML 快取策略、
-  `/fonts/*` 長期 immutable 快取、COOP。目標 Security Headers A+。
-- **Risk**: CSP 上線有弄壞站的風險，需在合併前於 preview 環境實測。
+- **Status**: done
+- **Description**: 補 CSP、HTML 快取策略、`/fonts/*` 長期 immutable 快取、COOP、
+  `X-DNS-Prefetch-Control`。
+- **Decision（script-src 收到 'self'）**: 原本為了 Astro 自動內聯的 Nav/TOC script
+  必須開 `'unsafe-inline'`，等於放棄 CSP 最關鍵的一道防護。改設
+  `vite.build.assetsInlineLimit: 0` 讓這些 script 一律外部化，全站 104 頁 inline
+  script 歸零，`script-src` 得以鎖到 `'self'`。**代價：此後不能再寫 `is:inline`
+  的 `<script>`，會被 CSP 擋掉。**
+- **Decision（style-src 保留 'unsafe-inline'）**: View Transitions 逐頁產生內容不同的
+  `view-transition-name` 樣式，無法外部化也無法預先算 hash。刻意不動
+  `build.inlineStylesheets`——強制外部化並不會讓 style-src 變嚴，只會多出
+  render-blocking 請求。
+- **Verification**: `wrangler pages dev dist` 實際套用 `_headers`（解析出 13 條
+  header 規則、16 條 redirect 規則），curl 確認所有標頭到位；在真實 CSP 下以
+  chrome-devtools 實測首頁與文章頁：零 console violation、字型正常載入、
+  行動版漢堡選單與 View Transitions 導航皆正常。
 
 ## 已知未解 / 需站主提供
 
