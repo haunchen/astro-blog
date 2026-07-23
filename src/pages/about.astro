@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import TagBadge from '../components/TagBadge.astro';
 import { SITE, pageTitle } from '../utils/site-meta';
 import avatar from '../assets/about/frank-avatar.png';
@@ -128,6 +129,10 @@ const socials = [
   { label: 'Buy Me a Coffee', href: 'https://buymeacoffee.com/frankchentw' },
 ];
 
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '關於我';
+const crumbs = [{ name: '首頁', href: '/' }];
+
 const personJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'ProfilePage',
@@ -146,12 +151,15 @@ const personJsonLd = {
 ---
 
 <BaseLayout
-  title={pageTitle('關於我')}
+  title={pageTitle(pageName)}
   description="Frank Chen，系統整合工程師。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。"
   ogImage="/cover.webp"
   jsonLd={[personJsonLd]}
+  breadcrumbs={crumbs}
 >
   <main class="about">
+    <Breadcrumbs items={crumbs} current={pageName} />
+
     <!-- Hero banner -->
     <section class="about-hero">
       <h1 class="about-hero-title">Frank Chen</h1>
@@ -258,7 +266,8 @@ const personJsonLd = {
   .about {
     max-width: var(--width-wide);
     margin: 0 auto;
-    padding: 0 24px 80px;
+    /* 麵包屑取代原本的空白起頭，需補上頂部留白 */
+    padding: 24px 24px 80px;
   }
 
   /* Hero */

@@ -1,17 +1,24 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleTimeline from '../components/ArticleTimeline.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import { pageTitle } from '../utils/site-meta';
 
 const posts = await getCollection('posts', ({ data }) => !data.draft);
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '文章';
+const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
-  title={pageTitle('文章')}
+  title={pageTitle(pageName)}
   description="所有技術文章，涵蓋 n8n 自動化、架站部署、Flutter、樹莓派與開發工具的實戰經驗與踩坑紀錄。"
+  breadcrumbs={crumbs}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">文章</h1>
       <p class="list-sub">共 {posts.length} 篇</p>

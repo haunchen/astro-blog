@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import { pageTitle } from '../../utils/site-meta';
 
@@ -23,13 +24,19 @@ const tags = [...counts.entries()]
     tier: tier(count),
     href: `/tag/${encodeURIComponent(name)}/`,
   }));
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '標籤';
+const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
-  title={pageTitle('標籤')}
+  title={pageTitle(pageName)}
   description="以標籤雲瀏覽所有技術文章標籤。"
+  breadcrumbs={crumbs}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">標籤</h1>
       <p class="list-sub">共 {tags.length} 個標籤</p>

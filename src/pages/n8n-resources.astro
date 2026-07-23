@@ -2,6 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import ResourceCard from '../components/ResourceCard.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { getCollection } from 'astro:content';
 import { pageTitle } from '../utils/site-meta';
 import {
@@ -27,13 +28,19 @@ const templatePosts = posts
   .filter((p) => p.data.tags.includes('模板'))
   .sort(byDateDesc)
   .slice(0, 3);
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = 'n8n 相關資源';
+const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
-  title={pageTitle('n8n 相關資源')}
+  title={pageTitle(pageName)}
   description="n8n 教學文章、自動化模板分享，以及精選 YouTube 學習資源、進階應用、推薦模板與社群整理。"
+  breadcrumbs={crumbs}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">n8n 相關資源</h1>
       <p class="list-sub">教學文章、模板分享、學習資源、進階應用與社群整理</p>

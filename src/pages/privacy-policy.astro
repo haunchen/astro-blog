@@ -1,13 +1,20 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE, pageTitle } from '../utils/site-meta';
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '隱私權政策';
+const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
-  title={pageTitle('隱私權政策')}
+  title={pageTitle(pageName)}
   description="本站如何處理你的資料：本站為靜態網站，不主動蒐集個人資料、未安裝追蹤型分析工具。"
+  breadcrumbs={crumbs}
 >
   <main class="legal">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <h1 class="legal-title">隱私權政策</h1>
     <p class="legal-updated">最後更新：2026-06-26</p>
 

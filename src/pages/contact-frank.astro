@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { SITE, pageTitle } from '../utils/site-meta';
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '聯絡我';
+const crumbs = [{ name: '首頁', href: '/' }];
 
 const socials = [
   { label: 'GitHub', href: 'https://github.com/haunchen' },
@@ -11,10 +16,12 @@ const socials = [
 ---
 
 <BaseLayout
-  title={pageTitle('聯絡我')}
+  title={pageTitle(pageName)}
   description="與 Frank Chen 聯絡：專案想法、合作機會或技術交流，歡迎來信或透過社群聯繫。"
+  breadcrumbs={crumbs}
 >
   <main class="contact">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <h1 class="contact-title">聯絡我</h1>
     <p class="contact-intro">如果你有任何專案想法、合作機會，或只是想聊聊技術，歡迎透過以下方式與我聯繫，我會盡快回覆。</p>
 

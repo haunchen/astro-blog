@@ -1,14 +1,21 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CategoryGrid from '../../components/CategoryGrid.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { pageTitle } from '../../utils/site-meta';
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = '分類';
+const crumbs = [{ name: '首頁', href: '/' }];
 ---
 
 <BaseLayout
-  title={pageTitle('分類')}
+  title={pageTitle(pageName)}
   description="依主題瀏覽所有技術文章分類：n8n 自動化、架站部署、Flutter、樹莓派與開發工具。"
+  breadcrumbs={crumbs}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">分類</h1>
       <p class="list-sub">依主題瀏覽文章</p>

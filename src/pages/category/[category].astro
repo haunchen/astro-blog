@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import { getCollection, type CollectionEntry } from 'astro:content';
 import { CATEGORIES, categoryLabel, pageTitle } from '../../utils/site-meta';
 
@@ -21,39 +22,27 @@ interface Props {
 
 const { categoryPosts, slug } = Astro.props;
 const label = categoryLabel(slug);
+
+// 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
+const pageName = label;
+const crumbs = [
+  { name: '首頁', href: '/' },
+  { name: '分類', href: '/category/' },
+];
 ---
 
 <BaseLayout
-  title={pageTitle(label)}
+  title={pageTitle(pageName)}
   description={`所有「${label}」分類的技術文章。`}
+  breadcrumbs={crumbs}
 >
   <main class="list-page">
+    <Breadcrumbs items={crumbs} current={pageName} />
     <header class="list-head">
       <h1 class="list-title">{label}</h1>
       <p class="list-sub">共 {categoryPosts.length} 篇</p>
-      <a class="list-back" href="/category/">← 所有分類</a>
     </header>
 
     <ArticleTimeline posts={categoryPosts} />
   </main>
 </BaseLayout>
-
-<style>
-  .list-back {
-    display: inline-block;
-    margin-top: 12px;
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--color-text-secondary);
-    text-decoration: none;
-    border-bottom: 2px solid rgba(251, 146, 60, 0.4);
-    border-bottom: 2px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
-    transition: border-color 300ms steps(3), background-color 300ms steps(3);
-  }
-
-  .list-back:hover {
-    border-bottom-color: var(--color-brand-orange);
-    background-color: rgba(251, 146, 60, 0.1);
-    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
-  }
-</style>
