@@ -94,6 +94,27 @@ const CHECKS = [
     verify: (v) =>
       v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
   },
+  // Cloudflare Pages 的 _headers 對同一個標頭是合併不是覆蓋，多條規則命中同一路徑
+  // 時值會被逗號串起來，產生兩組 max-age。瀏覽器只認第一個，等於後面那條規則靜默
+  // 失效——標頭「有值」所以任何存在性檢查都抓不到。實測踩過（/llms.txt 與 /rss.xml），
+  // 因此逐一驗證每種路徑類型的 Cache-Control 都只有一組 max-age。
+  ...[
+    ['/', 'HTML'],
+    ['/robots.txt', 'robots.txt'],
+    ['/llms.txt', 'llms.txt'],
+    ['/rss.xml', 'rss.xml'],
+    ['/favicon.png', 'favicon'],
+    ['/n8n-resources/', 'n8n-resources 索引頁'],
+  ].map(([path, label]) => ({
+    path,
+    header: 'cache-control',
+    name: `${label} 的 Cache-Control 只有一組 max-age`,
+    verify: (v) => {
+      if (!v) return '沒有 Cache-Control';
+      const n = (v.match(/max-age=/g) ?? []).length;
+      return n === 1 ? null : `有 ${n} 組 max-age：${v}`;
+    },
+  })),
 ];
 
 /**
