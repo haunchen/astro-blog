@@ -285,6 +285,8 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
 | GSC sitemap 提交 | 站主已提交（2026-07-23） | — |
 | X / Twitter handle | 已提供 `@frankchen_tw`（2026-07-23） | — |
 | squirrelscan 雲端帳號 | 站主決定不開（2026-07-23） | 以本地 report 的 SEO/Perf/Security/Agents 四項在正式站的實測值當驗收基準 |
+| GA4（`/ql0n/`，176 KB） | 站主決定保留資料連續性（2026-07-23） | 首頁最大單一資源，Cloudflare 邊緣注入、repo 內零痕跡；詳見 R5 |
+| 未雜湊檔名的靜態圖片 | 已開 issue #35 | zone 的瀏覽器 TTL 已改為採用原點 TTL，現況與 `_headers` 一致；但該修正是 dashboard 設定、不在版控裡 |
 | 外部死連結 3 條 | 需站主決定替換或移除 | 見 SEO_TODO.md |
 | 內容過薄頁面 15 頁 | 屬內容工作非技術修復 | 見 SEO_TODO.md |
 
