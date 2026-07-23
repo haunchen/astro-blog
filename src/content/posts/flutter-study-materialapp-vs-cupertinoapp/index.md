@@ -1,7 +1,7 @@
 ---
 title: "【 Flutter 學習筆記 】 MaterialApp vs CupertinoApp"
 date: 2025-06-23
-description: "MaterialApp 和 CupertinoApp 是 Flutter 的根 Widget，分別遵循 Google Material Design 和 Apple iOS Human Interface Guidelines。兩者各自定義了應用程式的外觀、行為和導航，並提供應用級服務。…"
+description: MaterialApp 和 CupertinoApp 是 Flutter 的根 Widget，分別遵循 Google Material Design 與 Apple iOS Human Interface Guidelines。整理兩者的定義、核心作用與常用屬性，並用比較表格說明該怎麼選。
 category: "flutter"
 tags: ["Flutter"]
 cover: "./images/cover.webp"

@@ -47,16 +47,19 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
 - [ ] **Keyword stuffing 警告**（squirrelscan 標記 25 頁有詞彙過度重複的疑慮）。
       需要站主逐篇檢視是否為技術文件常見的必要重複用詞（例如同一個 API 名稱、
       工具名稱反覆出現），或是真的需要改寫，非技術面可自動判斷的問題。
-- [ ] **4 篇 meta description 需人工複檢**（本次批次補齊時寫的內容有下列疑慮，
-      需要站主對照原文確認是否準確）：
-  - `n8n-credentials-setup-complete-guide`：描述裡列入了 Google，但撰寫時未逐字
-    驗證該文是否確實包含 Google 相關段落。
-  - `nginx-cache-wordpress`：描述裡「用 X-Cache-Status 驗證命中率」一句是由標題
-    結構推得，並非直接摘自正文，需確認正文是否真的有這段操作。
-  - `raspberry-pi-gpio-high-frequency-noise`：描述把正文提到的 350 kHz 電刀頻率
-    寫成了「干擾源頻率」，需確認這個因果關係在正文裡是否成立。
-  - `flutter-study-materialapp-vs-cupertinoapp`：原描述結尾有 `…` 截斷殘留，
-    語意不完整，需要補完整句。
+- [x] **4 篇 meta description 複檢**（已於 2026-07-23 逐篇對照原文查證完畢）：
+  - `n8n-credentials-setup-complete-guide`：**正確**。正文有「### 7. Google 系列 -
+    最複雜但最常用」章節。描述列了 6 個服務、正文實際有 8 個（另含 Canva 與
+    Instagram/Facebook），屬選擇性列舉而非錯誤。
+  - `nginx-cache-wordpress`：**正確**。正文有「## 如何驗證快取是否生效？」下的
+    「### 查看 X-Cache-Status Header」與「### 分析快取命中率」兩節，描述所述操作
+    確實存在。
+  - `raspberry-pi-gpio-high-frequency-noise`：**正確**。正文原句為「以高頻電刀為例，
+    會產生 350 kHz 左右的頻率」，而高頻電刀正是該文所指的干擾源，因此把它稱為
+    干擾源頻率不是誤寫。
+  - `flutter-study-materialapp-vs-cupertinoapp`：**已修正**。原描述結尾的 `…` 是
+    自動摘要的截斷殘留，語意不完整。改寫為完整句並對齊正文實際結構（定義、
+    核心作用、常用屬性、比較表格），長度 145 字元。
 
 ## C. 已評估後決定不做／接受現況
 
