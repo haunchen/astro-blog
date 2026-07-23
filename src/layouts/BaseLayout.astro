@@ -27,6 +27,12 @@ interface Props {
   breadcrumbs?: { name: string; href: string }[];
   /** 該頁不希望被索引（404 等） */
   noindex?: boolean;
+  /**
+   * 首屏 LCP 圖片的最終網址（經 astro:assets 處理後的 src）。
+   * 傳入才會輸出 <link rel="preload">——只有真的是 LCP 元素的那一張該preload，
+   * 亂加會搶掉關鍵資源的頻寬反而更慢。
+   */
+  preloadImage?: string;
 }
 
 const {
@@ -37,6 +43,7 @@ const {
   jsonLd = [],
   breadcrumbs,
   noindex = false,
+  preloadImage,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -85,6 +92,12 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
       fontPreloads.map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
       ))
+    }
+    {
+      /* LCP 圖片 preload：圖片藏在 CSS 之後才被發現，preload 讓它與 CSS 並行下載。 */
+      preloadImage && (
+        <link rel="preload" href={preloadImage} as="image" fetchpriority="high" />
+      )
     }
     <!--
       robots 一律由 astro-seo 輸出：它無論如何都會產生一個 <meta name="robots">，

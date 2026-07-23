@@ -4,6 +4,7 @@ import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CategoryGrid from '../components/CategoryGrid.astro';
 import { getCollection } from 'astro:content';
+import { getImage } from 'astro:assets';
 // 首頁不走 pageTitle()：那會得到純品牌名（僅 9 字元），對搜尋結果太短也說不出本站在寫什麼，
 // 故直接組出「品牌名｜主題」的完整標題，品牌名仍取自 SITE 保持單一來源。
 import { SITE } from '../utils/site-meta';
@@ -12,6 +13,12 @@ const posts = await getCollection('posts', ({ data }) => !data.draft);
 const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const featured = latestPosts[0];
+// 首屏 featured 卡的封面就是 LCP 元素。用 getImage() 取得與 ArticleCard 內
+// <Image> 完全相同的最終網址（兩邊都不帶轉換參數，故產出同一個變體），
+// 交給 BaseLayout 輸出 preload；參數若不一致會 preload 到另一個變體、白下載一份。
+const featuredCover = featured?.data.cover
+  ? await getImage({ src: featured.data.cover })
+  : undefined;
 const rest = latestPosts.slice(1, 4);
 
 const projects = [
@@ -43,6 +50,7 @@ const projects = [
   title={`${SITE.name}｜n8n 自動化、架站部署與 Flutter 開發實戰筆記`}
   description="下班後的工程師筆記：白天上班，下班寫 Side Project。從只會寫程式，到跨領域學習電路、製程與架站，這裡分享 n8n 自動化流程、WordPress 與 Cloudflare 架站部署、Flutter App 開發與樹莓派實作的實戰經驗、踩坑紀錄，以及可直接套用的自動化模板。"
   ogImage="/cover.webp"
+  preloadImage={featuredCover?.src}
 >
   <main>
     <h1 class="visually-hidden">{SITE.name}｜{SITE.tagline}</h1>
