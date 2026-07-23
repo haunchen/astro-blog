@@ -18,3 +18,7 @@
 /archives/*    /articles/                              301
 /feed          /rss.xml                                301
 /feed/*        /rss.xml                                301
+
+# 本站聯絡頁實際路徑是 /contact-frank/，但 /contact 是使用者（含 E-E-A-T 檢測工具）
+# 會直覺輸入的路徑，補一條 301 避免找不到聯絡方式。
+/contact       /contact-frank/                         301
