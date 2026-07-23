@@ -48,7 +48,17 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 // og:image 不可為空：頁面未指定時 fallback 站台 cover 圖
-const ogImageURL = new URL(ogImage ?? '/cover.webp', Astro.site).href;
+const ogImagePath = ogImage ?? '/cover.webp';
+const ogImageURL = new URL(ogImagePath, Astro.site).href;
+
+// og:image 的 type/width/height 必須對應「實際那張圖」，不能寫死。
+// 文章頁用 /og/*.png（satori 產生，固定 1200×630）；其餘頁面 fallback 到
+// public/cover.webp（4096×2304 的 webp）。原本三個值一律寫死成 1200/630/png，
+// 對約 69 個非文章頁輸出的是不實的中繼資料——欄位齊全但值是錯的，
+// 社群平台依這些值配版會得到錯誤結果。
+const OG_IMAGE_META = ogImagePath.endsWith('.png')
+  ? { type: 'image/png', width: '1200', height: '630' }
+  : { type: 'image/webp', width: '4096', height: '2304' };
 
 // BreadcrumbList：最後一階為當前頁，依 schema.org 慣例省略 item（自身即為 item）
 const breadcrumbJsonLd = breadcrumbs?.length
@@ -88,7 +98,7 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
     <meta name="color-scheme" content="dark" />
     {
       /* 首屏字型 preload：避免 CSS → @font-face → woff2 的三層請求鏈拖慢 LCP。
-         清單由 build-font-css.mjs 產生，字型檔名含內容雜湊由 fontsource 保證穩定。 */
+         清單由 build-font-css.mjs 產生；檔名的內容雜湊也由該腳本加上（fontsource 原始檔名不含雜湊）。 */
       fontPreloads.map((href) => (
         <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />
       ))
@@ -117,9 +127,9 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
         meta: [
           { name: 'author', content: SITE.author },
           { property: 'og:image:alt', content: description || title },
-          { property: 'og:image:width', content: '1200' },
-          { property: 'og:image:height', content: '630' },
-          { property: 'og:image:type', content: 'image/png' },
+          { property: 'og:image:width', content: OG_IMAGE_META.width },
+          { property: 'og:image:height', content: OG_IMAGE_META.height },
+          { property: 'og:image:type', content: OG_IMAGE_META.type },
           ...(SITE.twitterHandle
             ? [
                 { name: 'twitter:site', content: SITE.twitterHandle },

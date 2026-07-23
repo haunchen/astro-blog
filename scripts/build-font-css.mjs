@@ -20,6 +20,7 @@
 import { glob } from 'glob';
 import fs from 'node:fs/promises';
 import subsetFont from 'subset-font';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 
 const OUT_CSS = 'src/styles/fonts.css';
@@ -41,9 +42,18 @@ const FAMILIES = [
   { pkg: '@fontsource-variable/noto-sans-tc', css: 'index.css' },
 ];
 
+/**
+ * Astro 的 markdown 預設啟用 smartypants，會把原始碼裡的直式標點轉成印刷體標點
+ * 才輸出到 HTML。這些字元不存在於任何原始檔，只掃原始碼一定會漏——實測踩過：
+ * `Let's` 被轉成 `Let’s`，U+2019 沒進集合、所有分片的 unicode-range 都不涵蓋它，
+ * 該字在正式站上已經是以系統字型渲染（Merriweather 的 latin 分片本來有這個字形）。
+ * 這裡把 smartypants 的產物字元全部補進去。
+ */
+const SMARTYPANTS_CHARS = '‘’“”–—…';
+
 /** 站上實際出現的字元集合 */
 async function collectChars() {
-  const chars = new Set();
+  const chars = new Set(SMARTYPANTS_CHARS);
   const files = [
     ...(await glob('src/content/**/*.md')),
     ...(await glob('src/**/*.{astro,ts,tsx,js,mjs}')),
@@ -113,9 +123,8 @@ for (const { pkg, css } of FAMILIES) {
       dropped++;
       continue;
     }
-    const fileName = fileMatch[1];
-    const srcFile = path.join('node_modules', pkg, 'files', fileName);
-    const outFile = path.join(OUT_DIR, fileName);
+    const sourceName = fileMatch[1];
+    const srcFile = path.join('node_modules', pkg, 'files', sourceName);
     // 該分片內站上實際用到的字，逐檔再 subset 一次：
     // Noto CJK 一個分片動輒 40-70KB，但本站往往只用到其中十幾個字。
     const glyphText = ranges
@@ -126,16 +135,25 @@ for (const { pkg, css } of FAMILIES) {
           })
           .join('')
       : null;
+    // 檔名必須跟著內容變：fontsource 原始檔名不含雜湊，而這裡的 subset 內容
+    // 會隨站上字元集合逐次 build 改變（新文章引入新字就變）。若沿用原檔名再配上
+    // _headers 給 /fonts/* 的一年 immutable 快取，回訪讀者的瀏覽器不會重新驗證，
+    // 會一直用舊 subset——新字的 unicode-range 命中了、字形卻不在舊檔裡，
+    // 該字直接 fallback 系統字型。加內容雜湊讓「內容變＝網址變」，
+    // immutable 的前提才真正成立。
+    let bytes;
     if (glyphText) {
-      const subset = await subsetFont(await fs.readFile(srcFile), glyphText, {
+      bytes = await subsetFont(await fs.readFile(srcFile), glyphText, {
         targetFormat: 'woff2',
       });
-      await fs.writeFile(outFile, subset);
-      subsetBytes += subset.length;
+      subsetBytes += bytes.length;
       originalBytes += (await fs.stat(srcFile)).size;
     } else {
-      await fs.copyFile(srcFile, outFile);
+      bytes = await fs.readFile(srcFile);
     }
+    const digest = createHash('sha256').update(bytes).digest('hex').slice(0, 8);
+    const fileName = sourceName.replace(/\.woff2$/, `.${digest}.woff2`);
+    await fs.writeFile(path.join(OUT_DIR, fileName), bytes);
 
     // Noto CJK 每個分片的 unicode-range 動輒數百個碼位，光字串就佔掉大半體積。
     // 既然已經確定只有站上用到的字會被渲染，就把 range 收斂成「本站實際命中的碼位」
@@ -166,11 +184,11 @@ for (const { pkg, css } of FAMILIES) {
     kept++;
 
     // 首屏 preload：正文 Merriweather 400 與 UI Inter 400 的 latin 分片
-    const isLatin = /-latin-/.test(fileName) && !/-latin-ext-/.test(fileName);
+    const isLatin = /-latin-/.test(sourceName) && !/-latin-ext-/.test(sourceName);
     const isCritical =
       isLatin &&
-      (fileName.includes('merriweather-latin-400-normal') ||
-        fileName.includes('inter-latin-400-normal'));
+      (sourceName.includes('merriweather-latin-400-normal') ||
+        sourceName.includes('inter-latin-400-normal'));
     if (isCritical) preloads.push(`/fonts/${fileName}`);
   }
 }
