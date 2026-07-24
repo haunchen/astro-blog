@@ -8,7 +8,7 @@ cover: "./images/cover.webp"
 draft: false
 ---
 
-「n8nManager」Landing page: [https://www.frankchen.tw/n8nmanager/](https://www.frankchen.tw/n8nmanager/)
+「n8nManager」Landing page: [https://n8nmanager.frankchen.tw/](https://n8nmanager.frankchen.tw/)
 
 ![n8nManager App 齒輪構成 N 字造型的應用程式圖示](./images/n8nmanager-app-icon.webp)
 
