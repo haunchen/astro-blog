@@ -67,6 +67,12 @@
   ! Cache-Control
   Cache-Control: public, max-age=604800
 
+# 文章正文提供給讀者複製使用的練習素材（例如 Instagram 發文教學的示範圖）。
+# 檔名不帶 hash，所以不能用 immutable，改用與其他圖片資源一致的一週快取。
+/samples/*
+  ! Cache-Control
+  Cache-Control: public, max-age=604800
+
 # n8n-resources 的索引頁本身是 HTML、內容會更新，不該吃上面那條給圖片資源的一週快取。
 # 先清掉再明確設回 HTML 的短快取——只寫 `! Cache-Control` 會連 /* 設的值一起清掉，
 # 讓這頁完全沒有 Cache-Control（實測過，修正前的正式站就是這個狀況）。

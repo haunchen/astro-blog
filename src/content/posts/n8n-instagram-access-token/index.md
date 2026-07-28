@@ -162,8 +162,8 @@ draft: false
 
 -   **Image 的公開 URL**：
     -   這裡很重要，因為 Instagram API 是透過 curl 來下載圖片，並不是直接將圖片上傳，所以需要有一個可以讓 Meta 訪問的下載連結。
-    -   以 WordPress 連結 (`https://www.frankchen.tw/wp-content/uploads/2025/07/n8nAutoPostTest_dev.jpeg`) 來示範，也提供給大家做練習使用。
-    -   Instagram API 支援的圖片格式請參考[官方說明](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media#creating)。
+    -   這裡提供一張本站的公開圖片 (`https://frankchen.tw/samples/n8n-auto-post-test.jpg`) 給大家做練習使用，正式使用時換成你自己的圖片網址即可。
+    -   要特別注意的是，Instagram API 只接受 **JPEG**，PNG、WebP 都會被拒絕，格式細節請參考[官方說明](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media#creating)。
 
 ### 第二步：建立工作流
 
@@ -182,7 +182,7 @@ draft: false
 ### 第四步：節點設定
 
 -   「Edit Fields」節點主要是讓大家更好輸入並統一管理圖片 URL、圖片說明和 Instagram ID。
-    -   **圖片 URL (imageUrl)**：輸入你的圖片下載網址，或是先用練習範例 `https://www.frankchen.tw/wp-content/uploads/2025/07/n8nAutoPostTest_dev.jpeg`。
+    -   **圖片 URL (imageUrl)**：輸入你的圖片下載網址，或是先用練習範例 `https://frankchen.tw/samples/n8n-auto-post-test.jpg`。
     -   **圖片說明 (caption)**：圖片說明就是在 Instagram 上看到的文字內容，中英文皆可，也可以加入 hashtag。例如：`n8n Auto Post Test n8n 排程發文測試 #n8n #autopost`。如果要多行編輯，可以在輸入欄位的右下角找到一個小箭頭，打開編輯視窗，就可以依照你的需求排版。
     -   **Instagram ID (nodeID)**：輸入 `Instagram ID`。
 

@@ -9,9 +9,12 @@
 /n8n-skills/*  https://n8n-skills.frankchen.tw/:splat  301
 
 # sitemap 一律收斂到 /sitemap.xml（WP 舊檔名 + Astro 預設檔名）
+# wp-sitemap.xml 是 WordPress 5.5+ 內建的 sitemap，與 Yoast 的 sitemap_index.xml 是
+# 兩個不同檔名，Google 兩個都可能記著，因此一併收斂。
 /sitemap_index.xml  /sitemap.xml                            301
 /sitemap-index.xml  /sitemap.xml                            301
 /sitemap-0.xml      /sitemap.xml                            301
+/wp-sitemap.xml     /sitemap.xml                            301
 
 # WordPress 遺留路徑（文章列表頁、RSS）
 /archives      /articles/                              301
@@ -19,6 +22,19 @@
 /feed          /rss.xml                                301
 /feed/*        /rss.xml                                301
 
+# 舊站的 link-in-bio 頁（Next.js 做的獨立頁，標題「法蘭克的探索筆記 | Linktree」），
+# 內容是 Email／GitHub／LinkedIn／Threads／Buy Me a Coffee 等聯絡管道的集散地。
+# 這類頁通常被貼在社群平台的個人簡介，外部入口不受我們控制、也改不掉，斷掉等於
+# 社群導流全失。新站由 /contact-frank/ 承接同樣的角色，因此整段導過去。
+# /linktree/podcast 是舊子頁，新站沒有 podcast 內容，一併由萬用字元吃掉。
+/linktree      /contact-frank/                         301
+/linktree/*    /contact-frank/                         301
+
 # 本站聯絡頁實際路徑是 /contact-frank/，但 /contact 是使用者（含 E-E-A-T 檢測工具）
 # 會直覺輸入的路徑，補一條 301 避免找不到聯絡方式。
 /contact       /contact-frank/                         301
+
+# WP 時期的 Instagram 自動發文練習圖。這個網址被寫在文章正文裡供讀者複製貼進 n8n，
+# 讀者的筆記與 n8n 工作流可能還存著舊網址，斷掉會讓教學直接失敗，因此保留 301。
+# 目標刻意維持 JPEG——Instagram Graph API 的 image_url 只接受 JPEG，換成 WebP 會被 API 拒絕。
+/wp-content/uploads/2025/07/n8nAutoPostTest_dev.jpeg  /samples/n8n-auto-post-test.jpg  301
