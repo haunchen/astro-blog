@@ -19,6 +19,12 @@ jobs:
       - name: 安裝依賴
         run: npm ci
 
+      # 併進這支 workflow 而非另開一條：測試只跑幾百毫秒，單獨開一個 job 要多付一次
+      # checkout + setup-node + npm ci 的固定成本，遠比測試本身貴。放在建置之前是為了
+      # fail fast——工具鏈壞掉時不必等完整 build 與 Lighthouse 跑完才看到紅燈。
+      - name: 單元測試（WP 遷移工具鏈）
+        run: npm test
+
       - name: 建置
         run: npm run build
 
