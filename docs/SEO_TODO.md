@@ -1,7 +1,8 @@
 # SEO 待辦事項
 
-SEO Perfection Engine 施工後仍未完成的事項。分三類：A 需要站主提供資料才能完成、
-B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後決定不做／接受現況。
+SEO Perfection Engine 施工後仍未完成的事項。分四類：A 需要站主提供資料才能完成、
+B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後決定不做／接受現況、
+D 是技術上待決但已開 issue 追蹤。
 
 完整的施工決策與理由見 `docs/specs/seo-perfection.md`；操作層面的指南見
 `docs/SEO_GUIDE.md`。
@@ -163,7 +164,25 @@ B 是內容工作（非技術修復，需要站主判斷）、C 是已評估後�
 - [x] **SearchAction / SoftwareApplication / FAQPage / HowTo / web-vitals RUM**。
       已評估，不做。理由見 `docs/SEO_GUIDE.md`「刻意不做的事」一節，各有一句
       對應理由（無站內搜尋、無專屬產品頁、Google 已限縮資格、與隱私權承諾衝突）。
-- [x] **Markdown Response**（`Accept: text/markdown` 內容協商，讓 AI 爬蟲直接
-      拿到 markdown 而非 HTML）。已評估，不做。Cloudflare Pages 是純靜態託管，
-      無法依 `Accept` header 做內容協商；要做得改用 Cloudflare Pages Functions
-      額外起一層伺服器邏輯，對一個靜態部落格而言成本高於效益。
+## D. 技術待決（已開 issue 追蹤）
+
+- [ ] **Markdown Response**（`Accept: text/markdown` 內容協商，或另出 `.md` 變體，
+      讓 AI agent 直接拿到 markdown 而非 HTML）。追蹤於 issue #33。
+
+      本項原列在 C 節「已評估，不做」，理由寫的是「Cloudflare Pages 是純靜態託管，
+      無法依 `Accept` header 做內容協商」。該理由不成立，2026-07-29 複查更正：
+      Pages Functions 在 Free 方案可用，與 Workers 共用每日 10 萬次請求額度，
+      本站流量遠低於此。擋住這件事的是複雜度（要替一個全靜態站引入 runtime 層、
+      且 CF Pages 對 `Vary: Accept` 的快取分流行為需實測），不是方案限制或費用。
+
+      另一條原本沒被考慮的路：本站文章原生就是 markdown，可在 build 時直接輸出
+      `.md` 變體，純靜態、不需 runtime。但這條有兩個 issue 開立時未計入的成本——
+      站上只有 `src/content/posts/` 的 36 篇是 md，`/about`、`/articles`、
+      `/category/*`、`/tag/*` 等十餘頁都是 .astro，沒有 md 來源；且全站 250 處
+      圖片引用與 frontmatter `cover` 都是相對於 md 檔的路徑（由 Astro `image()`
+      在 build 時轉成雜湊檔名），原始 md 直出會讓圖片全數連不到，仍需 URL 改寫。
+
+      收益的定位也要講清楚：squirrelscan 的 `ax/markdown-response` 是
+      Recommendation、不計分；同批的 `ax/token-weight`（47 頁可見文字低於 HTML
+      的 15%）即使做了 `.md` 變體也不會消失，因為它量的是 HTML 本身。真正的收益
+      是 agent 端實際的 token 成本，不是稽核分數。

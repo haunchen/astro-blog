@@ -111,3 +111,18 @@
 /rss.xml
   ! Cache-Control
   Cache-Control: public, max-age=3600
+
+# 文章的 Markdown 變體（供 AI agent 取用，見 docs/specs/agent-markdown.md）。
+# 快取與 HTML 頁面同一組：md 與 HTML 是同一份內容的兩個表示，新鮮度不該不一樣。
+# 依本檔開頭記載的合併規則，這裡必須先 `! Cache-Control` 清掉 /* 的值再設回，
+# 否則會變成 `max-age=600, must-revalidate, max-age=600...` 兩組 max-age。
+#
+# X-Robots-Tag: noindex 是防重複內容：/<slug>.md 與 /<slug>/ 內容相同，而 md 不是
+# HTML、塞不了 <link rel="canonical">，frontmatter 的 canonical 欄位搜尋引擎也不認，
+# 唯一表達得了的地方就是這個標頭。代價是 AI 搜尋爬蟲不會索引 md 版，但它們本來
+# 就在抓 HTML 正本，兩條路不衝突。
+/*.md
+  ! Cache-Control
+  Cache-Control: public, max-age=600, must-revalidate
+  Content-Type: text/markdown; charset=utf-8
+  X-Robots-Tag: noindex

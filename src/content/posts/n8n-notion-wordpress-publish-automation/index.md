@@ -114,7 +114,7 @@ Notion 的內容是由不同的 Block 組成，例如標題、清單、圖片、
 
 -   Upload Image to Wordpress 節點裡的 URL 請輸入你自己的 WordPress 網址，並在後面加上 `/wp-json/wp/v2/media`（如：`https://your.wordpress.url/wp-json/wp/v2/media`）。WordPress API 設定方法請見[「n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略」](/n8n-wordpress-api-integration-guide/)。
 
-![Upload Image to WordPress 節點設定，填入 wp-json/wp/v2/media API 端點](./images/image-handling-wordpress-node.webp)
+![Upload Image to WordPress 節點設定，填入 wp-json/wp/v2/media API 端點](./images/image-upload-to-wordpress.webp)
 
 ### 格式轉換
 

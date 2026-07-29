@@ -15,6 +15,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { globSync } from 'glob';
 import { XMLParser } from 'fast-xml-parser';
+import matter from 'gray-matter';
 
 const PROJECT_ROOT = path.resolve(fileURLToPath(new URL('.', import.meta.url)), '..');
 const DIST = path.join(PROJECT_ROOT, 'dist');
@@ -138,6 +139,35 @@ const articlePathnames = new Set(
     return `/${id}/`;
   }),
 );
+
+// ---------------------------------------------------------------------------
+// Markdown 變體（agent-markdown spec）：產物與來源的草稿狀態
+// ---------------------------------------------------------------------------
+
+const mdBySlug = new Map(
+  globSync('**/*.md', { cwd: DIST })
+    .sort()
+    .map((relFile) => [
+      relFile.replace(/\\/g, '/').replace(/\.md$/, ''),
+      readFileSync(path.join(DIST, relFile), 'utf8'),
+    ]),
+);
+
+// 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
+const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
+  const id = file
+    .replace(/\\/g, '/')
+    .replace(/^src\/content\/posts\//, '')
+    .replace(/\/index\.md$/, '')
+    .replace(/\.md$/, '');
+  const { data } = matter(readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
+  return { id, draft: data.draft === true };
+});
+
+const ORIGIN_RE_SOURCE = SITE_ORIGIN.replace(/\./g, '\\.');
+const MD_ASSET_RE = new RegExp(`${ORIGIN_RE_SOURCE}(/_astro/[^\\s)）"']+)`, 'g');
+const MD_DECLARED_RE = new RegExp(`${ORIGIN_RE_SOURCE}/([^\\s)）]+)\\.md`, 'g');
+const MD_REQUIRED_KEYS = ['title', 'description', 'date', 'category', 'tags', 'canonical', 'image'];
 
 // ---------------------------------------------------------------------------
 // 檢查項目：每項回傳 { failures: [{ page, reason }] }
@@ -494,6 +524,105 @@ check('LCP 圖 preload 的 imagesrcset/imagesizes 與對應 <img> 一致', (fail
         }
       }
     }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Markdown 變體
+// ---------------------------------------------------------------------------
+
+check('每篇非草稿文章都有對應的 .md 變體', (failures) => {
+  for (const { id, draft } of sourcePosts) {
+    if (draft) continue;
+    if (!mdBySlug.has(id)) failures.push({ page: `/${id}.md`, reason: '缺少 markdown 變體' });
+  }
+});
+
+check('草稿文章不得產出 .md 變體', (failures) => {
+  for (const { id, draft } of sourcePosts) {
+    if (draft && mdBySlug.has(id)) {
+      failures.push({ page: `/${id}.md`, reason: '草稿不應輸出 markdown 變體' });
+    }
+  }
+});
+
+check('.md 變體不得殘留來源的相對圖片路徑', (failures) => {
+  for (const [slug, text] of mdBySlug) {
+    if (text.includes('./images/')) {
+      failures.push({ page: `/${slug}.md`, reason: '仍含 ./images/ 相對路徑，agent 抓不到圖' });
+    }
+  }
+});
+
+// 這條是主防線：擋掉「圖片網址看起來對、實際指向沒被 emit 的檔案」這個
+// 最容易復發的錯誤（改用 import.meta.glob 取 .src 就會全面觸發）。
+check('.md 變體引用的建置資產都真的存在', (failures) => {
+  for (const [slug, text] of mdBySlug) {
+    for (const match of text.matchAll(MD_ASSET_RE)) {
+      if (!existsSync(path.join(DIST, match[1]))) {
+        failures.push({ page: `/${slug}.md`, reason: `引用的資產不存在：${match[1]}` });
+      }
+    }
+  }
+});
+
+check('.md 變體的 frontmatter 可解析、欄位齊全且不外洩內部欄位', (failures) => {
+  for (const [slug, text] of mdBySlug) {
+    let data;
+    try {
+      ({ data } = matter(text));
+    } catch (err) {
+      failures.push({ page: `/${slug}.md`, reason: `frontmatter 解析失敗：${err.message}` });
+      continue;
+    }
+    for (const key of MD_REQUIRED_KEYS) {
+      if (data[key] === undefined) {
+        failures.push({ page: `/${slug}.md`, reason: `frontmatter 缺少 ${key}` });
+      }
+    }
+    if ('draft' in data) {
+      failures.push({ page: `/${slug}.md`, reason: 'frontmatter 不應曝光 draft 欄位' });
+    }
+    const expectedCanonical = `${SITE_ORIGIN}/${slug}/`;
+    if (data.canonical !== expectedCanonical) {
+      failures.push({
+        page: `/${slug}.md`,
+        reason: `canonical 應為 ${expectedCanonical}，實際為 ${data.canonical}`,
+      });
+    }
+  }
+});
+
+check('llms.txt 宣告的 .md 連結與實際產物一一對應', (failures) => {
+  const llmsPath = path.join(DIST, 'llms.txt');
+  if (!existsSync(llmsPath)) {
+    failures.push({ page: '/llms.txt', reason: '檔案不存在' });
+    return;
+  }
+  const llms = readFileSync(llmsPath, 'utf8');
+  const declared = new Set([...llms.matchAll(MD_DECLARED_RE)].map((m) => m[1]));
+  for (const slug of mdBySlug.keys()) {
+    if (!declared.has(slug)) failures.push({ page: '/llms.txt', reason: `未宣告 ${slug}.md` });
+  }
+  for (const slug of declared) {
+    if (!mdBySlug.has(slug)) {
+      failures.push({ page: '/llms.txt', reason: `宣告了不存在的 ${slug}.md` });
+    }
+  }
+});
+
+// @astrojs/sitemap 目前只收 HTML 頁面，md 變體天然不會進去；但「天然成立」和
+// 「有人驗過」是兩回事——這條是 spec S5 的明文情境，靠慣例不靠斷言的話，
+// 哪天 sitemap 設定改動就會靜默失守。
+check('sitemap 不得收錄 .md 變體', (failures) => {
+  const sitemapPath = path.join(DIST, 'sitemap.xml');
+  if (!existsSync(sitemapPath)) {
+    failures.push({ page: '/sitemap.xml', reason: '檔案不存在' });
+    return;
+  }
+  const sitemap = readFileSync(sitemapPath, 'utf8');
+  for (const match of sitemap.matchAll(MD_DECLARED_RE)) {
+    failures.push({ page: '/sitemap.xml', reason: `不應收錄 markdown 變體：${match[0]}` });
   }
 });
 

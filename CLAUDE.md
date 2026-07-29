@@ -11,7 +11,7 @@ npm run preview    # Preview production build
 ```
 
 ```bash
-npm test           # 26 unit tests covering the WordPress migration toolchain (scripts/lib/)
+npm test           # 33 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown export)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -53,6 +53,8 @@ Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 - `/tag/` + `/tag/[tag]/` — Tag index and per-tag listing
 - `/404` — Custom 404 with e-ink glitch animation
 - `/og/[...slug].png` — OG images generated at build time (satori + sharp)
+- `/[...slug].md` — Markdown variant of every published post for AI agents (whitelisted frontmatter,
+  absolute image URLs, `X-Robots-Tag: noindex`). See `docs/specs/agent-markdown.md`
 - `/rss.xml`, `/llms.txt`, `/sitemap.xml`
 
 **Sitemap:** `@astrojs/sitemap` always emits `sitemap-index.xml` + `sitemap-0.xml`; a custom
@@ -79,7 +81,8 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 - A Shiki transformer rewrites tokyo-night's comment color `#51597D` → `#7A82AB` for WCAG AA contrast.
 
 **Scripts:** `build-font-css` + `subset-fonts` (font pipeline, run by dev/build), `migrate-wp` +
-`scripts/lib/*` (one-off WordPress WXR importer, the part under test), `build-manifest`, `verify-*`.
+`scripts/lib/*` (one-off WordPress WXR importer, the part under test), `scripts/lib/md-export.mjs`
+(pure transforms behind `/[...slug].md`, also under test), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for
