@@ -163,3 +163,18 @@ last_modified: 2026-07-02
 - **Decision**: RSS 全文改以 Astro experimental Container API（`render(post)` + `renderToString(Content)`）渲染，取代 markdown-it；連帶移除 `markdown-it` / `@types/markdown-it` 依賴
 - **Rationale**: markdown-it 不認得 content collection 的相對圖片，不會觸發 image pipeline，導致 RSS 內文圖 URL 指向不存在的 `/<slug>/images/...`（404）。Container API 渲染真正的 `<Content/>`，內文圖經 image pipeline 解析為 `/_astro/<hash>.webp`，再前綴 `SITE.url` 即為可正確抓取的絕對 URL。純 markdown 無需 framework renderer（`loadRenderers([])`）
 - **Date**: 2026-06-06
+
+## Pending Changes
+
+> Source: docs/plans/2026-07-29-agent-markdown-design.md
+> Date: 2026-07-29
+
+### MODIFIED R6: llms.txt
+- **Level**: MUST
+- **Description**: `/llms.txt` 提供 AI 友善的站點導引純文字檔，build 時從 content collection 動態產出。「主要頁面」段列出首頁、文章總覽、分類總覽、標籤總覽、n8n 相關資源、關於我、聯絡我等站台主要頁面（各附一句用途說明），「文章」段列出所有非草稿文章，每篇除 HTML 網址外並附其 markdown 變體網址（`/<slug>.md`）。
+- **Reason**: `agent-markdown` domain 的 R4 需要 llms.txt 作為 md 變體的主要發現管道之一；llms.txt 的內容規格屬本 spec，故在此記錄異動。
+
+### MODIFIED R8: 安全標頭與快取策略
+- **Level**: MUST
+- **Description**: 沿用原描述，並新增：`.md` 路徑回應 `Content-Type: text/markdown; charset=utf-8`、與 HTML 一致的短快取（`public, max-age=600, must-revalidate`）、`X-Robots-Tag: noindex`。新增規則須先 `! Cache-Control` 清除 `/*` 的值再設定，避免 Cloudflare Pages 的標頭合併產生兩組 max-age。
+- **Reason**: `agent-markdown` domain 的 R5 要求 md 端點的回應標頭；`_headers` 的規格屬本 spec。CF Pages 對副檔名萬用字元（`/*.md`）的支援性尚未實測，上線後以 `verify:headers` 確認，不支援時改用目錄形式取得可用的 `/md/*` 規則。
