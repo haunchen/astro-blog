@@ -251,6 +251,31 @@ async function resolveFontPath() {
   return { error: '首頁沒有任何 <link rel="preload" as="font">' };
 }
 
+/**
+ * 從線上 llms.txt 取一個 md 變體路徑當受測對象。
+ *
+ * 為什麼不寫死某篇文章的 slug：文章可能改名或下架，寫死的路徑總有一天會 404，
+ * 屆時看起來像標頭壞了，其實是檢查本身過期。從 llms.txt 取則永遠指向線上站
+ * 當下真的有宣告的那批 md——順帶也驗證了「宣告管道確實存在」。
+ */
+async function resolveMarkdownPath() {
+  let text;
+  try {
+    const res = await fetch(`${ORIGIN}/llms.txt`, { redirect: 'follow' });
+    if (!res.ok) return { error: `llms.txt 請求回應 ${res.status}` };
+    text = await res.text();
+  } catch (err) {
+    return { error: `llms.txt 請求失敗：${err.message}` };
+  }
+  const match = text.match(/https:\/\/[^\s)）]+\.md/);
+  if (!match) return { error: 'llms.txt 未宣告任何 .md 變體網址' };
+  try {
+    return { path: new URL(match[0]).pathname };
+  } catch {
+    return { error: `llms.txt 宣告的 .md 網址無法解析：${match[0]}` };
+  }
+}
+
 let failed = 0;
 console.log(`檢查來源：${ORIGIN}\n`);
 
@@ -266,6 +291,38 @@ if (fontPath.path) {
   });
 } else {
   checks.push({ path: '/', name: '首頁可取得字型 preload 路徑', staticProblem: fontPath.error });
+}
+
+const markdownPath = await resolveMarkdownPath();
+if (markdownPath.path) {
+  checks.push(
+    {
+      path: markdownPath.path,
+      header: 'content-type',
+      name: `Markdown 變體的 Content-Type（${markdownPath.path}）`,
+      verify: (v) =>
+        v?.toLowerCase().startsWith('text/markdown') ? null : `實際為 ${v ?? '（無）'}`,
+    },
+    {
+      path: markdownPath.path,
+      header: 'cache-control',
+      name: 'Markdown 變體的快取與 HTML 一致',
+      verify: (v) =>
+        v === 'public, max-age=600, must-revalidate' ? null : `實際為 ${v ?? '（無）'}`,
+    },
+    {
+      path: markdownPath.path,
+      header: 'x-robots-tag',
+      name: 'Markdown 變體帶 noindex（防重複內容收錄）',
+      verify: (v) => (v?.toLowerCase().includes('noindex') ? null : `實際為 ${v ?? '（無）'}`),
+    },
+  );
+} else {
+  checks.push({
+    path: '/llms.txt',
+    name: '可從 llms.txt 取得 Markdown 變體路徑',
+    staticProblem: markdownPath.error,
+  });
 }
 
 for (const check of checks) {
