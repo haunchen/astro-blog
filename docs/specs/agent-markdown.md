@@ -1,6 +1,6 @@
 ---
 domain: agent-markdown
-status: draft
+status: active
 created: 2026-07-29
 last_modified: 2026-07-29
 ---
@@ -124,7 +124,3 @@ last_modified: 2026-07-29
   規則，`noindex` 一條規則即可。代價是 AI 搜尋爬蟲不會索引 md 版，但它們本就在抓
   HTML 正本，兩條路不衝突
 - **Date**: 2026-07-29
-
-## Pending Changes
-
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
