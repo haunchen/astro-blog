@@ -165,7 +165,7 @@ const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT })
 });
 
 const ORIGIN_RE_SOURCE = SITE_ORIGIN.replace(/\./g, '\\.');
-const MD_ASSET_RE = new RegExp(`${ORIGIN_RE_SOURCE}(/_astro/[^\\s)"']+)`, 'g');
+const MD_ASSET_RE = new RegExp(`${ORIGIN_RE_SOURCE}(/_astro/[^\\s)）"']+)`, 'g');
 const MD_DECLARED_RE = new RegExp(`${ORIGIN_RE_SOURCE}/([^\\s)）]+)\\.md`, 'g');
 const MD_REQUIRED_KEYS = ['title', 'description', 'date', 'category', 'tags', 'canonical', 'image'];
 

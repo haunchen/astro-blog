@@ -11,7 +11,13 @@
 /** `/_astro/<主幹>.<雜湊>.<副檔名>`；主幹不含 `/`，避免比對越界到上一層路徑。 */
 const ASTRO_ASSET_RE = /\/_astro\/([^"'\s?/]+?)\.[A-Za-z0-9_-]+\.(?:webp|png|jpe?g|avif|gif|svg)/g;
 
-/** markdown 內指向同目錄 images/ 的相對引用。 */
+/**
+ * markdown 內指向同目錄 images/ 的相對引用。
+ *
+ * 對整篇 body 做無差別文字取代，不區分 markdown 圖片語法、行內 code 與 fenced code
+ * block。全站現有引用皆為圖片語法故目前安全，但若有文章在程式碼區塊示範
+ * `./images/foo.webp` 這類寫法，會被一併誤判為圖片路徑而導致 build 失敗。
+ */
 const RELATIVE_IMAGE_RE = /\.\/images\/([^\s)"']+)/g;
 
 /**
@@ -74,7 +80,9 @@ export function rewriteImagePaths(body, imageUrls, origin) {
     const resolved = imageUrls.get(stem);
     if (!resolved) {
       throw new Error(
-        `markdown 匯出找不到 ${match} 對應的建置產物（檔名主幹「${stem}」不在 image pipeline 的輸出裡）`,
+        `markdown 匯出找不到 ${match} 對應的建置產物（檔名主幹「${stem}」不在對照表裡：` +
+          `可能是該圖沒有進 image pipeline，也可能是它與另一張圖位元組完全相同，` +
+          `被建置流程依內容去重、只保留了其中一個檔名）`,
       );
     }
     return origin + resolved;
