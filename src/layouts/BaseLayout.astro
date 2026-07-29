@@ -37,6 +37,12 @@ interface Props {
    * 挑一次候選圖，兩次挑到不同張就等於下載兩份，比不 preload 還慢。
    */
   preloadImage?: { src: string; srcSet?: string; sizes?: string };
+  /**
+   * 該頁 markdown 變體的路徑（例如 `/some-slug.md`）。
+   * 傳入才輸出 <link rel="alternate" type="text/markdown">——只有文章有 md 變體，
+   * 其餘頁面沒有對應產物，亂宣告等於給 agent 一個 404。
+   */
+  markdownVariant?: string;
 }
 
 const {
@@ -48,6 +54,7 @@ const {
   breadcrumbs,
   noindex = false,
   preloadImage,
+  markdownVariant,
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
@@ -186,6 +193,9 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
         值必須與 <html lang> 完全一致（zh-TW），否則驗證器認不出這是自我宣告。 */}
     <link rel="alternate" hreflang="zh-TW" href={canonicalURL.href} />
     <link rel="alternate" hreflang="x-default" href={canonicalURL.href} />
+    {markdownVariant && (
+      <link rel="alternate" type="text/markdown" href={markdownVariant} />
+    )}
     <JsonLd data={allJsonLd} />
     <ClientRouter />
   </head>

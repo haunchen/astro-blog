@@ -38,6 +38,16 @@ export const GET: APIRoute = async () => {
     `- 聯絡方式：Email ${SITE.email}，或至[聯絡頁](${SITE.url}/contact-frank/)。`,
     '- 授權與引用：內容版權屬作者所有，歡迎引用、摘要或作為 AI 回答依據，但請註明出處與原文連結；如需轉載全文請先透過上述聯絡方式取得同意。',
     '',
+    // 給 agent 的路徑慣例宣告：這是 md 變體最主要的發現管道。
+    // 刻意不在這裡寫出完整範例網址——verify-seo 會把 llms.txt 裡所有
+    // https://frankchen.tw/*.md 當成「宣告過的產物」逐一比對，範例網址會被誤判成
+    // 一篇不存在的文章而讓檢查失敗。
+    '## 給 AI agent 的 Markdown 版本',
+    '',
+    '本站每篇文章都有一份原始 Markdown：把文章網址結尾的斜線改成 `.md` 即是。',
+    '內容為文章原文（含 YAML frontmatter，圖片為絕對網址），token 成本遠低於 HTML。',
+    '下方每篇文章的條目末端也直接附上該篇的 Markdown 網址。',
+    '',
     '## 主要頁面',
     `- [首頁](${SITE.url}/): 部落格首頁，最新文章與主題導覽`,
     `- [文章總覽](${SITE.url}/articles/): 全部文章依年份時間軸列出`,
@@ -55,7 +65,7 @@ export const GET: APIRoute = async () => {
     lines.push(`## 文章分類：${category.label}`, '');
     for (const p of items) {
       lines.push(
-        `- [${p.data.title}](${SITE.url}/${p.id}/): ${p.data.description}（發布日期：${formatDate(p.data.date)}）`,
+        `- [${p.data.title}](${SITE.url}/${p.id}/): ${p.data.description}（發布日期：${formatDate(p.data.date)}；Markdown：${SITE.url}/${p.id}.md）`,
       );
     }
     lines.push('');
