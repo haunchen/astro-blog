@@ -364,9 +364,9 @@ EOF
 Implements: `agent-markdown.md` #R4；`pre-launch-infra.md` MODIFIED #R6
 
 Files:
-- Modify: `src/pages/llms.txt.ts:23-50`（`lines` 陣列的「主要頁面」段之前插入說明段）、`src/pages/llms.txt.ts:56-60`（逐篇輸出加 md 網址）
-- Modify: `src/layouts/BaseLayout.astro:15-51`（Props 與解構）、`src/layouts/BaseLayout.astro:183-188`（輸出 link 標籤）
-- Modify: `src/pages/[...slug].astro:87-99`（傳入 markdownVariant）
+- Modify: `src/pages/llms.txt.ts`（`lines` 陣列的「## 主要頁面」項之前插入說明段；`for (const category of CATEGORIES)` 迴圈內逐篇輸出的那行加上 md 網址）
+- Modify: `src/layouts/BaseLayout.astro`（`interface Props` 與其下的 `Astro.props` 解構各加一個欄位；`hreflang="x-default"` 那條 link 之後輸出新的 link 標籤）
+- Modify: `src/pages/[...slug].astro`（`<BaseLayout>` 開標籤傳入 `markdownVariant`）
 
 Interfaces:
 - Consumes: Task 2 產出的 `/<slug>.md` 路徑規則（文章網址去掉結尾斜線後加 `.md`）
@@ -502,7 +502,7 @@ Implements: `agent-markdown.md` #R5；`pre-launch-infra.md` MODIFIED #R8
 
 Files:
 - Modify: `public/_headers`（檔尾新增 `/*.md` 區塊）
-- Modify: `scripts/verify-headers.mjs:228-256`（新增 `resolveMarkdownPath`）、`scripts/verify-headers.mjs:257-268`（掛上三項檢查）
+- Modify: `scripts/verify-headers.mjs`（`resolveFontPath` 函式之後新增 `resolveMarkdownPath`；字型檢查的 `checks.push` 區塊之後掛上三項 md 檢查）
 
 Interfaces:
 - Consumes: Task 2 產出的 `/<slug>.md` 路徑、Task 3 在 llms.txt 宣告的 md 網址（`resolveMarkdownPath` 從線上 llms.txt 取受測路徑）
@@ -631,10 +631,10 @@ EOF
 
 ### Task 5: 建置產物的靜態斷言與文件同步
 
-Implements: `agent-markdown.md` #R1, #R2, #R3, #R4
+Implements: `agent-markdown.md` #R1, #R2, #R3, #R4, #R5
 
 Files:
-- Modify: `scripts/verify-seo.mjs:13-17`（import 加 gray-matter）、`scripts/verify-seo.mjs:106-125`（蒐集 md 產物與來源草稿狀態）、`scripts/verify-seo.mjs` 檔尾「輸出報告」之前（新增六項檢查）
+- Modify: `scripts/verify-seo.mjs`（`glob` / `fast-xml-parser` 的 import 區塊加 gray-matter；`articlePathnames` 宣告之後加入 md 產物與來源草稿狀態的蒐集；「輸出報告」註解區塊之前加入七項檢查）
 - Modify: `CLAUDE.md`（Routing 清單、Scripts 段、npm test 的測試數）
 
 Interfaces:
@@ -693,7 +693,7 @@ const MD_DECLARED_RE = new RegExp(`${ORIGIN_RE_SOURCE}/([^\\s)）]+)\\.md`, 'g')
 const MD_REQUIRED_KEYS = ['title', 'description', 'date', 'category', 'tags', 'canonical', 'image'];
 ```
 
-Step 3: 新增六項檢查
+Step 3: 新增七項檢查
 
 在 `scripts/verify-seo.mjs` 的「輸出報告」註解區塊之前，加入：
 
@@ -781,12 +781,27 @@ check('llms.txt 宣告的 .md 連結與實際產物一一對應', (failures) => 
     }
   }
 });
+
+// @astrojs/sitemap 目前只收 HTML 頁面，md 變體天然不會進去；但「天然成立」和
+// 「有人驗過」是兩回事——這條是 spec S5 的明文情境，靠慣例不靠斷言的話，
+// 哪天 sitemap 設定改動就會靜默失守。
+check('sitemap 不得收錄 .md 變體', (failures) => {
+  const sitemapPath = path.join(DIST, 'sitemap.xml');
+  if (!existsSync(sitemapPath)) {
+    failures.push({ page: '/sitemap.xml', reason: '檔案不存在' });
+    return;
+  }
+  const sitemap = readFileSync(sitemapPath, 'utf8');
+  for (const match of sitemap.matchAll(MD_DECLARED_RE)) {
+    failures.push({ page: '/sitemap.xml', reason: `不應收錄 markdown 變體：${match[0]}` });
+  }
+});
 ```
 
 Step 4: 跑驗證確認全數通過
 
 Run: `npm run build && npm run verify:seo`
-Expected: 所有規則皆 `[PASS]`，結尾為「全數通過」，其中包含上面六項新規則
+Expected: 所有規則皆 `[PASS]`，結尾為「全數通過」，其中包含上面七項新規則
 
 Step 5: 反向驗證新規則真的會攔截
 
@@ -848,7 +863,7 @@ Step 7: Commit
 ```bash
 git add scripts/verify-seo.mjs CLAUDE.md
 git commit -F - <<'EOF'
-test(agent-markdown): verify:seo 加六條 md 變體斷言並同步 CLAUDE.md (#33)
+test(agent-markdown): verify:seo 加七條 md 變體斷言並同步 CLAUDE.md (#33)
 
 全部讀 dist/：
 - 非草稿文章數與 .md 數相等、草稿不得有 md
@@ -856,6 +871,8 @@ test(agent-markdown): verify:seo 加六條 md 變體斷言並同步 CLAUDE.md (#
 - md 引用的 /_astro/ 資產在 dist 裡真的存在
 - frontmatter 可解析、必要欄位齊全、不外洩 draft、canonical 值正確
 - llms.txt 宣告的 md 連結與實際產物一一對應
+- sitemap 不得收錄 .md（spec S5；目前靠 @astrojs/sitemap 只收 HTML 頁天然
+  成立，但天然成立與有人驗過是兩回事）
 
 第四條是主防線，直接擋掉「網址看起來對、實際指向沒被 emit 的檔案」——
 改用 import.meta.glob 取 .src 就會全面觸發。已反向驗證：拿掉端點的圖片改寫
