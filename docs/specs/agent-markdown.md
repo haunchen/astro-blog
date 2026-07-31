@@ -2,13 +2,14 @@
 domain: agent-markdown
 status: active
 created: 2026-07-29
-last_modified: 2026-07-29
+last_modified: 2026-07-31
 ---
 
 # Agent Markdown
 
 對 AI agent 供應文章的原生 markdown 表示：build 時為每篇非草稿文章輸出一份 `.md` 變體，
 含白名單 frontmatter 與絕對化的圖片網址，並透過路徑慣例、llms.txt 與 HTML 宣告讓 agent 找得到。
+首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6）。
 
 ## Requirements
 
@@ -16,7 +17,8 @@ last_modified: 2026-07-29
 - **Level**: MUST
 - **Description**: 每篇非草稿文章在 `/<slug>.md` 提供一份 markdown 表示，內容為文章原始
   markdown 正文（程式碼區塊、表格、標題階層原樣保留），前置一段 YAML frontmatter。
-  草稿文章不得產出 md。文章以外的頁面（首頁、關於、分類、標籤等）不在範圍內。
+  草稿文章不得產出 md。首頁另有專屬變體，契約見 R6；其餘頁面（關於、分類、標籤等）
+  仍不在範圍內。
 
 ### R2: frontmatter 契約
 - **Level**: MUST
@@ -40,6 +42,15 @@ last_modified: 2026-07-29
 - **Level**: MUST
 - **Description**: `.md` 路徑回應 `Content-Type: text/markdown; charset=utf-8`；
   快取策略與 HTML 頁面一致；帶 `X-Robots-Tag: noindex`。md 變體不進 sitemap。
+
+### R6: 首頁 markdown 變體
+- **Level**: MUST
+- **Description**: `/index.md` 提供首頁的 markdown 表示，內容涵蓋站台簡介、最新文章、
+  分類與篇數、作者簡介與專案作品，並指向 `/articles/` 與 `/llms.txt` 取得完整清單。
+  frontmatter 為 `title`、`description`、`canonical`、`image` 四欄——首頁不是文章，
+  不套用 R2 的欄位契約（無 `date`／`category`／`tags`）。`canonical` 指向 `https://frankchen.tw/`。
+  首頁 HTML 須以 `<link rel="alternate" type="text/markdown" href="/index.md">` 宣告它。
+  頁面文案（標題、描述、關於我、專案）與 HTML 首頁共用同一份來源，不得各自維護副本。
 
 ## Scenarios
 
@@ -73,6 +84,14 @@ last_modified: 2026-07-29
 - **When**: 請求任一 `.md` 路徑並檢視回應標頭
 - **Then**: 含 `X-Robots-Tag: noindex`；且 sitemap.xml 不含任何 `.md` 網址
 - **Implements**: #R5
+
+### S6: agent 取得首頁的 markdown 表示
+- **Given**: 站台已部署
+- **When**: 請求 `https://frankchen.tw/index.md`
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，frontmatter 含
+  `title`／`description`／`canonical`／`image` 且 `canonical` 為 `https://frankchen.tw/`；
+  首頁 HTML 內含指向它的 `<link rel="alternate" type="text/markdown">`
+- **Implements**: #R6
 
 ## Design Decisions
 
@@ -124,3 +143,35 @@ last_modified: 2026-07-29
   規則，`noindex` 一條規則即可。代價是 AI 搜尋爬蟲不會索引 md 版，但它們本就在抓
   HTML 正本，兩條路不衝突
 - **Date**: 2026-07-29
+
+### D6: 補首頁 md 變體，而不是改做內容協商
+- **Decision**: 新增 `/index.md` 靜態變體，D1 的「不做內容協商」維持不變
+- **Rationale**: 起因是 SEO 日檢的 `ax/markdown-response` 持續警告——該規則只探首頁，
+  而 R1 原本把首頁排除在外，所以 35 篇文章的 md 全部到位它仍然看不到。規則本身
+  二擇一即可（內容協商或 `.md` 變體），補靜態變體是兩者中風險低的那個，也不必推翻
+  D1 已經評估過的快取分流風險。實測方式是本機 build + preview，用
+  `squirrelscan audit --rule-include ax --max-pages 1` 分別打 localhost 與正式站對照，
+  兩邊差異恰好只有 `markdown-response` 一條（2026-07-31）。
+
+  這條規則是 recommendation-only、不計分，所以真正的理由是第二個：agent 想知道
+  「這站是什麼」時，先前只能吃首頁 HTML，而同一份日檢的 `ax/token-weight` 正好在說
+  首頁可見文字不到 HTML 的 15%
+- **Date**: 2026-07-31
+
+### D7: 首頁 md 不套用 R2 的 frontmatter 契約
+- **Decision**: `/index.md` 只輸出 `title`／`description`／`canonical`／`image`，
+  verify-seo 也把它從文章 md 的斷言集合中排除、另立兩條檢查
+- **Rationale**: `date`／`category`／`tags` 對一個入口頁沒有意義，硬湊值只是為了讓
+  同一組斷言跑得過而編造資料。verify-seo 原本用 `dist/**/*.md` 全域掃描當作「文章 md
+  的集合」，這個假設在首頁 md 出現後就不再成立，是靜默失效的來源——若不排除，
+  `canonical` 那條會期待 `https://frankchen.tw/index/`，而 llms.txt 對應檢查會判它
+  「產物未被宣告」
+- **Date**: 2026-07-31
+
+### D8: 首頁文案抽到 `site-meta.ts` 的 `HOME`
+- **Decision**: 標題、描述、OG 圖、關於我文案與專案清單從 `index.astro` 內聯搬到
+  `HOME`，HTML 首頁與 `/index.md` 都讀同一份
+- **Rationale**: 兩個路由要輸出同一個頁面的兩種表示，各留一份副本就沒有東西擋得住
+  「改了 HTML 忘了改 md」——那種漂移不會讓 build 失敗，只會讓 agent 拿到過期的站台
+  介紹。與 `CATEGORIES`／`HEADER_NAV` 已經在做的事情同一套路
+- **Date**: 2026-07-31

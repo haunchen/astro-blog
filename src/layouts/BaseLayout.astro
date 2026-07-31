@@ -39,8 +39,8 @@ interface Props {
   preloadImage?: { src: string; srcSet?: string; sizes?: string };
   /**
    * 該頁 markdown 變體的路徑（例如 `/some-slug.md`）。
-   * 傳入才輸出 <link rel="alternate" type="text/markdown">——只有文章有 md 變體，
-   * 其餘頁面沒有對應產物，亂宣告等於給 agent 一個 404。
+   * 傳入才輸出 <link rel="alternate" type="text/markdown">——目前只有文章與首頁
+   * 有 md 變體，其餘頁面沒有對應產物，亂宣告等於給 agent 一個 404。
    */
   markdownVariant?: string;
 }

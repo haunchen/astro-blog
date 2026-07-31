@@ -144,7 +144,11 @@ const articlePathnames = new Set(
 // Markdown 變體（agent-markdown spec）：產物與來源的草稿狀態
 // ---------------------------------------------------------------------------
 
-const mdBySlug = new Map(
+// 首頁的 md 變體不是文章，走另一套契約（沒有 date／category／tags），故從這裡
+// 排除、單獨檢查。下面所有以 mdBySlug 為對象的斷言都只講「文章的 md」。
+const HOME_MD_SLUG = 'index';
+
+const allMdInDist = new Map(
   globSync('**/*.md', { cwd: DIST })
     .sort()
     .map((relFile) => [
@@ -152,6 +156,8 @@ const mdBySlug = new Map(
       readFileSync(path.join(DIST, relFile), 'utf8'),
     ]),
 );
+
+const mdBySlug = new Map([...allMdInDist].filter(([slug]) => slug !== HOME_MD_SLUG));
 
 // 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
 const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
@@ -590,6 +596,49 @@ check('.md 變體的 frontmatter 可解析、欄位齊全且不外洩內部欄�
         reason: `canonical 應為 ${expectedCanonical}，實際為 ${data.canonical}`,
       });
     }
+  }
+});
+
+// 首頁的 md 變體：與文章 md 分開檢查，契約也不同（見 index.md.ts 檔頭）。
+// 它的存在理由之一是稽核工具的 ax/markdown-response 只探首頁，所以「首頁有沒有
+// md」本身就是要守住的東西，不能只靠文章那組斷言順帶覆蓋。
+check('首頁有 markdown 變體且 frontmatter 正確', (failures) => {
+  const text = allMdInDist.get(HOME_MD_SLUG);
+  if (text === undefined) {
+    failures.push({ page: '/index.md', reason: '缺少首頁 markdown 變體' });
+    return;
+  }
+  let data;
+  try {
+    ({ data } = matter(text));
+  } catch (err) {
+    failures.push({ page: '/index.md', reason: `frontmatter 解析失敗：${err.message}` });
+    return;
+  }
+  for (const key of ['title', 'description', 'canonical', 'image']) {
+    if (data[key] === undefined) {
+      failures.push({ page: '/index.md', reason: `frontmatter 缺少 ${key}` });
+    }
+  }
+  if (data.canonical !== `${SITE_ORIGIN}/`) {
+    failures.push({
+      page: '/index.md',
+      reason: `canonical 應為 ${SITE_ORIGIN}/，實際為 ${data.canonical}`,
+    });
+  }
+});
+
+check('首頁 HTML 宣告 markdown 變體', (failures) => {
+  const home = pages.find((p) => p.pathname === '/');
+  if (!home) {
+    failures.push({ page: '/', reason: '找不到首頁 HTML' });
+    return;
+  }
+  if (!/<link[^>]+type=["']text\/markdown["'][^>]+href=["']\/index\.md["']/.test(home.html)) {
+    failures.push({
+      page: '/',
+      reason: '缺少 <link rel="alternate" type="text/markdown" href="/index.md">',
+    });
   }
 });
 

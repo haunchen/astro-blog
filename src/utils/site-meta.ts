@@ -189,6 +189,48 @@ export function collectionPageJsonLd(opts: {
   };
 }
 
+// 首頁內容單一來源 ---------------------------------------------------
+//
+// 這些文案原本內聯在 index.astro。抽出來是因為 /index.md 要輸出「同一個首頁」的
+// markdown 表示（見 docs/specs/agent-markdown.md R6）——兩邊各留一份副本，改了
+// HTML 忘了改 md 不會有任何東西擋得住，agent 就會拿到過期的站台介紹。
+export const HOME = {
+  // 首頁不走 pageTitle()：那會得到純品牌名（僅 9 字元），對搜尋結果太短也說不出
+  // 本站在寫什麼，故直接組出「品牌名｜主題」的完整標題。
+  title: `${SITE.name}｜n8n 自動化、架站部署與 Flutter 開發實戰筆記`,
+  description:
+    '下班後的工程師筆記：白天上班，下班寫 Side Project。從只會寫程式，到跨領域學習電路、製程與架站，這裡分享 n8n 自動化流程、WordPress 與 Cloudflare 架站部署、Flutter App 開發與樹莓派實作的實戰經驗、踩坑紀錄，以及可直接套用的自動化模板。',
+  ogImage: '/cover.webp',
+  about: {
+    bio: '系統整合工程師，擁有超過 3 年的軟體開發經驗。曾領導 5 人團隊完成兩代智慧醫療模擬器的完整開發與商業化，涵蓋軟體、韌體、硬體、App 及後端系統。',
+    role: '系統整合課長 @ 原妙醫學科技',
+    tags: ['系統架構', '電路設計', 'Flutter', 'n8n', 'Raspberry Pi'],
+  },
+  projects: [
+    {
+      name: 'n8nManager',
+      desc: 'n8n 工作流管理 App，雙平台即時監控',
+      tags: ['Flutter', 'Dart', 'MVVM'],
+      link: 'https://n8nmanager.frankchen.tw/',
+      linkText: '前往 n8nManager 網站 →',
+    },
+    {
+      name: '醫療教學模擬器 G3',
+      desc: '領導 5 人團隊開發，BOM 成本降低 30%',
+      tags: ['Raspberry Pi', 'Hailo AI'],
+      link: '/about/',
+      linkText: '了解 G3 專案細節 →',
+    },
+    {
+      name: '法蘭克技術部落格',
+      desc: '個人技術部落格，分享開發實戰經驗',
+      tags: ['Astro', 'Cloudflare'],
+      link: '/',
+      linkText: '前往部落格首頁 →',
+    },
+  ],
+} as const;
+
 // header/footer 導覽與連結單一來源 ---------------------------------
 
 // 社群圖示：由 SITE.sameAs（threads/instagram/github/linkedin 順序）＋ email 推出

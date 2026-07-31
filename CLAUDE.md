@@ -55,6 +55,9 @@ Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 - `/og/[...slug].png` — OG images generated at build time (satori + sharp)
 - `/[...slug].md` — Markdown variant of every published post for AI agents (whitelisted frontmatter,
   absolute image URLs, `X-Robots-Tag: noindex`). See `docs/specs/agent-markdown.md`
+- `/index.md` — Markdown variant of the homepage. Different contract from the post variants
+  (no `date`/`category`/`tags`); `verify-seo` checks it separately. Homepage copy lives in
+  `HOME` (`src/utils/site-meta.ts`) so the HTML page and the `.md` never drift apart
 - `/rss.xml`, `/llms.txt`, `/sitemap.xml`
 
 **Sitemap:** `@astrojs/sitemap` always emits `sitemap-index.xml` + `sitemap-0.xml`; a custom
