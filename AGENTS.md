@@ -3,6 +3,10 @@
 給 coding agent 看的專案指南。人類開發者的完整慣例見 `CLAUDE.md`（本檔不重複
 抄錄，僅摘要與指路）。
 
+> 注意：本檔與 `public/AGENTS.md` 是兩份不同的東西，別改錯。那一份會被部署到
+> `https://frankchen.tw/AGENTS.md`，是給**造訪網站**的 agent 看的內容取用手冊
+> （路徑慣例、frontmatter 契約、引用規範），與開發這個 repo 無關。
+
 ## 技術棧
 
 Astro v5（靜態輸出）＋ Tailwind CSS v4（透過 Vite plugin，非 PostCSS）＋
@@ -15,10 +19,20 @@ TypeScript strict mode。部署到 Cloudflare Pages（`https://frankchen.tw`）�
 npm run dev          # 開發伺服器（會先跑字型裁切，見下方）
 npm run build         # 正式建置 → dist/
 npm run preview       # 預覽 build 產物
-npm run verify:seo    # build 後的靜態 SEO 驗證（15 條規則，需先 build）
+npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出）
+npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
 ```
+
+`npm test` 的 glob **刻意加了雙引號**，要讓 Node 自己展開而不是 shell 展開（這是
+Node 官方文件建議的可攜寫法）。拿掉引號、或改傳目錄（`node --test scripts/lib/`）
+在 Windows 上會失敗，不要「順手修正」。
+
+另有三支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
+`verify:assets`。它們存在的理由就是 Cloudflare zone 層規則會覆寫 repo 裡的設定——
+`public/_headers` 與 `public/robots.txt` 是請求，zone 才是執行——所以指向 localhost
+等於讓這些檢查失去意義。要換來源用 `npm run verify:headers -- https://其他來源`。
 
 `dev` / `build` 前會自動跑 `scripts/build-font-css.mjs`（產出 gitignore 的
 `src/styles/fonts.css` 與 `public/fonts/*`），不需要手動介入；只有改字型設定
@@ -37,11 +51,18 @@ src/
   utils/site-meta.ts SITE 常數與 JSON-LD 工廠函式，SEO 的單一來源
   styles/global.css  design tokens（CSS 變數），Tailwind v4 於此 @import
 scripts/             build-font-css.mjs（網頁字型裁切）、subset-fonts.mjs
-                     （OG 圖字型，用 satori）、verify-seo.mjs（build 後驗證）
+                     （OG 圖字型，用 satori）、verify-*.mjs（build 後與正式站驗證）
+  lib/               migrate-wp 與 markdown 匯出的純函式，npm test 的對象
+public/
+  AGENTS.md          ← 給造訪網站的 agent，不是這一份
+  _headers, _redirects, robots.txt
 docs/
   SEO_GUIDE.md       改動 SEO 相關內容前必讀
   SEO_TODO.md        已知未完成事項
-  specs/, data/       施工 spec 與稽核基準快照
+  deployment.md      部署與 Cloudflare 設定
+  specs/             功能規格（動到既有行為時要一起更新）
+  plans/             日期成對的設計與實作計畫
+  data/              SEO 基準快照
 .github/workflows/    seo-pr.yml（PR 稽核）、seo-daily.yml（正式站日檢）
 .githooks/pre-commit  文章 frontmatter 快速檢查（commit 時擋）
 ```
@@ -55,6 +76,13 @@ docs/
 - Design tokens 是 `src/styles/global.css` 的 CSS 變數，不要在元件裡寫死顏色／
   字型／間距數值。
 - 語言：zh-TW（正體中文台灣用語），所有內容與 UI 文案皆同。
+- `astro.config.mjs` 的 `vite.build.assetsInlineLimit: 0` 與 `cssCodeSplit: false`
+  是 load-bearing 的，不要當成待最佳化的設定。前者一旦調高會把 `Nav.astro` 的
+  script 內聯，`public/_headers` 的 CSP（`script-src 'self'`）就會在執行期把選單
+  打死——build 不會報錯，只有真的在瀏覽器點下去才會發現。
+- 站台層級的共用資料（分類、導覽、首頁文案、JSON-LD）集中在
+  `src/utils/site-meta.ts`，沿用單一來源，不要在頁面裡另抄一份。
+- 正規主機是 **non-www**。內容、sitemap、站內連結都不得出現 www 網址。
 
 ## 寫文章時的 frontmatter 規範
 

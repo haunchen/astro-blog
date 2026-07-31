@@ -9,7 +9,8 @@ last_modified: 2026-07-31
 
 對 AI agent 供應文章的原生 markdown 表示：build 時為每篇非草稿文章輸出一份 `.md` 變體，
 含白名單 frontmatter 與絕對化的圖片網址，並透過路徑慣例、llms.txt 與 HTML 宣告讓 agent 找得到。
-首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6）。
+首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6），
+並以 `/AGENTS.md` 供應一份取用手冊（見 R7）。
 
 ## Requirements
 
@@ -52,6 +53,14 @@ last_modified: 2026-07-31
   首頁 HTML 須以 `<link rel="alternate" type="text/markdown" href="/index.md">` 宣告它。
   頁面文案（標題、描述、關於我、專案）與 HTML 首頁共用同一份來源，不得各自維護副本。
 
+### R7: 站台層級的 AGENTS.md
+- **Level**: MUST
+- **Description**: `/AGENTS.md` 提供造訪本站的 agent 一份取用手冊：`.md` 變體的路徑
+  慣例、frontmatter 欄位契約、正規主機與結尾斜線慣例、抓取政策的指向、引用規範。
+  內容須為非空 markdown，且至少涵蓋 `/llms.txt`、`/index.md`、`/rss.xml`、
+  `/robots.txt` 與 canonical 引用規範五個取用管道。
+  與 repo 根目錄的 `AGENTS.md`（coding agent 用）是兩份不同文件，內容不得混用。
+
 ## Scenarios
 
 ### S1: agent 依慣例抓取 md
@@ -92,6 +101,13 @@ last_modified: 2026-07-31
   `title`／`description`／`canonical`／`image` 且 `canonical` 為 `https://frankchen.tw/`；
   首頁 HTML 內含指向它的 `<link rel="alternate" type="text/markdown">`
 - **Implements**: #R6
+
+### S7: agent 從站台取得取用手冊
+- **Given**: 站台已部署
+- **When**: 請求 `https://frankchen.tw/AGENTS.md`
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown
+  且涵蓋 R7 列出的五個取用管道
+- **Implements**: #R7
 
 ## Design Decisions
 
@@ -174,4 +190,29 @@ last_modified: 2026-07-31
 - **Rationale**: 兩個路由要輸出同一個頁面的兩種表示，各留一份副本就沒有東西擋得住
   「改了 HTML 忘了改 md」——那種漂移不會讓 build 失敗，只會讓 agent 拿到過期的站台
   介紹。與 `CATEGORIES`／`HEADER_NAV` 已經在做的事情同一套路
+- **Date**: 2026-07-31
+
+### D9: 站台的 AGENTS.md 寫「怎麼取用本站」，不是「怎麼建置本 repo」
+- **Decision**: `public/AGENTS.md` 供應給造訪者的是內容取用手冊；repo 根目錄那份
+  維持 coding agent 用途，兩者不互相複製
+- **Rationale**: 起因同樣是日檢——`ax/agents-md` 探測站台上的 `/AGENTS.md`、
+  `/agents.md`、`/.well-known/agents.md`、`/docs/AGENTS.md` 四個位址，但它期待的
+  內容是 repo 層的 build／test 指令。照它的字面做，等於把「怎麼跑 npm test」publish
+  給每個讀者，而會從網址找建置指令的 coding agent 對一個個人部落格趨近於零。
+
+  查證後 `AGENTS.md` 這個檔名底下其實有兩種東西：repo 根目錄那份出自 OpenAI Codex
+  團隊（2025），現由 Agentic AI Foundation 治理，Codex／Cursor／Copilot／Jules 等
+  都讀；站台根目錄那份是另一條線，Shopify 自 2026-05 起為每間店自動產生，源頭是
+  Google 的 Universal Commerce Protocol，內容是「怎麼搜尋、怎麼加購物車、怎麼結帳」。
+  squirrelscan 要的是把前者的內容放到後者的位置。
+
+  本站取後者的角色、換掉領域：不是「怎麼下單」而是「怎麼取用內容」。這樣寫出來的
+  文件本身有價值——`.md` 路徑慣例、frontmatter 欄位、`.md` 帶 noindex 所以引用要用
+  canonical、non-www 與結尾斜線——先前散在 llms.txt、robots.txt、`_headers` 與本
+  spec 裡，agent 沒有一個地方一次看得到。實測（2026-07-31）以這種內容供應，
+  `ax/agents-md` 一樣通過：該規則只檢查非空、是 markdown、不是 HTML 錯誤頁
+
+  抓取政策一節刻意只指向 `/robots.txt` 而不重列 user-agent 名單：robots.txt 與
+  Cloudflare zone 的清單本來就不同步（`public/_headers` 的註解已記載這件事），
+  在第三個地方再抄一份只是多一個會過期的副本
 - **Date**: 2026-07-31
