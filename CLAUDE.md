@@ -58,6 +58,9 @@ Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 - `/index.md` — Markdown variant of the homepage. Different contract from the post variants
   (no `date`/`category`/`tags`); `verify-seo` checks it separately. Homepage copy lives in
   `HOME` (`src/utils/site-meta.ts`) so the HTML page and the `.md` never drift apart
+- `/AGENTS.md` (`public/AGENTS.md`) — how-to-consume manual for agents *visiting the site*:
+  `.md` path convention, frontmatter contract, canonical/citation rules. **Not the same file
+  as the repo-root `AGENTS.md`**, which is the coding-agent guide (vendor-neutral `CLAUDE.md`)
 - `/rss.xml`, `/llms.txt`, `/sitemap.xml`
 
 **Sitemap:** `@astrojs/sitemap` always emits `sitemap-index.xml` + `sitemap-0.xml`; a custom

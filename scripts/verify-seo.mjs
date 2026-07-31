@@ -144,9 +144,15 @@ const articlePathnames = new Set(
 // Markdown 變體（agent-markdown spec）：產物與來源的草稿狀態
 // ---------------------------------------------------------------------------
 
-// 首頁的 md 變體不是文章，走另一套契約（沒有 date／category／tags），故從這裡
-// 排除、單獨檢查。下面所有以 mdBySlug 為對象的斷言都只講「文章的 md」。
+// dist 裡不是文章的 md：首頁變體走另一套 frontmatter 契約（沒有 date／category／
+// tags），AGENTS.md 根本沒有 frontmatter。兩者都從這裡排除、各自單獨檢查——下面所有
+// 以 mdBySlug 為對象的斷言都只講「文章的 md」。
+//
+// 新增任何非文章的 .md 產物時務必補進這個集合，否則它會被當成一篇文章，觸發一串
+// 看不出真正原因的失敗（缺 frontmatter 欄位、canonical 不對、llms.txt 未宣告）。
 const HOME_MD_SLUG = 'index';
+const AGENTS_MD_SLUG = 'AGENTS';
+const NON_ARTICLE_MD = new Set([HOME_MD_SLUG, AGENTS_MD_SLUG]);
 
 const allMdInDist = new Map(
   globSync('**/*.md', { cwd: DIST })
@@ -157,7 +163,7 @@ const allMdInDist = new Map(
     ]),
 );
 
-const mdBySlug = new Map([...allMdInDist].filter(([slug]) => slug !== HOME_MD_SLUG));
+const mdBySlug = new Map([...allMdInDist].filter(([slug]) => !NON_ARTICLE_MD.has(slug)));
 
 // 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
 const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
@@ -639,6 +645,31 @@ check('首頁 HTML 宣告 markdown 變體', (failures) => {
       page: '/',
       reason: '缺少 <link rel="alternate" type="text/markdown" href="/index.md">',
     });
+  }
+});
+
+// AGENTS.md 是 public/ 底下的靜態檔，不經路由產生——所以它最可能的失效方式是
+// 「被誤刪或改名之後沒有人發現」。稽核工具（squirrelscan ax/agents-md）只檢查它
+// 非空且不是 HTML 錯誤頁，這裡照同一個口徑守住，另外釘住幾個一定要提到的取用管道：
+// 少了它們，這份文件就退化成一個為了關警告而存在的空殼。
+check('AGENTS.md 存在且涵蓋主要取用管道', (failures) => {
+  const text = allMdInDist.get(AGENTS_MD_SLUG);
+  if (text === undefined) {
+    failures.push({ page: '/AGENTS.md', reason: '缺少 AGENTS.md' });
+    return;
+  }
+  if (text.trim().length === 0) {
+    failures.push({ page: '/AGENTS.md', reason: '內容為空' });
+    return;
+  }
+  if (/^\s*<(!doctype|html)/i.test(text)) {
+    failures.push({ page: '/AGENTS.md', reason: '內容是 HTML，不是 markdown' });
+    return;
+  }
+  for (const channel of ['/llms.txt', '/index.md', '/rss.xml', '/robots.txt', 'canonical']) {
+    if (!text.includes(channel)) {
+      failures.push({ page: '/AGENTS.md', reason: `未提及 ${channel}` });
+    }
   }
 });
 
