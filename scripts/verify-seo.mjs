@@ -144,15 +144,17 @@ const articlePathnames = new Set(
 // Markdown 變體（agent-markdown spec）：產物與來源的草稿狀態
 // ---------------------------------------------------------------------------
 
-// dist 裡不是文章的 md：首頁變體走另一套 frontmatter 契約（沒有 date／category／
-// tags），AGENTS.md 根本沒有 frontmatter。兩者都從這裡排除、各自單獨檢查——下面所有
-// 以 mdBySlug 為對象的斷言都只講「文章的 md」。
+// dist 裡的 md 分三類，各有各的契約，混在一起驗必定誤報：
+//   1. 文章 md（R1/R2）：完整 frontmatter，canonical 指向 /<slug>/
+//   2. 首頁 md（R6）：四欄契約，canonical 指向 /
+//   3. 頁面 md（R10）：四欄契約，canonical 指向該頁自己的網址
+// 另有 AGENTS.md，它根本沒有 frontmatter，四類都不適用。
 //
-// 新增任何非文章的 .md 產物時務必補進這個集合，否則它會被當成一篇文章，觸發一串
-// 看不出真正原因的失敗（缺 frontmatter 欄位、canonical 不對、llms.txt 未宣告）。
+// 這個分類曾經是「文章以外都例外」的黑名單（NON_ARTICLE_MD），在頁面 md 出現後不再夠用：
+// 黑名單漏一項就會把它當文章驗，而失敗訊息完全看不出根因。改成以來源為準的白名單——
+// 文章的集合直接來自 src/content/posts/，不靠 dist 的檔名去猜。
 const HOME_MD_SLUG = 'index';
 const AGENTS_MD_SLUG = 'AGENTS';
-const NON_ARTICLE_MD = new Set([HOME_MD_SLUG, AGENTS_MD_SLUG]);
 
 const allMdInDist = new Map(
   globSync('**/*.md', { cwd: DIST })
@@ -162,8 +164,6 @@ const allMdInDist = new Map(
       readFileSync(path.join(DIST, relFile), 'utf8'),
     ]),
 );
-
-const mdBySlug = new Map([...allMdInDist].filter(([slug]) => !NON_ARTICLE_MD.has(slug)));
 
 // 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
 const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
@@ -175,6 +175,16 @@ const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT })
   const { data } = matter(readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
   return { id, draft: data.draft === true };
 });
+
+const articleSlugs = new Set(sourcePosts.filter((p) => !p.draft).map((p) => p.id));
+
+const mdBySlug = new Map([...allMdInDist].filter(([slug]) => articleSlugs.has(slug)));
+
+const pageMdBySlug = new Map(
+  [...allMdInDist].filter(
+    ([slug]) => !articleSlugs.has(slug) && slug !== HOME_MD_SLUG && slug !== AGENTS_MD_SLUG,
+  ),
+);
 
 const ORIGIN_RE_SOURCE = SITE_ORIGIN.replace(/\./g, '\\.');
 const MD_ASSET_RE = new RegExp(`${ORIGIN_RE_SOURCE}(/_astro/[^\\s)）"']+)`, 'g');
@@ -703,6 +713,83 @@ check('sitemap 不得收錄 .md 變體', (failures) => {
   const sitemap = readFileSync(sitemapPath, 'utf8');
   for (const match of sitemap.matchAll(MD_DECLARED_RE)) {
     failures.push({ page: '/sitemap.xml', reason: `不應收錄 markdown 變體：${match[0]}` });
+  }
+});
+
+// 每個 HTML 頁面都必須有對應的 md。這條是硬要求不是盡力而為：R11 的內容協商在找不到 md 時
+// 會退回 HTML，缺漏因此完全靜默——協商「有回應」、頁面「看起來正常」，只有 agent 拿不到 md。
+check('每個 HTML 頁面都有對應的 markdown 變體', (failures) => {
+  for (const { pathname } of pages) {
+    // 404 頁沒有 md 變體（noindex，且不在協商範圍內）
+    if (pathname === '/404' || pathname === '/404.html') continue;
+    const slug = pathname === '/' ? HOME_MD_SLUG : pathname.replace(/^\//, '').replace(/\/$/, '');
+    if (!allMdInDist.has(slug)) {
+      failures.push({ page: pathname, reason: `缺少對應的 ${slug}.md` });
+    }
+  }
+});
+
+check('頁面 markdown 變體的 frontmatter 為四欄契約且 canonical 正確', (failures) => {
+  for (const [slug, text] of pageMdBySlug) {
+    let data;
+    try {
+      ({ data } = matter(text));
+    } catch (err) {
+      failures.push({ page: `/${slug}.md`, reason: `frontmatter 解析失敗：${err.message}` });
+      continue;
+    }
+    for (const key of ['title', 'description', 'canonical', 'image']) {
+      if (!data[key]) failures.push({ page: `/${slug}.md`, reason: `frontmatter 缺少 ${key}` });
+    }
+    // 頁面不是文章，硬湊這些欄位只是為了讓同一組斷言跑得過而編造資料（見 spec D7）。
+    for (const key of ['date', 'category', 'tags']) {
+      if (key in data) {
+        failures.push({ page: `/${slug}.md`, reason: `頁面 md 不應有文章欄位 ${key}` });
+      }
+    }
+    // slug 直接來自 dist 的檔名，是解碼後的原始文字（例如標籤「Google Cloud」含空白、
+    // 「工作流程」是中文）；但頁面實際輸出的 canonical 是瀏覽器網址，特殊字元一律
+    // percent-encode（encodeURI 的規則：空白與非 ASCII 會編碼，單引號等安全字元不會）。
+    // 兩邊不做同一次編碼就會逐字元比對失敗，誤判成 canonical 錯誤。
+    const expectedCanonical = `${SITE_ORIGIN}/${encodeURI(slug)}/`;
+    if (data.canonical !== expectedCanonical) {
+      failures.push({
+        page: `/${slug}.md`,
+        reason: `canonical 應為 ${expectedCanonical}，實際為 ${data.canonical}`,
+      });
+    }
+  }
+});
+
+// 轉換器與 BaseLayout 的 #main-content 結構耦合，版面改結構時抽取會靜默劣化成一份
+// 只有 frontmatter 的空殼。長度下限擋不住「讀起來好不好」，但擋得住「整段沒抽到」。
+check('頁面 markdown 變體有實質內容', (failures) => {
+  for (const [slug, text] of pageMdBySlug) {
+    const body = matter(text).content.trim();
+    if (body.length < 80) {
+      failures.push({ page: `/${slug}.md`, reason: `正文僅 ${body.length} 字元，疑似抽取失敗` });
+    }
+    if (body.includes('<div') || body.includes('</div>')) {
+      failures.push({ page: `/${slug}.md`, reason: '正文殘留未轉換的 HTML 標籤' });
+    }
+  }
+});
+
+// R4 的 HTML 宣告管道。Astro.url.pathname 是否帶結尾斜線會影響 BaseLayout 的推導結果，
+// 推導失敗時宣告會靜默消失——頁面完全正常，只是少一條發現管道。
+check('每個 HTML 頁面都宣告自己的 markdown 變體', (failures) => {
+  for (const { pathname, html } of pages) {
+    if (pathname === '/404' || pathname === '/404.html') continue;
+    // pathname 來自 dist 目錄名，是解碼後的原始文字；href 屬性裡的網址則是
+    // encodeURI 編碼過的（標籤頁的空白／中文最常見），兩者要編碼一致才能比對。
+    const expected =
+      pathname === '/' ? '/index.md' : `${encodeURI(pathname.replace(/\/$/, ''))}.md`;
+    const re = new RegExp(
+      `<link[^>]+type=["']text/markdown["'][^>]+href=["']${expected.replace(/\//g, '\\/')}["']`,
+    );
+    if (!re.test(html)) {
+      failures.push({ page: pathname, reason: `缺少指向 ${expected} 的 text/markdown 宣告` });
+    }
   }
 });
 
