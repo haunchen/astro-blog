@@ -11,8 +11,10 @@ last_modified: 2026-08-03
 含白名單 frontmatter 與絕對化的圖片網址，並透過路徑慣例、llms.txt、HTML 宣告與 HTTP
 `Link` 標頭讓 agent 找得到。
 首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6），
+其餘頁面亦各有一份 markdown 變體（見 R10），
 並以 `/AGENTS.md` 供應一份取用手冊（見 R7）。
-發現管道由淺至深分三層：HTML／llms.txt（R4）、HTTP `Link` 標頭（R8）、DNS 記錄（R9）。
+發現管道由淺至深分四層：HTML／llms.txt（R4）、HTTP `Link` 標頭（R8）、DNS 記錄（R9）、
+同一網址的 `Accept` 內容協商（R11）。
 
 ## Requirements
 
@@ -21,7 +23,7 @@ last_modified: 2026-08-03
 - **Description**: 每篇非草稿文章在 `/<slug>.md` 提供一份 markdown 表示，內容為文章原始
   markdown 正文（程式碼區塊、表格、標題階層原樣保留），前置一段 YAML frontmatter。
   草稿文章不得產出 md。首頁另有專屬變體，契約見 R6；其餘頁面（關於、分類、標籤等）
-  仍不在範圍內。
+  走另一條產出管線，見 R10。
 
 ### R2: frontmatter 契約
 - **Level**: MUST
@@ -37,14 +39,25 @@ last_modified: 2026-08-03
 
 ### R4: 發現管道
 - **Level**: MUST
-- **Description**: agent 可透過三種途徑得知 md 變體存在——路徑慣例（HTML 網址加 `.md`）、
-  llms.txt 中每篇文章附帶的 md 連結、文章頁 `<head>` 內的
-  `<link rel="alternate" type="text/markdown">`。llms.txt 宣告的 md 連結須與實際產物一致。
+- **Description**: agent 可透過三種途徑得知 md 變體存在——路徑慣例（頁面網址去掉結尾斜線
+  後加 `.md`，適用全站頁面而非僅文章）、llms.txt 中每篇文章附帶的 md 連結、頁面 `<head>`
+  內的 `<link rel="alternate" type="text/markdown">`。llms.txt 宣告的 md 連結須與實際產物一致。
+
+  本需求之外另有第四條管道：同一網址的 `Accept` 內容協商（R11）。四條管道由淺至深為
+  路徑慣例／llms.txt／HTML 宣告、HTTP `Link` 標頭（R8）、DNS 記錄（R9）、內容協商（R11）。
 
 ### R5: md 端點的回應標頭
 - **Level**: MUST
-- **Description**: `.md` 路徑回應 `Content-Type: text/markdown; charset=utf-8`；
-  快取策略與 HTML 頁面一致；帶 `X-Robots-Tag: noindex`。md 變體不進 sitemap。
+- **Description**: 本需求適用於**直接請求 `.md` 路徑**：回應
+  `Content-Type: text/markdown; charset=utf-8`；快取策略與 HTML 頁面一致；
+  帶 `X-Robots-Tag: noindex`。md 變體不進 sitemap。
+
+  協商回應（R11，走正規網址）的標頭契約與前者刻意不同：
+  - `Content-Type: text/markdown; charset=utf-8`（相同）
+  - **不得**帶 `X-Robots-Tag: noindex`。該標頭的用途是防 `/<slug>.md` 與 `/<slug>/`
+    被判重複內容；協商回應走的是正規網址本身，帶上它等於要求搜尋引擎不要收錄頁面本體
+  - HTML 與 markdown 兩種回應皆須帶 `Vary: Accept`
+  - 有能力計算時帶 `x-markdown-tokens`
 
 ### R6: 首頁 markdown 變體
 - **Level**: MUST
@@ -94,6 +107,31 @@ last_modified: 2026-08-03
 
   DNS 記錄不在 repo，zone 是唯一事實來源；本需求的守門人是 `npm run verify:dns-aid`。
 
+### R10: 全站頁面的 markdown 變體
+- **Level**: MUST
+- **Description**: 除文章（R1）與首頁（R6）之外的所有 HTML 頁面——關於、聯絡、隱私權、
+  n8n 資源、文章總覽、分類索引與各分類、標籤索引與各標籤——皆須提供 markdown 表示，
+  路徑為該頁網址去掉結尾斜線後加 `.md`（`/tag/n8n/` → `/tag/n8n.md`）。
+  frontmatter 比照 R6 的非文章欄位集（`title`、`description`、`canonical`、`image`），
+  不套用 R2 的文章契約。
+
+  本需求與 R1、R6 分屬不同產出管線，這是刻意的：文章與首頁有手寫來源（原始 markdown、
+  共用文案常數），品質高於任何通用轉換；其餘頁面的內容住在版面裡，沒有可抄的來源。
+  兩條管線不得為了「統一」而合併——合併的方向只能是讓文章 md 退化成轉換產物。
+
+  每個 HTML 頁面都必須有對應的 md 產物，缺任一份即為建置失敗。這條是硬要求而非盡力而為：
+  R11 的協商在找不到 md 時會退回 HTML，缺漏因此是靜默的。
+
+### R11: Accept 內容協商
+- **Level**: MUST
+- **Description**: 對站台任一頁面網址發出的請求，若 `Accept` 明確含 `text/markdown`，
+  回應該頁的 markdown 表示；否則回應 HTML。HTML 為預設，不得因協商而改變一般瀏覽器的行為。
+  協商回應使用原網址、狀態碼 200，不得改以重導向達成。
+
+  無對應 md 產物的路徑（404 頁、靜態資產）須退回 HTML／原有行為，不得因協商而產生新的 404。
+
+  協商能力的存在不取代 R4 的既有管道：路徑慣例仍須獨立可用。
+
 ## Scenarios
 
 ### S1: agent 依慣例抓取 md
@@ -138,8 +176,9 @@ last_modified: 2026-08-03
 ### S7: agent 從站台取得取用手冊
 - **Given**: 站台已部署
 - **When**: 請求 `https://frankchen.tw/AGENTS.md`
-- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown
-  且涵蓋 R7 列出的五個取用管道
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown，
+  且涵蓋六個取用管道：`/llms.txt`、`/index.md`、`/rss.xml`、`/robots.txt`、canonical
+  引用規範，與 `Accept: text/markdown` 內容協商（R11）
 - **Implements**: #R7
 
 ### S8: agent 以 HEAD 請求取得指路標
@@ -164,9 +203,30 @@ last_modified: 2026-08-03
   `NXNAME` 的 NSEC，只認 NXDOMAIN 會讓這一項在名稱確實不存在時系統性誤報
 - **Implements**: #R9
 
+### S10: agent 以 Accept 取得同一網址的 markdown
+- **Given**: 站台已部署
+- **When**: 對首頁與任一文章頁帶 `Accept: text/markdown` 發出請求
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`、帶 `Vary: Accept`，
+  body 為該頁的 markdown 表示；同一網址不帶該標頭時回應 `Content-Type: text/html`
+- **Implements**: #R11
+
+### S11: 協商回應不得要求搜尋引擎略過本體
+- **Given**: 站台已部署
+- **When**: 對任一文章頁帶 `Accept: text/markdown` 請求並檢視回應標頭
+- **Then**: 回應**不含** `X-Robots-Tag`；同一篇文章的 `/<slug>.md` 直接請求則仍含 `noindex`
+- **Implements**: #R5
+
+### S12: 無 markdown 表示的路徑不因協商而壞掉
+- **Given**: 站台已部署
+- **When**: 對不存在的路徑與任一靜態資產帶 `Accept: text/markdown` 請求
+- **Then**: 行為與不帶該標頭時一致（404 頁仍為 404 HTML、資產仍為原本的型別），
+  不得出現因協商而新產生的 404
+- **Implements**: #R11
+
 ## Design Decisions
 
-### D1: 只做靜態 md 變體，不做內容協商
+### D1: 只做靜態 md 變體，不做內容協商（superseded by D15）
+- **Status**: superseded（2026-08-03，見 D15）
 - **Decision**: build 時輸出 `.md` 靜態產物，不以 Pages Functions 判斷
   `Accept: text/markdown` 回應同一 URL
 - **Rationale**: 靜態產物的風險全留在 build 時，CI 擋得住，正式站行為可預測；內容協商
@@ -330,4 +390,38 @@ last_modified: 2026-08-03
   「records found, but DNSSEC was not validated」——它把 DNSSEC 當通行的必要條件而非加分項，
   是達成本案目的的唯一路徑。風險評估未變，只是不再有替代方案。連帶把 DNSSEC 從腳本的
   「印出但不計入失敗」升為正式斷言。注意這是為通過該檢測而做，**draft 本身仍只要求 SHOULD**
+- **Date**: 2026-08-03
+
+### D12: 頁面 md 走 build 後處理，不逐頁寫 route
+- **Decision**: 以建置後掃描產物 HTML 轉出頁面 md，不比照 `/index.md` 為九個頁面各寫一支路由
+- **Rationale**: 逐頁寫路由的前提是文案有共用來源可讀，但關於（544 行）、n8n 資源（301 行）、
+  聯絡（131 行）、隱私權（77 行）的文案全寫在版面裡。照 D8 的教訓，不先抽出共用來源就會漂移，
+  而那種漂移不會讓建置失敗、只會讓 agent 拿到過期內容；抽上千行版面文案的成本遠高於本功能
+  的價值。以最終 HTML 為單一來源，結構上不可能漂移
+- **Date**: 2026-08-03
+
+### D13: 自建協商層，不升級方案也不用 zone 規則
+- **Decision**: 協商邏輯寫在 repo 內的邊緣中介層；不啟用 Cloudflare 原生的 Markdown for
+  Agents，也不用 zone 的 URL 重寫規則
+- **Rationale**: 本站 zone 為 Free 方案，原生功能（Pro 起）與 Snippets（Pro 起）都用不到。
+  但即使升級也不會採用它：原生方案在邊緣做通用 HTML→md 轉換並附 JSON-LD（D3 刻意排除的東西），
+  而本站文章 md 是作者手寫的原始 markdown，會變成兩套互相打架的表示——付費買到品質更差的結果。
+  zone 重寫規則的硬傷是無法在缺 md 時退回 HTML（會 404），且規則活在 zone 不在 repo，
+  與 R9 同一種漂移病
+- **Date**: 2026-08-03
+
+### D14: 協商回應顯式剝除 noindex
+- **Decision**: 協商回應必須主動移除 `X-Robots-Tag`，並以反向斷言守著
+- **Rationale**: 這是本功能唯一會造成實質傷害的失誤模式。md 產物本身帶 `noindex`（D5），
+  協商層若取出產物原封轉發，該標頭會跟著出現在正規網址的回應上，等於對文章本體下架指令。
+  正向斷言（協商有回 md）擋不住它，必須另立反向斷言
+- **Date**: 2026-08-03
+
+### D15: D1 標記 superseded
+- **Decision**: D1「不做內容協商」失效，但保留原文並標記 superseded
+- **Rationale**: D1 的兩個理由現在一個被實測推翻、一個被補上對策。快取分流那條的前提不成立
+  ——實測正式站 HTML 頁面為 `cf-cache-status: DYNAMIC`，本來就沒有邊緣快取可以被污染，
+  D1 擔心的賭注不存在。runtime 層那條仍然成立，因此把邊緣中介層納入本機與 CI 的可測範圍，
+  把風險拉回 CI。D1 當初寫的「靜態變體同時是內容協商的前置產物，日後補做不需重寫」已兌現：
+  既有的文章與首頁 md 一份都不用改
 - **Date**: 2026-08-03

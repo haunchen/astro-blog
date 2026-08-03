@@ -183,3 +183,24 @@ jobs:
           console.log('Lighthouse 分數全數達標。');
           SCRIPT_EOF
           node check-lighthouse-scores.mjs
+
+      # 內容協商活在 Pages Functions 裡，前面那些步驟一個都碰不到它：astro preview 不執行
+      # Functions，verify:seo 只看 dist 的靜態產物。沒有這一步，協商壞掉要等部署到正式站
+      # 才會被發現——而它壞掉的方式是靜默退回 HTML，站台看起來完全正常。
+      - name: 啟動 wrangler pages dev（背景執行）
+        run: |
+          nohup npm run preview:pages > wrangler.log 2>&1 &
+          disown
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8788/ > /dev/null; then
+              echo "wrangler pages dev 已就緒"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::wrangler pages dev 60 秒內未就緒"
+          cat wrangler.log
+          exit 1
+
+      - name: 驗證 Accept 內容協商
+        run: npm run verify:negotiation http://localhost:8788

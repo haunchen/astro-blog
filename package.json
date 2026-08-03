@@ -6,6 +6,7 @@
     "dev": "node scripts/build-font-css.mjs && astro dev",
     "build": "node scripts/build-font-css.mjs && node scripts/subset-fonts.mjs && astro build",
     "preview": "astro preview",
+    "preview:pages": "wrangler pages dev dist --port 8788 --compatibility-date=2026-06-26",
     "test": "node --test \"scripts/lib/*.test.mjs\"",
     "astro": "astro",
     "subset-fonts": "node scripts/subset-fonts.mjs",
@@ -15,7 +16,8 @@
     "verify:headers": "node scripts/verify-headers.mjs",
     "verify:robots": "node scripts/verify-robots.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
-    "verify:dns-aid": "node scripts/verify-dns-aid.mjs"
+    "verify:dns-aid": "node scripts/verify-dns-aid.mjs",
+    "verify:negotiation": "node scripts/verify-negotiation.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
@@ -42,6 +44,7 @@
     "fast-xml-parser": "^5.8.0",
     "turndown": "^7.2.4",
     "turndown-plugin-gfm": "^1.0.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "wrangler": "^4.118.0"
   }
 }
