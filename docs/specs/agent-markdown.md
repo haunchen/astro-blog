@@ -236,8 +236,9 @@ last_modified: 2026-08-03
 ### S7: agent 從站台取得取用手冊
 - **Given**: 站台已部署
 - **When**: 請求 `https://frankchen.tw/AGENTS.md`
-- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown
-  且涵蓋 R7 列出的五個取用管道
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown，
+  且涵蓋六個取用管道：`/llms.txt`、`/index.md`、`/rss.xml`、`/robots.txt`、canonical
+  引用規範，與 `Accept: text/markdown` 內容協商（R11）
 - **Implements**: #R7
 
 ### S8: agent 以 HEAD 請求取得指路標

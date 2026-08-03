@@ -13,12 +13,20 @@ Astro v5（靜態輸出）＋ Tailwind CSS v4（透過 Vite plugin，非 PostCSS
 TypeScript strict mode。部署到 Cloudflare Pages（`https://frankchen.tw`）。
 內容全為 Markdown（`src/content/posts/`），單一 collection，zod schema 驗證。
 
+本 repo 原本純靜態輸出，2026-08 起因 Accept 內容協商（見 `docs/specs/agent-markdown.md`）
+多了一層 runtime：`functions/_middleware.js`（Cloudflare Pages Functions），這是本 repo
+第一次有 build 之外會在請求時執行的程式碼。`astro preview` **不會**執行 Pages Functions，
+改動 `functions/`、`public/_headers`、`public/_routes.json` 或 `BaseLayout.astro` 的宣告
+結構時，這條路徑在本機用 `npm run preview` 預設看不見，要驗必須用 `npm run preview:pages`
+（見下方常用指令）。
+
 ## 常用指令
 
 ```bash
 npm run dev          # 開發伺服器（會先跑字型裁切，見下方）
 npm run build         # 正式建置 → dist/
-npm run preview       # 預覽 build 產物
+npm run preview       # 預覽 build 產物（astro preview，不執行 Pages Functions）
+npm run preview:pages # 預覽 build 產物 + Pages Functions（wrangler pages dev），驗內容協商用這支
 npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出 + DNS-AID 解析／評估）
 npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
@@ -29,12 +37,16 @@ npx astro check       # TypeScript / Astro 型別檢查
 Node 官方文件建議的可攜寫法）。拿掉引號、或改傳目錄（`node --test scripts/lib/`）
 在 Windows 上會失敗，不要「順手修正」。
 
-另有四支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
-`verify:assets`、`verify:dns-aid`。前三支存在的理由是 Cloudflare zone 層規則會覆寫
-repo 裡的設定——`public/_headers` 與 `public/robots.txt` 是請求，zone 才是執行——
-所以指向 localhost 等於讓這些檢查失去意義。`verify:dns-aid` 則是驗證 zone 上的
-DNS-AID 記錄（`_index._agents.<host>`）還在、還是對的：DNS 記錄完全不在 repo，
+另有五支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
+`verify:assets`、`verify:dns-aid`、`verify:negotiation`。前三支存在的理由是 Cloudflare
+zone 層規則會覆寫 repo 裡的設定——`public/_headers` 與 `public/robots.txt` 是請求，
+zone 才是執行——所以指向 localhost 等於讓這些檢查失去意義。`verify:dns-aid` 則是驗證
+zone 上的 DNS-AID 記錄（`_index._agents.<host>`）還在、還是對的：DNS 記錄完全不在 repo，
 沒有版控也沒有 code review，這支腳本是唯一會在記錄被改壞或刪掉時叫出來的東西。
+`verify:negotiation` 驗證 Accept 內容協商（見上方「技術棧」一節的 runtime 層）——
+它預設也是打正式站，但因為協商邏輯活在本機 `astro preview` 不會執行的 Pages Functions
+裡，要在本機驗證得先 `npm run preview:pages` 起 wrangler，再指向它：
+`npm run verify:negotiation http://localhost:8788`。
 要換來源用 `npm run verify:headers -- https://其他來源`。
 
 `dev` / `build` 前會自動跑 `scripts/build-font-css.mjs`（產出 gitignore 的
@@ -56,11 +68,14 @@ src/
 scripts/             build-font-css.mjs（網頁字型裁切）、subset-fonts.mjs
                      （OG 圖字型，用 satori）、verify-*.mjs（build 後與正式站驗證，
                      含 verify-dns-aid.mjs 驗 zone 上的 DNS-AID 記錄）
-  lib/               migrate-wp、markdown 匯出、DNS-AID 解析／評估的純函式，
-                     npm test 的對象
+  lib/               migrate-wp、markdown 匯出、DNS-AID 解析／評估、頁面路徑↔md
+                     路徑映射（md-path.mjs）的純函式，npm test 的對象
+functions/
+  _middleware.js     Accept 內容協商（Cloudflare Pages Functions，本 repo 唯一的
+                     runtime 層；復用 scripts/lib/md-path.mjs 算頁面的 md 路徑）
 public/
   AGENTS.md          ← 給造訪網站的 agent，不是這一份
-  _headers, _redirects, robots.txt
+  _headers, _redirects, robots.txt, _routes.json（Pages Functions 的路徑排除清單）
 docs/
   SEO_GUIDE.md       改動 SEO 相關內容前必讀
   SEO_TODO.md        已知未完成事項

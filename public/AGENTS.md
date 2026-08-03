@@ -22,6 +22,7 @@
 |------|------|
 | 單篇文章 | 把文章網址結尾的 `/` 換成 `.md`，例如 `/n8n-canva-oauth-setup.md` |
 | 首頁 | `/index.md` |
+| 其他頁面 | 同樣把網址結尾的 `/` 換成 `.md`，例如 `/about.md`、`/category/n8n.md`、`/tag/n8n.md` |
 | 全站目錄 | `/llms.txt` |
 | 最新文章 feed | `/rss.xml` |
 | 全站網址清單 | `/sitemap.xml` |
@@ -52,6 +53,7 @@ curl -H "Accept: text/markdown" https://frankchen.tw/about/
 `canonical`、`image`
 
 首頁 `/index.md` 不是文章，只有 `title`、`description`、`canonical`、`image` 四欄。
+文章與首頁以外的其他頁面（關於、分類、標籤等）的 md 同樣是這四欄。
 
 其他要點：
 
