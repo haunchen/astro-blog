@@ -11,6 +11,12 @@ npm run preview        # Preview production build
 npm run preview:pages  # Preview WITH Pages Functions (wrangler) — astro preview does NOT run them
 ```
 
+`preview:pages` pins `--compatibility-date=2026-06-26` to match the Pages project's dashboard setting.
+Without it wrangler infers *today's* date, so local and CI would run the middleware under different
+runtime semantics than production. If the dashboard value changes, change it here too — the repo has
+no `wrangler.toml` on purpose (a Pages config file would override the dashboard as the source of
+truth for build and runtime settings, which is a bigger change than this one flag).
+
 ```bash
 npm test           # 106 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +

@@ -6,7 +6,7 @@
     "dev": "node scripts/build-font-css.mjs && astro dev",
     "build": "node scripts/build-font-css.mjs && node scripts/subset-fonts.mjs && astro build",
     "preview": "astro preview",
-    "preview:pages": "wrangler pages dev dist --port 8788",
+    "preview:pages": "wrangler pages dev dist --port 8788 --compatibility-date=2026-06-26",
     "test": "node --test \"scripts/lib/*.test.mjs\"",
     "astro": "astro",
     "subset-fonts": "node scripts/subset-fonts.mjs",
