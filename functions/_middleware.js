@@ -75,7 +75,6 @@ export const onRequest = async (context) => {
   const body = await asset.text();
   const headers = new Headers(asset.headers);
   headers.set('Content-Type', 'text/markdown; charset=utf-8');
-  headers.set('Vary', 'Accept');
   headers.set('x-markdown-tokens', String(estimateTokens(body)));
   // ASSETS.fetch 會套用 _headers 規則，所以這裡拿到的回應帶著給 /*.md 設的
   // X-Robots-Tag: noindex。那條規則的用途是防 /<slug>.md 與 /<slug>/ 被判重複內容；
@@ -84,5 +83,8 @@ export const onRequest = async (context) => {
   // body 已重新讀出，長度交給 runtime 重算。
   headers.delete('Content-Length');
 
-  return new Response(body, { status: 200, headers });
+  // Vary 交給 withVaryOnAccept() 統一合併，不在這裡直接 set：asset.headers 可能已帶
+  // 邊緣壓縮設的 Vary（例如 Accept-Encoding），直接 set('Vary', 'Accept') 會整個蓋掉，
+  // 走共用函式才能在補上 Accept 的同時保留原有值。
+  return withVaryOnAccept(new Response(body, { status: 200, headers }));
 };
