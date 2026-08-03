@@ -100,15 +100,24 @@ jobs:
             { name: '文章頁樣本', file: 'lighthouse-reports/article.json' },
           ];
 
-          // Performance 門檻刻意設 90 而非 95：GitHub Actions 共用 runner 的 CPU/IO
-          // 效能會隨當下負載波動，同一頁面在本機量測與 CI 上可能相差 5~10 分。
-          // 設 95 在 CI 上會頻繁偽陽性擋下與效能無關的 PR，90 是務實下限，
-          // 真正的效能回歸要靠數值下滑的趨勢觀察，不是單次門檻卡死。
+          // Performance 門檻刻意設低（85，非 90 也非 95）：GitHub Actions 共用 runner 的
+          // CPU/IO 效能會隨當下負載波動，同一頁面在本機量測與 CI 上可能相差 5~10 分。
+          // 設高在 CI 上會頻繁偽陽性擋下與效能無關的 PR，真正的效能回歸要靠數值下滑的
+          // 趨勢觀察（每輪的分數表格都寫在本 job 的 Summary 裡），不是單次門檻卡死。
+          //
+          // 90 → 85 的實證（2026-08-03，PR #45）：同一份完全不觸及 src/、public/、
+          // astro.config 的 diff（只動 scripts/ 與 docs/），兩輪 CI 各紅一次、分別是
+          // 首頁 Performance 87 與 88，兩次重跑都過。也就是同一份建置產物在 runner 上
+          // 至少有 87~90+ 的擺幅，門檻 90 剛好落在擺幅正中間，等於擲硬幣。
+          //
+          // 代價要知道：真的退化到 86 不會被擋下。這是刻意的取捨——單次門檻本來就
+          // 攔不住那種程度的回歸（它落在雜訊裡），硬把門檻設在雜訊帶只會讓 CI 訊號
+          // 失去可信度，紅燈變成「再跑一次就好」的例行動作，那才是真正危險的狀態。
           const THRESHOLDS = {
             seo: 100,
             accessibility: 95,
             'best-practices': 100,
-            performance: 90,
+            performance: 85,
           };
 
           const LABELS = {
