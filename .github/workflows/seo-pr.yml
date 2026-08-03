@@ -142,6 +142,15 @@ jobs:
               `| ${name} | ${scores.seo} | ${scores.accessibility} | ${scores['best-practices']} | ${scores.performance} |`,
             );
 
+            // 一律印進 log，不只寫 Job Summary：Summary 只有網頁看得到，
+            // `gh run view --log` 取不到，於是「成功那幾輪到底幾分」在 CLI 無從查起。
+            // Performance 門檻已因 runner 擺幅降到 85，補償手段正是趨勢觀察，
+            // 而趨勢要查得到才有用。前綴固定成 `LH-SCORE`，方便跨 run grep 出時間序列。
+            console.log(
+              `LH-SCORE ${name} seo=${scores.seo} a11y=${scores.accessibility} ` +
+                `best-practices=${scores['best-practices']} performance=${scores.performance}`,
+            );
+
             for (const [key, min] of Object.entries(THRESHOLDS)) {
               if (scores[key] < min) {
                 anyFailed = true;
