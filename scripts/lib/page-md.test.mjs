@@ -82,6 +82,26 @@ test('buildPageMarkdown：HTML 實體還原成原字元', () => {
   assert.match(md, /^title: "n8n & Flutter"$/m);
 });
 
+// 迴歸測試：metaContent／linkHref 曾用 [^"']* 排除雙引號與單引號，但屬性值本身只被
+// 其中一種引號包住，值裡出現另一種引號（例如標籤名稱帶英文單引號）就會在那個字元被
+// 提早截斷。canonical 沿用實際踩到的案例：/tag/Let's Encrypt/ 的 href 含單引號。
+test('buildPageMarkdown：屬性值含單引號不得被截斷', () => {
+  const html = `<!DOCTYPE html><html lang="zh-TW"><head>
+<title>標籤：Let's Encrypt</title>
+<meta name="description" content="站上標記「Let's Encrypt」的技術文章">
+<link rel="canonical" href="https://frankchen.tw/tag/Let's%20Encrypt/">
+<meta property="og:image" content="https://frankchen.tw/cover.webp">
+</head><body>
+<nav><a href="/">首頁</a></nav>
+<div id="main-content" tabindex="-1"><p>內文</p></div>
+<footer><p>版權宣告</p></footer>
+</body></html>`;
+  const md = buildPageMarkdown(html, ORIGIN);
+  assert.match(md, /^title: "標籤：Let's Encrypt"$/m);
+  assert.match(md, /^description: "站上標記「Let's Encrypt」的技術文章"$/m);
+  assert.match(md, /^canonical: "https:\/\/frankchen\.tw\/tag\/Let's%20Encrypt\/"$/m);
+});
+
 test('buildPageMarkdown：找不到主內容區時拋錯', () => {
   assert.throws(
     () => buildPageMarkdown('<html><body><p>沒有容器</p></body></html>', ORIGIN),

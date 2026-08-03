@@ -54,18 +54,22 @@ export function extractMainContent(html) {
   return null;
 }
 
+// 屬性值用 [^"']* 排除「雙引號和單引號」兩種字元，但值本身只會被其中一種引號包住——
+// 值裡出現另一種引號（例如標籤「Let's Encrypt」的 href 裡的單引號）就會被錯誤排除，
+// match 在那個字元就提早收尾，抽到一個斷頭字串。改成先用捕捉群記住實際用的是哪種引號、
+// 再用反向參照 \1 要求結尾引號一致，值裡允許出現另一種引號。
 function metaContent(html, attr, value) {
-  const re = new RegExp(`<meta\\b[^>]*\\b${attr}=["']${value}["'][^>]*>`, 'i');
+  const re = new RegExp(`<meta\\b[^>]*\\b${attr}=(["'])${value}\\1[^>]*>`, 'i');
   const tag = re.exec(html)?.[0];
   if (!tag) return '';
-  return decodeEntities(tag.match(/\bcontent=["']([^"']*)["']/i)?.[1] ?? '');
+  return decodeEntities(tag.match(/\bcontent=(["'])([\s\S]*?)\1/i)?.[2] ?? '');
 }
 
 function linkHref(html, rel) {
-  const re = new RegExp(`<link\\b[^>]*\\brel=["']${rel}["'][^>]*>`, 'i');
+  const re = new RegExp(`<link\\b[^>]*\\brel=(["'])${rel}\\1[^>]*>`, 'i');
   const tag = re.exec(html)?.[0];
   if (!tag) return '';
-  return decodeEntities(tag.match(/\bhref=["']([^"']*)["']/i)?.[1] ?? '');
+  return decodeEntities(tag.match(/\bhref=(["'])([\s\S]*?)\1/i)?.[2] ?? '');
 }
 
 /**
