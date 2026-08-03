@@ -496,7 +496,7 @@ async function resolveNestedPagePath() {
 }
 ```
 
-Step 5: 加入反向斷言與深層頁檢查
+Step 5: 加入反向斷言、深層頁與文章頁檢查
 
 找到主流程中處理 `fontPath` 的這一段：
 
@@ -559,6 +559,40 @@ if (nestedPath.path) {
 }
 ```
 
+最後，把斷言補到真正的文章頁上——S8 的字面要求是「任一文章頁」，`/about/` 與深層頁都不是
+文章。找到主流程中 `markdownPath` 區塊裡的最後一個檢查，它是這樣結尾的：
+
+```js
+    {
+      path: markdownPath.path,
+      header: 'x-robots-tag',
+      name: 'Markdown 變體帶 noindex（防重複內容收錄）',
+      verify: (v) => (v?.toLowerCase().includes('noindex') ? null : `實際為 ${v ?? '（無）'}`),
+    },
+  );
+```
+
+把這段替換成（在 `);` 之前多一個檢查）：
+
+```js
+    {
+      path: markdownPath.path,
+      header: 'x-robots-tag',
+      name: 'Markdown 變體帶 noindex（防重複內容收錄）',
+      verify: (v) => (v?.toLowerCase().includes('noindex') ? null : `實際為 ${v ?? '（無）'}`),
+    },
+    // 文章頁本身的 Link 標頭。/about/ 與深層頁驗的是「一層」與「多層」兩種路徑形狀，
+    // 但兩者都不是文章——spec S8 要的是文章頁，而 md 變體的路徑去掉 .md 加斜線就是它的
+    // HTML 正本（llms.txt 只宣告文章的 md，不含 /index.md，所以不會推出 /index/）。
+    {
+      path: markdownPath.path.replace(/\.md$/, '/'),
+      header: 'link',
+      name: `文章頁的 Link 標頭（${markdownPath.path.replace(/\.md$/, '/')}）`,
+      verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
+    },
+  );
+```
+
 Step 6: 跑既有單元測試確認沒弄壞東西
 
 Run: `npm test`
@@ -570,12 +604,13 @@ Step 7: 對正式站跑驗證，確認新斷言真的會抓
 
 Run: `npm run verify:headers`
 
-Expected: **exit 1，且恰好是下列三項 FAIL**（此時 `_headers` 尚未部署，正式站當然還沒有
+Expected: **exit 1，且恰好是下列四項 FAIL**（此時 `_headers` 尚未部署，正式站當然還沒有
 Link 標頭）：
 
 - `[FAIL] 首頁的 Link 標頭（四份機器可讀產物）` → `/ → 沒有 Link 標頭`
 - `[FAIL] 內頁的 Link 標頭（不含首頁專屬的 /index.md）` → `/about/ → 沒有 Link 標頭`
 - `[FAIL] 深層頁面的 Link 標頭（...）` → `沒有 Link 標頭`
+- `[FAIL] 文章頁的 Link 標頭（...）` → `沒有 Link 標頭`
 
 同時這兩項必須 **PASS**：
 
@@ -583,7 +618,7 @@ Link 標頭）：
   部署後也必須維持通過
 - 其餘所有既有檢查（CSP、HSTS、快取等）維持原本結果不變
 
-這一步的意義是證明正向斷言不是永遠通過的空殼。**若三項正向斷言在部署前就 PASS，代表斷言
+這一步的意義是證明正向斷言不是永遠通過的空殼。**若四項正向斷言在部署前就 PASS，代表斷言
 寫錯了（或 zone 層已有 Link 標頭），必須停下來查清楚，不可繼續。**
 
 若執行環境無法連外（fetch 全數失敗），把本步驟記為「未執行」寫進報告，不可當作通過。
