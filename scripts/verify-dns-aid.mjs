@@ -73,6 +73,7 @@ if (indexHttps.error) {
 let indexData = answersOfType(indexHttps.json, RR_TYPES.HTTPS);
 let indexStatus = indexHttps.json.Status;
 let usedType = 'HTTPS';
+let dnssecValidated = indexHttps.json.AD === true;
 
 if (indexData.length === 0) {
   const indexSvcb = await doh(indexName, 'SVCB');
@@ -81,6 +82,7 @@ if (indexData.length === 0) {
     indexData = svcbData;
     indexStatus = indexSvcb.json.Status;
     usedType = 'SVCB';
+    dnssecValidated = indexSvcb.json.AD === true;
   }
 }
 console.log(`${indexName} → ${usedType} 記錄 ${indexData.length} 筆（解析器：${indexHttps.resolver}）`);
@@ -146,6 +148,7 @@ const checks = evaluateDnsAid({
   forbiddenPresent,
   forbiddenUnchecked,
   entrypoint,
+  dnssecValidated,
 });
 
 let failed = 0;
@@ -158,13 +161,6 @@ for (const check of checks) {
     console.log(`[PASS] ${check.name}`);
   }
 }
-
-// DNSSEC 目前是已知未做，印出狀態但不計入失敗——見 docs/deployment.md 的說明。
-// 保留這行而不刪：狀況若改變（DS 上傳了、或掃描器開始要求）看得出來。
-console.log(
-  `\n（DNSSEC：AD flag = ${indexHttps.json.AD === true}。` +
-    'draft 對無 TLSA 的記錄僅 SHOULD，本站尚未啟用，不計入失敗）',
-);
 
 console.log();
 if (failed) {

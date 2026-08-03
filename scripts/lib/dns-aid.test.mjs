@@ -28,13 +28,94 @@ test('parseServiceBinding：priority 為 0 是 AliasMode', () => {
   assert.equal(r.params.size, 0);
 });
 
-test('parseServiceBinding：RFC 3597 十六進位格式被辨識為 wire-format 而非解析失敗', () => {
-  // CF 與 Google 的 DoH JSON 對 SVCB(64) 回的就是這種格式，必須給得出可行動的訊息
-  const r = parseServiceBinding('\\# 103 00 01 03 6f 6e 65 03 6f 6e 65 00 00 01 00 06 02 68 32');
-  assert.equal(r.mode, 'wire-format');
-  assert.equal(r.priority, null);
-  assert.equal(r.target, null);
-  assert.match(r.reason, /SVCB/);
+test('parseServiceBinding：RFC 3597 wire-format 解出的結構與 presentation format 相同', () => {
+  // 實測記錄（2026-08-03）：_index._agents.frankchen.tw 的真實內容。
+  // 手動在 Dashboard 建立的記錄，CF DoH 回的就是這種十六進位格式而非 presentation format。
+  const r = parseServiceBinding(
+    '\\# 38 00 01 09 66 72 61 6e 6b 63 68 65 6e 02 74 77 00 00 01 00 0c 02 68 32 08 68 74 74 70 2f 31 2e 31 00 03 00 02 01 bb',
+  );
+  assert.equal(r.mode, 'service');
+  assert.equal(r.priority, 1);
+  assert.equal(r.target, 'frankchen.tw.');
+  assert.equal(r.params.get('alpn'), 'h2,http/1.1');
+  assert.equal(r.params.get('port'), '443');
+  assert.equal(r.reason, null);
+});
+
+test('parseServiceBinding：wire-format 多記錄真實樣本（_dns.resolver.arpa，取自 CF DoH）', () => {
+  // 含 ipv4hint／ipv6hint／未知 key(7)，這些依 brief 不特別解讀，只要不讓整筆變 unparsable
+  const r = parseServiceBinding(
+    '\\# 103 00 01 03 6f 6e 65 03 6f 6e 65 03 6f 6e 65 03 6f 6e 65 00 00 01 00 06 02 68 32 02 68 33 00 03 00 02 01 bb 00 04 00 08 01 01 01 01 01 00 00 01 00 06 00 20 26 06 47 00 47 00 00 00 00 00 00 00 00 00 11 11 26 06 47 00 47 00 00 00 00 00 00 00 00 00 10 01 00 07 00 10 2f 64 6e 73 2d 71 75 65 72 79 7b 3f 64 6e 73 7d',
+  );
+  assert.equal(r.mode, 'service');
+  assert.equal(r.priority, 1);
+  assert.equal(r.target, 'one.one.one.one.');
+  assert.equal(r.params.get('alpn'), 'h2,h3');
+  assert.equal(r.params.get('port'), '443');
+  assert.equal(r.params.has('ipv4hint'), true);
+  assert.equal(r.params.has('ipv6hint'), true);
+  assert.equal(r.params.has('key7'), true);
+  assert.equal(r.reason, null);
+});
+
+test('parseServiceBinding：wire-format priority 0 是 AliasMode', () => {
+  // \# 16 = 2(priority) + 10(len9 "frankchen") + 3(len2 "tw") + 1(terminator) = 16
+  const r = parseServiceBinding(
+    '\\# 16 00 00 09 66 72 61 6e 6b 63 68 65 6e 02 74 77 00',
+  );
+  assert.equal(r.mode, 'alias');
+  assert.equal(r.priority, 0);
+  assert.equal(r.target, 'frankchen.tw.');
+});
+
+test('parseServiceBinding：wire-format target 為單一 0x00（owner name）解為 "."', () => {
+  const r = parseServiceBinding('\\# 3 00 01 00');
+  assert.equal(r.mode, 'service');
+  assert.equal(r.target, '.');
+});
+
+test('parseServiceBinding：wire-format 含 mandatory 與 no-default-alpn', () => {
+  // \# 13 = 2(priority) + 1(target "." 單一 0x00)
+  //        + mandatory：key(00 00) length(00 02) value(00 03=key3/port) = 6 bytes
+  //        + no-default-alpn：key(00 02) length(00 00) = 4 bytes
+  const r = parseServiceBinding('\\# 13 00 01 00 00 00 00 02 00 03 00 02 00 00');
+  assert.equal(r.mode, 'service');
+  assert.equal(r.params.get('mandatory'), 'port');
+  assert.equal(r.params.has('no-default-alpn'), true);
+  assert.equal(r.params.get('no-default-alpn'), '');
+});
+
+test('parseServiceBinding：wire-format 未知 key 走 keyNNNNN 並以十六進位呈現', () => {
+  // \# 9 = 2(priority) + 1(target ".") + key(ff 00=65280) length(00 02) value(ab cd)
+  const r = parseServiceBinding('\\# 9 00 01 00 ff 00 00 02 ab cd');
+  assert.equal(r.mode, 'service');
+  assert.equal(r.params.get('key65280'), 'abcd');
+});
+
+test('parseServiceBinding：wire-format 宣告長度與實際位元組數不符為 unparsable', () => {
+  const r = parseServiceBinding('\\# 10 00 01 00');
+  assert.equal(r.mode, 'unparsable');
+  assert.match(r.reason, /宣告長度/);
+});
+
+test('parseServiceBinding：wire-format TargetName 未終止（位元組耗盡）為 unparsable', () => {
+  // 宣告一個 label 長度 9，但後面位元組不夠
+  const r = parseServiceBinding('\\# 5 00 01 09 61 62');
+  assert.equal(r.mode, 'unparsable');
+  assert.match(r.reason, /wire-format/);
+});
+
+test('parseServiceBinding：wire-format 參數長度超出剩餘位元組為 unparsable', () => {
+  // key1(alpn)、宣告 length=10，但剩餘位元組不足
+  const r = parseServiceBinding('\\# 8 00 01 00 00 01 00 0a 02');
+  assert.equal(r.mode, 'unparsable');
+  assert.match(r.reason, /wire-format/);
+});
+
+test('parseServiceBinding：wire-format 含非法十六進位 token 為 unparsable', () => {
+  const r = parseServiceBinding('\\# 3 zz 01 00');
+  assert.equal(r.mode, 'unparsable');
+  assert.match(r.reason, /非法十六進位/);
 });
 
 test('parseServiceBinding：引號內的空白不切開參數', () => {
@@ -86,6 +167,7 @@ function passingInput(overrides = {}) {
     forbiddenPresent: [],
     forbiddenUnchecked: [],
     entrypoint: { ok: true, status: 200, hasLinkHeader: true },
+    dnssecValidated: true,
     ...overrides,
   };
 }
@@ -97,9 +179,9 @@ function problemOf(checks, keyword) {
   return found[0].problem;
 }
 
-test('evaluateDnsAid：全部符合時六項檢查皆通過', () => {
+test('evaluateDnsAid：全部符合時七項檢查皆通過', () => {
   const checks = evaluateDnsAid(passingInput());
-  assert.equal(checks.length, 6);
+  assert.equal(checks.length, 7);
   assert.deepEqual(checks.filter((c) => c.problem).map((c) => c.name), []);
 });
 
@@ -118,9 +200,18 @@ test('evaluateDnsAid：AliasMode 被擋下並點名 serviceRecordCount', () => {
   assert.match(problemOf(checks, 'ServiceMode'), /AliasMode|serviceRecordCount/);
 });
 
-test('evaluateDnsAid：wire-format 回應點名記錄型別問題', () => {
-  const checks = evaluateDnsAid(passingInput({ indexData: ['\\# 48 00 01 03 6f 6e 65'] }));
-  assert.match(problemOf(checks, 'ServiceMode'), /SVCB/);
+test('evaluateDnsAid：wire-format 記錄現在能正確解出內容，不再被誤判為型別問題', () => {
+  // 實測記錄（2026-08-03）：手動建立的記錄 CF DoH 回 wire format，內容其實完全正確
+  const checks = evaluateDnsAid(
+    passingInput({
+      indexData: [
+        '\\# 38 00 01 09 66 72 61 6e 6b 63 68 65 6e 02 74 77 00 00 01 00 0c 02 68 32 08 68 74 74 70 2f 31 2e 31 00 03 00 02 01 bb',
+      ],
+    }),
+  );
+  assert.equal(problemOf(checks, 'ServiceMode'), null);
+  assert.equal(problemOf(checks, 'TargetName'), null);
+  assert.equal(problemOf(checks, 'alpn'), null);
 });
 
 test('evaluateDnsAid：target 指向別的主機要被擋下', () => {
@@ -199,4 +290,14 @@ test('evaluateDnsAid：入口主機沒有 Link 標頭要被擋下', () => {
 test('evaluateDnsAid：因前面的問題而未探測入口時，該項標為未探測而非通過', () => {
   const checks = evaluateDnsAid(passingInput({ indexStatus: 3, indexData: [], entrypoint: null }));
   assert.notEqual(problemOf(checks, '入口主機'), null);
+});
+
+test('evaluateDnsAid：DNSSEC 已驗證（AD flag 為 true）時通過', () => {
+  const checks = evaluateDnsAid(passingInput({ dnssecValidated: true }));
+  assert.equal(problemOf(checks, 'DNSSEC'), null);
+});
+
+test('evaluateDnsAid：DNSSEC 未驗證（AD flag 為 false）要被擋下並指路 DS 記錄上傳', () => {
+  const checks = evaluateDnsAid(passingInput({ dnssecValidated: false }));
+  assert.match(problemOf(checks, 'DNSSEC'), /DS 記錄|DNSSEC/);
 });
