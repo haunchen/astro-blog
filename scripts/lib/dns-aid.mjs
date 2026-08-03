@@ -119,3 +119,103 @@ export function normalizeTargetName(target, ownerName) {
   const lower = name.toLowerCase();
   return lower.endsWith('.') ? lower : `${lower}.`;
 }
+
+/**
+ * 評估一次 DNS-AID 查詢結果，回傳固定六項檢查。
+ *
+ * 為什麼回傳「檢查陣列」而不是「問題陣列」：verify 腳本要能逐項印 PASS/FAIL，
+ * 讓通過的項目也看得見——只印失敗的話，某項檢查因為程式錯誤而沒跑到時，
+ * 輸出看起來與「全部通過」一模一樣。
+ *
+ * 前四項刻意都對「同一批記錄」求值而非串成 if-else：記錄同時有兩個毛病時
+ * （例如 AliasMode 又缺 alpn），一次全部報出來，不必修一個跑一次。
+ *
+ * @param {{ host: string, indexStatus: number, indexData: string[],
+ *           forbiddenPresent: string[],
+ *           entrypoint: { ok: boolean, status?: number, hasLinkHeader?: boolean,
+ *                         error?: string } | null }} input
+ * @returns {Array<{ name: string, problem: string | null }>}
+ */
+export function evaluateDnsAid(input) {
+  const { host, indexStatus, indexData, forbiddenPresent, entrypoint } = input;
+  const ownerName = `_index._agents.${host}`;
+  const expectedTarget = normalizeTargetName(host, ownerName);
+
+  const parsed = indexData.map((data) => ({ data, record: parseServiceBinding(data) }));
+  const service = parsed.filter(({ record }) => record.mode === 'service');
+
+  // 存在性
+  const existence =
+    parsed.length > 0
+      ? null
+      : indexStatus === 3
+        ? `${ownerName} 回 NXDOMAIN（記錄不存在）`
+        : `${ownerName} 查詢 Status=${indexStatus}，但沒有任何 HTTPS 記錄`;
+
+  // ServiceMode：priority = 0 的 AliasMode 不算數，掃描器會歸到 aliasRecordCount
+  let serviceMode = null;
+  if (existence) {
+    serviceMode = '無記錄可判定';
+  } else if (service.length === 0) {
+    const modes = parsed.map(({ record }) => record.mode);
+    if (modes.includes('wire-format')) {
+      serviceMode =
+        `記錄為 SVCB(64)：DoH 只把 HTTPS(65) 轉成 presentation format，SVCB 回十六進位 wire format。` +
+        `掃描器走同一條 DoH，改建成 HTTPS 型別，或為本解析器補 wire-format 支援`;
+    } else if (modes.includes('alias')) {
+      serviceMode =
+        'priority = 0 是 AliasMode，掃描器會算進 aliasRecordCount 而非 serviceRecordCount。' +
+        'Cloudflare DNS 的 Priority 欄位要填 1';
+    } else {
+      serviceMode = `記錄無法解析：${parsed.map(({ record }) => record.reason).join('｜')}`;
+    }
+  }
+
+  // TargetName：須為正規主機、且不含底線（draft §3.2 的 MUST，該處要用公開 x.509 憑證）
+  let targetName = null;
+  if (service.length === 0) {
+    targetName = existence ? '無記錄可判定' : '無 ServiceMode 記錄可判定';
+  } else {
+    const actual = service.map(({ record }) => normalizeTargetName(record.target, ownerName));
+    if (!actual.includes(expectedTarget)) {
+      const underscored = actual.filter((name) => name.includes('_'));
+      targetName = underscored.length
+        ? `TargetName 含底線（${underscored.join('、')}），違反 draft §3.2——` +
+          '該處要用公開 x.509 憑證通訊。Cloudflare DNS 的 Target 欄位要填 ' +
+          `${expectedTarget}，不可留空或填 "."`
+        : `TargetName 應為 ${expectedTarget}，實際為 ${actual.join('、')}`;
+    }
+  }
+
+  // alpn：CF 若把 value 吃掉，記錄還在但參數沒了，任何存在性檢查都抓不到
+  let alpn = null;
+  if (service.length === 0) {
+    alpn = existence ? '無記錄可判定' : '無 ServiceMode 記錄可判定';
+  } else if (!service.some(({ record }) => (record.params.get('alpn') ?? '') !== '')) {
+    alpn = `SvcParams 缺 alpn（或值為空）：${service.map(({ data }) => data).join('｜')}`;
+  }
+
+  return [
+    { name: `${ownerName} 記錄存在`, problem: existence },
+    { name: '記錄為 ServiceMode（priority ≠ 0）', problem: serviceMode },
+    { name: `TargetName 為 ${expectedTarget}`, problem: targetName },
+    { name: 'SvcParams 含 alpn', problem: alpn },
+    {
+      name: '未宣告本站未提供的 agent 端點（_a2a／_mcp）',
+      problem: forbiddenPresent.length
+        ? `查到不該存在的記錄：${forbiddenPresent.join('、')}。` +
+          '本站沒有 A2A agent 也沒有 MCP server，宣告它們會讓 agent 連過來撲空（spec R9）'
+        : null,
+    },
+    {
+      name: '入口主機服務中且回 Link 標頭',
+      problem: !entrypoint
+        ? '未探測（前面的檢查已失敗，沒有可信的 TargetName）'
+        : !entrypoint.ok
+          ? `HEAD 請求失敗：${entrypoint.error ?? `回應 ${entrypoint.status}`}`
+          : entrypoint.hasLinkHeader
+            ? null
+            : '回應沒有 Link 標頭——DNS 宣告的入口指不到本站的機器可讀資源（spec R8）',
+    },
+  ];
+}
