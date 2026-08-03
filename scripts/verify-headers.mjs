@@ -17,6 +17,8 @@
  * 任一項不符即 exit 1。
  */
 
+import { parseLinkHeader } from './lib/link-header.mjs';
+
 const ORIGIN = (process.argv[2] ?? 'https://frankchen.tw').replace(/\/$/, '');
 
 // 期望值直接對照 public/_headers。改那個檔時請同步改這裡——
@@ -35,6 +37,41 @@ const EXPECTED_CSP_DIRECTIVES = [
   "object-src 'none'",
   'upgrade-insecure-requests',
 ];
+
+// 期望的 Link 標頭內容，同樣直接對照 public/_headers（理由見上方註解）。
+// 站台層級三條每個 HTML 頁面都該有；/index.md 是首頁專屬——它是首頁這一頁的替代表示，
+// 出現在文章頁上是錯的，所以下方比對用的是「集合完全相等」而非「包含」。
+const EXPECTED_LINKS_SITE_WIDE = [
+  ['/AGENTS.md', 'describedby'],
+  ['/llms.txt', 'index'],
+  ['/rss.xml', 'alternate'],
+];
+const EXPECTED_LINKS_HOME = [...EXPECTED_LINKS_SITE_WIDE, ['/index.md', 'alternate']];
+
+/**
+ * 產生一個比對 Link 標頭的 verify 函式。
+ *
+ * 比對的是 `(target, rel)` 集合而非字串包含：順序無關，而且多出來的 link-value 一定會被
+ * 報出來——zone 層若注入一條指向別處的 link，包含式比對抓不到（見 parseCsp 的同一段理由）。
+ */
+function verifyLinks(expected) {
+  return (value) => {
+    if (!value) return '沒有 Link 標頭';
+    const actual = new Set(
+      parseLinkHeader(value).map(({ target, rel }) => `${target} rel=${rel ?? '（缺 rel）'}`),
+    );
+    const wanted = new Set(expected.map(([target, rel]) => `${target} rel=${rel}`));
+
+    const problems = [];
+    const missing = [...wanted].filter((key) => !actual.has(key));
+    const extra = [...actual].filter((key) => !wanted.has(key));
+    if (missing.length) problems.push(`缺少：${missing.join('、')}`);
+    if (extra.length) {
+      problems.push(`多出未預期的 link-value：${extra.join('、')}（可能是 zone 層規則注入）`);
+    }
+    return problems.length ? `${problems.join('｜')}｜實際收到：${value}` : null;
+  };
+}
 
 /**
  * 把 CSP 值解析成 `指令名 -> 來源集合`。
@@ -163,6 +200,18 @@ const CHECKS = [
       return n === 1 ? null : `有 ${n} 組 max-age：${v}`;
     },
   })),
+  {
+    path: '/',
+    header: 'link',
+    name: '首頁的 Link 標頭（四份機器可讀產物）',
+    verify: verifyLinks(EXPECTED_LINKS_HOME),
+  },
+  {
+    path: '/about/',
+    header: 'link',
+    name: '內頁的 Link 標頭（不含首頁專屬的 /index.md）',
+    verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
+  },
 ];
 
 /**
@@ -276,21 +325,79 @@ async function resolveMarkdownPath() {
   }
 }
 
+// 從線上 sitemap 取一個路徑深度 ≥ 2 的頁面（例如 /category/n8n/）當受測對象。
+//
+// 為什麼非要深層頁面不可：`_headers` 的 `/*/` 規則能涵蓋全站，前提是 Cloudflare 的 splat
+// 真的跨斜線比對。這個假設只在深層路徑上會露餡——若 splat 其實不跨斜線，/about/ 照樣有
+// 標頭，/category/n8n/ 卻沒有，只驗一層的頁面完全看不出來。
+//
+// 為什麼不寫死 /category/n8n/：category enum 是會變的（改名或下架就 404），屆時看起來像
+// 標頭壞了，其實是檢查本身過期。從 sitemap 取則永遠指向線上站當下真的有的頁面。
+async function resolveNestedPagePath() {
+  let xml;
+  try {
+    const res = await fetch(`${ORIGIN}/sitemap.xml`, { redirect: 'follow' });
+    if (!res.ok) return { error: `sitemap.xml 請求回應 ${res.status}` };
+    xml = await res.text();
+  } catch (err) {
+    return { error: `sitemap.xml 請求失敗：${err.message}` };
+  }
+  for (const match of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    let pathname;
+    try {
+      pathname = new URL(match[1].trim()).pathname;
+    } catch {
+      continue;
+    }
+    if (pathname.endsWith('/') && pathname.split('/').filter(Boolean).length >= 2) {
+      return { path: pathname };
+    }
+  }
+  return { error: 'sitemap.xml 沒有任何深度 ≥ 2 的頁面網址' };
+}
+
 let failed = 0;
 console.log(`檢查來源：${ORIGIN}\n`);
 
 const checks = [...CHECKS];
 const fontPath = await resolveFontPath();
 if (fontPath.path) {
-  checks.push({
-    path: fontPath.path,
-    header: 'cache-control',
-    name: `字型長期 immutable 快取（${fontPath.path}）`,
-    verify: (v) =>
-      v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
-  });
+  checks.push(
+    {
+      path: fontPath.path,
+      header: 'cache-control',
+      name: `字型長期 immutable 快取（${fontPath.path}）`,
+      verify: (v) =>
+        v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+    },
+    // 反向斷言：Link 標頭只該掛在 HTML 頁面上。`_headers` 的 `/*/` 若因為 Cloudflare 的
+    // 比對語意與文件不同而吻合過頭，站台功能完全正常、外部檢測照樣通過，只是每位讀者的
+    // 每一個子資源都默默多背 200 bytes——沒有這條斷言，這種退化不會有任何跡象。
+    {
+      path: fontPath.path,
+      header: 'link',
+      name: `靜態資產不帶 Link 標頭（${fontPath.path}）`,
+      verify: (v) => (v ? `不應有 Link 標頭，實際為 ${v}` : null),
+    },
+  );
 } else {
   checks.push({ path: '/', name: '首頁可取得字型 preload 路徑', staticProblem: fontPath.error });
+}
+
+const nestedPath = await resolveNestedPagePath();
+if (nestedPath.path) {
+  checks.push({
+    path: nestedPath.path,
+    header: 'link',
+    name: `深層頁面的 Link 標頭（${nestedPath.path}，驗 splat 跨斜線）`,
+    verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
+  });
+} else {
+  checks.push({
+    path: '/sitemap.xml',
+    name: '可從 sitemap 取得深層頁面路徑',
+    staticProblem: nestedPath.error,
+  });
 }
 
 const markdownPath = await resolveMarkdownPath();
@@ -315,6 +422,15 @@ if (markdownPath.path) {
       header: 'x-robots-tag',
       name: 'Markdown 變體帶 noindex（防重複內容收錄）',
       verify: (v) => (v?.toLowerCase().includes('noindex') ? null : `實際為 ${v ?? '（無）'}`),
+    },
+    // 文章頁本身的 Link 標頭。/about/ 與深層頁驗的是「一層」與「多層」兩種路徑形狀，
+    // 但兩者都不是文章——spec S8 要的是文章頁，而 md 變體的路徑去掉 .md 加斜線就是它的
+    // HTML 正本（llms.txt 只宣告文章的 md，不含 /index.md，所以不會推出 /index/）。
+    {
+      path: markdownPath.path.replace(/\.md$/, '/'),
+      header: 'link',
+      name: `文章頁的 Link 標頭（${markdownPath.path.replace(/\.md$/, '/')}）`,
+      verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
     },
   );
 } else {
