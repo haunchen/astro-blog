@@ -88,6 +88,23 @@ same name must be DNS-only」，但只能到 dashboard 真的建一次才算數�
 CF API 的 SVCBRecord 結構為 `data: {priority, target, value}`，`value` 即 SvcParams 字串；
 community 有 SVCB 建立異常的回報，這也是把「params 是否被吃掉」列為斷言項的原因。
 
+## 為何不發 TXT `_index._agents`
+
+掃描器的 7 個 query 裡有一個是 `TXT _index._agents`，`txtIndexEntryCount` 也是它四個判定欄位之一，
+所以「順手發一筆 TXT」看起來是免費的保險。不做的理由有二：
+
+draft 定義的 `_index._agents` 是 SVCB/HTTPS 記錄，**TXT 不在 draft 的任何一節裡**——那是掃描器
+自己的擴充，格式沒有規格可循，寫什麼進去都只是猜。真照猜的格式發，等於在 DNS 放一份沒有標準
+背書、只有這一個掃描器看得懂的東西。
+
+更關鍵的是內容會重複：TXT 唯一能塞的就是資源清單或入口路徑，而那正是 HTTP `Link` 標頭（R8）與
+`/AGENTS.md` 已經在講的事。多一份就多一個會漂移的副本，且這份副本在 DNS 裡、改動不經 build、
+不經 code review——漂移的機率比其他任何一份都高。這是 D9 對 robots.txt、D10 對 api-catalog
+做過的同一個判斷。
+
+ServiceMode 記錄本身應該就足以讓 `serviceRecordCount` ≥ 1。若實測發現不發 TXT 就無法 pass，
+那是把「有無 TXT」當成判定條件的證據，屆時再帶著實測數據重新評估——而不是現在先猜一個格式發下去。
+
 ## DNSSEC：本次不做
 
 draft §3.3.1 的原文是「The records SHOULD be DNSSEC-signed ... **if TLSA records are used they

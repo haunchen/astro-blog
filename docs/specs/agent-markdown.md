@@ -309,6 +309,11 @@ last_modified: 2026-08-03
   並忽略手動的，`_index._agents` 底下無 A/AAAA 故形式上不受影響，但只能在 dashboard 實建一次
   才算數；若被拒或被覆寫，退路是改發 SVCB(64) 並自行解析 wire format。
 
+  同一個掃描器還會查 `TXT _index._agents`（`txtIndexEntryCount` 是它的判定欄位之一），一樣不發：
+  TXT 不在 draft 的任何一節裡，是掃描器自己的擴充、格式無規格可循；而 TXT 唯一能塞的內容
+  （資源清單或入口路徑）正是 R8 的 `Link` 標頭與 `/AGENTS.md` 已經在講的事，多一份就多一個
+  不經 build、不經 code review 的漂移副本。
+
   DNSSEC 在 draft 是 SHOULD（唯有併用 TLSA 才 MUST），本案不發 TLSA。不納入的理由是風險不對稱：
   .tw 的 DS 要上傳到註冊商，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處；
   且它的價值本來就不限於本案，適合獨立評估

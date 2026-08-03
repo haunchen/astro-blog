@@ -459,13 +459,13 @@ Step 3: 寫最小實作讓測試通過
 
 ```js
 /**
- * 評估一次 DNS-AID 查詢結果，回傳固定五項檢查。
+ * 評估一次 DNS-AID 查詢結果，回傳固定六項檢查。
  *
  * 為什麼回傳「檢查陣列」而不是「問題陣列」：verify 腳本要能逐項印 PASS/FAIL，
  * 讓通過的項目也看得見——只印失敗的話，某項檢查因為程式錯誤而沒跑到時，
  * 輸出看起來與「全部通過」一模一樣。
  *
- * 前三項刻意都對「同一批記錄」求值而非串成 if-else：記錄同時有兩個毛病時
+ * 前四項刻意都對「同一批記錄」求值而非串成 if-else：記錄同時有兩個毛病時
  * （例如 AliasMode 又缺 alpn），一次全部報出來，不必修一個跑一次。
  *
  * @param {{ host: string, indexStatus: number, indexData: string[],
@@ -579,7 +579,7 @@ Implements: `agent-markdown.md` #R9, #S9
 
 Files:
 - Create: `scripts/verify-dns-aid.mjs`
-- Modify: `package.json:17`（在 `verify:assets` 後追加 `verify:dns-aid`）
+- Modify: `package.json`（`scripts` 區塊，在 `verify:assets` 那一項後追加 `verify:dns-aid`）
 - Modify: `docs/deployment.md`（檔尾追加「DNS 記錄（zone 層，不在 repo）」一節）
 
 Interfaces:
@@ -775,9 +775,10 @@ Step 3: 註冊 npm script
 
 Step 4: 撰寫部署文件
 
-在 `docs/deployment.md` **檔尾追加**：
+在 `docs/deployment.md` **檔尾追加**下列內容。注意外層用四個反引號包住，是因為內容本身含
+三反引號的 code fence——**貼進 `deployment.md` 時只取內層內容，不要把最外層的四反引號也抄進去**：
 
-```markdown
+````markdown
 ## DNS 記錄（zone 層，不在 repo）
 
 以下記錄由 Cloudflare zone 提供，**repo 裡沒有任何東西會產生它們**。唯一的守門人是
@@ -822,7 +823,7 @@ frankchen.tw 目前沒有 DS 記錄（`AD` flag 為 false）。DNS-AID 的 draft
 要啟用得在 Cloudflare DNS → Settings → DNSSEC 取得 DS，再到 **.tw 的註冊商**上傳——那是
 Cloudflare 之外的第三方介面，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處。
 因此列為獨立議題，不與 DNS-AID 綁著做。
-```
+````
 
 Step 5: 確認腳本與 npm script 可運作
 
@@ -854,5 +855,8 @@ git commit -m "feat(dns-aid): verify:dns-aid 驗證腳本與 zone 記錄文件"
    ```
 
    期望 `checks.discoverability.dnsAid.status` 為 `pass`。
-   **若仍非 pass**：記下 `details` 的 `serviceRecordCount`／`dnssecValidated` 實際值寫進
-   design doc，作為 DNSSEC 另案評估的輸入——不要為了衝過檢測而加 `_a2a`／`_mcp` 記錄（spec R9）。
+   **若仍非 pass**：記下 `details` 四個判定欄位的實際值——`serviceRecordCount`、`aliasRecordCount`、
+   `txtIndexEntryCount`、`dnssecValidated`——寫進 design doc，作為後續評估的輸入。
+   `serviceRecordCount` 已 ≥ 1 卻仍不 pass 時，線索在另外兩條：`dnssecValidated`（DNSSEC 另案）
+   或 `txtIndexEntryCount`（TXT 索引，本次刻意不發，理由見 design doc）。
+   **不要為了衝過檢測而加 `_a2a`／`_mcp` 記錄**（spec R9 的負向需求）。
