@@ -13,9 +13,21 @@ Spec: `docs/specs/agent-markdown.md`（Pending Changes 區塊，R10 / R11 / MODI
 
 Design: `docs/plans/2026-08-03-markdown-negotiation-design.md`
 
-設計文件有一處已知失準：它把 turndown 列為「新依賴」，實際上 `turndown@^7.2.4` 與
-`turndown-plugin-gfm@^1.0.2` 早已在 devDependencies（WordPress importer 在用）。本計畫直接使用，
-不新增。唯一的新依賴是 wrangler。
+設計文件有四處與本計畫不一致，以本計畫為準（實作完成後回填 design doc）：
+
+1. design doc 把 turndown 列為「新依賴」。實際上 `turndown@^7.2.4` 與 `turndown-plugin-gfm@^1.0.2`
+   早已在 devDependencies（WordPress importer 在用），直接使用即可。**唯一的新依賴是 wrangler。**
+2. design doc 說建置後處理寫成獨立腳本 `scripts/build-page-md.mjs`。本計畫改寫成
+   `astro.config.mjs` 內的 `pageMarkdownVariants()` integration（Task 3），與既有的
+   `sitemapAsSingleFile` 同構——同一個 `astro:build:done` hook、同一種寫法，少一個獨立腳本與
+   一次 npm script 串接。純轉換邏輯仍然獨立在 `scripts/lib/page-md.mjs`，維持可單元測試。
+   **`scripts/build-page-md.mjs` 這個檔案不會存在。**
+3. design doc 稱線上驗證腳本為 `verify:markdown-negotiation`。本計畫命名為 `verify:negotiation`
+   （Task 7），與既有 `verify:seo`／`verify:headers`／`verify:dns-aid` 的長度慣例一致。
+4. design doc 說 `_routes.json` 會排除 `.md`／`.txt`／`.xml` 等副檔名樣式。本計畫只排四個目錄
+   前綴（Task 6），理由見該 task——Cloudflare 只對貪心前綴 wildcard 有明文，副檔名樣式的行為
+   沒有文件依據，賭錯會靜默排掉整批頁面。代價是那些非 HTML 路徑各多一次 invocation（邏輯上
+   仍會正確 fallback，只是多耗額度）。
 
 ## Global Constraints
 
@@ -443,8 +455,8 @@ git commit -m "feat(agent-markdown): 由建置產物 HTML 產生頁面 markdown 
 Implements: `agent-markdown.md` #R10
 
 Files:
-- Modify: `astro.config.mjs`（第 1-9 行的 import 區、第 30-50 行的 integration 定義之後、
-  第 68 行的 integrations 陣列）
+- Modify: `astro.config.mjs`（檔頭 import 區、`sitemapAsSingleFile()` 定義之後、
+  `defineConfig` 的 `integrations` 陣列）
 
 Interfaces:
 - Consumes: `pagePathToMdPath()`（Task 1）、`buildPageMarkdown(html, origin)`（Task 2）
@@ -466,21 +478,21 @@ Expected: `md 產物數：37`（35 篇文章 + index.md + AGENTS.md）
 
 Step 2: 加入 integration
 
-在 `astro.config.mjs` 第 1 行的 import 區，把 `readFileSync, renameSync, rmSync` 那行改為：
+在 `astro.config.mjs` 檔頭，把 `node:fs` 那行 import 改為：
 
 ```js
 import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 ```
 
-在同檔第 9 行 `import { rehypeTableCaption } ...` 之後加入：
+在同檔 `rehypeTableCaption` 那行 import 之後加入（`fileURLToPath`、`globSync`、`join` 皆為既有
+import，不需重複加）：
 
 ```js
 import { pagePathToMdPath } from './scripts/lib/md-path.mjs';
 import { buildPageMarkdown } from './scripts/lib/page-md.mjs';
 ```
 
-在 `sitemapAsSingleFile()` 函式定義（第 50 行 `}` 結束）之後、`export default defineConfig` 之前
-加入：
+在 `sitemapAsSingleFile()` 函式定義結束之後、`export default defineConfig` 之前加入：
 
 ```js
 // 為列表頁與靜態頁產出 markdown 變體（見 docs/specs/agent-markdown.md R10）。
@@ -526,7 +538,7 @@ function pageMarkdownVariants(site) {
 }
 ```
 
-同檔第 3 行的 path import 補上 `dirname`：
+同檔 `node:path` 那行 import 補上 `dirname`：
 
 ```js
 import { dirname, join } from 'node:path';
@@ -566,8 +578,8 @@ git commit -m "feat(agent-markdown): 建置後為列表頁與靜態頁產出 mar
 Implements: `agent-markdown.md` #R4
 
 Files:
-- Modify: `src/layouts/BaseLayout.astro`（第 40-45 行的 prop 註解、第 48-58 行的解構、
-  第 196-198 行的 link 輸出）
+- Modify: `src/layouts/BaseLayout.astro`（`markdownVariant` 的 prop 宣告、frontmatter script
+  區塊、`<head>` 內輸出該 `<link>` 的地方）
 
 Interfaces:
 - Consumes: `pagePathToMdPath()`（Task 1）
@@ -581,7 +593,7 @@ prop 等於九個檔案各改一次、日後新增頁面還會忘記。改成由
 
 Step 1: 修改 prop 註解與解構
 
-把第 40-45 行的註解與宣告改為：
+在 `interface Props` 內，把 `markdownVariant` 的註解與宣告改為：
 
 ```ts
   /**
@@ -594,7 +606,7 @@ Step 1: 修改 prop 註解與解構
   markdownVariant?: string;
 ```
 
-在第 98 行 `const allJsonLd = ...` 之前加入：
+在 frontmatter script 區塊末尾、`const allJsonLd = ...` 那行之前加入：
 
 ```ts
 // Astro.url.pathname 在靜態建置下未必帶結尾斜線（視路由定義而定），而 md 路徑映射以
@@ -609,7 +621,7 @@ const resolvedMarkdownVariant =
 
 Step 2: 加入 import
 
-在第 5 行 `import { SITE, ... } from '../utils/site-meta';` 之後加入：
+在 `import { SITE, ... } from '../utils/site-meta';` 之後加入：
 
 ```ts
 import { pagePathToMdPath } from '../../scripts/lib/md-path.mjs';
@@ -617,7 +629,7 @@ import { pagePathToMdPath } from '../../scripts/lib/md-path.mjs';
 
 Step 3: 改用推導後的值輸出
 
-把第 196-198 行改為：
+把 `<head>` 內輸出 `text/markdown` 宣告的那三行改為：
 
 ```astro
     {resolvedMarkdownVariant && (
@@ -655,14 +667,16 @@ git commit -m "feat(agent-markdown): 全站頁面自動宣告自己的 markdown 
 Implements: `agent-markdown.md` #R10, #R4
 
 Files:
-- Modify: `scripts/verify-seo.mjs`（第 144-182 行的集合定義、第 542 行起的 Markdown 變體區塊）
+- Modify: `scripts/verify-seo.mjs`（`// Markdown 變體（agent-markdown spec）` 那個註解區塊下的
+  集合定義，以及檔案後段 `// Markdown 變體` 分隔線之後的 check 群）
 
 Interfaces:
 - Consumes: Task 3 的頁面 md 產物、Task 4 的 HTML 宣告
 - Produces: 無（驗證腳本）
 
 **這是本計畫的地雷步驟，順序不能顛倒。** `verify-seo.mjs` 目前用 `dist/**/*.md` 全域掃描當作
-「文章 md 的集合」（第 157-166 行），只排除 `index` 與 `AGENTS` 兩個 slug。Task 3 一次多出約 70 份
+「文章 md 的集合」（`allMdInDist` 與 `mdBySlug` 的宣告），只排除 `index` 與 `AGENTS` 兩個 slug。
+Task 3 一次多出約 70 份
 頁面 md，它們會被當成文章，觸發一串看不出真正原因的失敗：缺 `date`／`category`／`tags` 欄位、
 canonical 期待 `https://frankchen.tw/tag/n8n/index/`、llms.txt 判「產物未被宣告」。
 
@@ -670,7 +684,9 @@ canonical 期待 `https://frankchen.tw/tag/n8n/index/`、llms.txt 判「產物�
 
 Step 1: 拆分集合
 
-把第 147-166 行（`// dist 裡不是文章的 md` 註解到 `const mdBySlug = ...`）整段換成：
+把「`// dist 裡不是文章的 md`」那段註解起、到 `const mdBySlug = new Map(...)` 為止的整段
+（含 `HOME_MD_SLUG`／`AGENTS_MD_SLUG`／`NON_ARTICLE_MD`／`allMdInDist`／`mdBySlug` 的宣告）
+換成：
 
 ```js
 // dist 裡的 md 分三類，各有各的契約，混在一起驗必定誤報：
@@ -716,8 +732,9 @@ const pageMdBySlug = new Map(
 );
 ```
 
-注意原本第 168-177 行的 `sourcePosts` 定義已被併入上面這段，要把原處那一份刪掉（否則重複宣告
-會讓腳本直接 ReferenceError）。
+注意：原本緊接在被替換區塊之後、以「`// 草稿判定要讀來源 frontmatter`」起頭的那份 `sourcePosts`
+宣告已被併入上面這段，**要把原處那一份刪掉**——同一個 scope 內重複 `const` 宣告會讓腳本直接
+SyntaxError，連第一項檢查都跑不到。
 
 Step 2: 跑驗證確認集合拆對
 
@@ -726,7 +743,7 @@ Expected: PASS（既有所有檢查通過。若這一步就紅，代表集合拆
 
 Step 3: 加入頁面 md 的斷言
 
-在第 707 行（`sitemap 不得收錄 .md 變體` 那個 check 的 `});` 之後）加入：
+在名為 `sitemap 不得收錄 .md 變體` 的那個 `check(...)` 呼叫結束之後加入：
 
 ```js
 // 每個 HTML 頁面都必須有對應的 md。這條是硬要求不是盡力而為：R11 的內容協商在找不到 md 時
@@ -1303,8 +1320,8 @@ curl -H "Accept: text/markdown" https://frankchen.tw/about/
 
 Step 2: 更新 AGENTS.md 的管道斷言
 
-在 `scripts/verify-seo.mjs` 第 669 行的管道清單（`['/llms.txt', '/index.md', '/rss.xml',
-'/robots.txt', 'canonical']`）加入協商管道：
+在 `scripts/verify-seo.mjs` 名為 `AGENTS.md 存在且涵蓋主要取用管道` 的 check 內，把管道清單
+（`['/llms.txt', '/index.md', '/rss.xml', '/robots.txt', 'canonical']`）加入協商管道：
 
 ```js
   for (const channel of ['/llms.txt', '/index.md', '/rss.xml', '/robots.txt', 'canonical', 'Accept: text/markdown']) {
