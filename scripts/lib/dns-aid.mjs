@@ -131,13 +131,13 @@ export function normalizeTargetName(target, ownerName) {
  * （例如 AliasMode 又缺 alpn），一次全部報出來，不必修一個跑一次。
  *
  * @param {{ host: string, indexStatus: number, indexData: string[],
- *           forbiddenPresent: string[],
+ *           forbiddenPresent: string[], forbiddenUnchecked: string[],
  *           entrypoint: { ok: boolean, status?: number, hasLinkHeader?: boolean,
  *                         error?: string } | null }} input
  * @returns {Array<{ name: string, problem: string | null }>}
  */
 export function evaluateDnsAid(input) {
-  const { host, indexStatus, indexData, forbiddenPresent, entrypoint } = input;
+  const { host, indexStatus, indexData, forbiddenPresent, forbiddenUnchecked = [], entrypoint } = input;
   const ownerName = `_index._agents.${host}`;
   const expectedTarget = normalizeTargetName(host, ownerName);
 
@@ -205,7 +205,11 @@ export function evaluateDnsAid(input) {
       problem: forbiddenPresent.length
         ? `查到不該存在的記錄：${forbiddenPresent.join('、')}。` +
           '本站沒有 A2A agent 也沒有 MCP server，宣告它們會讓 agent 連過來撲空（spec R9）'
-        : null,
+        : forbiddenUnchecked.length
+          ? `${forbiddenUnchecked.length} 項查詢失敗，未能查證是否誤宣告：` +
+            `${forbiddenUnchecked.join('、')}。DoH 兩家 resolver 都查詢失敗不代表沒有誤宣告，` +
+            '不可視為通過'
+          : null,
     },
     {
       name: '入口主機服務中且回 Link 標頭',

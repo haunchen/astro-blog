@@ -84,6 +84,7 @@ function passingInput(overrides = {}) {
     indexStatus: 0,
     indexData: ['1 frankchen.tw. alpn="h2,http/1.1" port=443'],
     forbiddenPresent: [],
+    forbiddenUnchecked: [],
     entrypoint: { ok: true, status: 200, hasLinkHeader: true },
     ...overrides,
   };
@@ -155,6 +156,29 @@ test('evaluateDnsAid：偷加的 _a2a／_mcp 記錄要被擋下', () => {
   const checks = evaluateDnsAid(
     passingInput({ forbiddenPresent: ['_a2a._agents.frankchen.tw (HTTPS)'] }),
   );
+  assert.match(problemOf(checks, '未提供的 agent 端點'), /_a2a/);
+});
+
+test('evaluateDnsAid：兩家 DoH resolver 都查詢失敗時不能誤報 PASS', () => {
+  // forbiddenPresent 空陣列不等於「查證過確實沒有」——可能只是沒查成
+  const checks = evaluateDnsAid(
+    passingInput({
+      forbiddenPresent: [],
+      forbiddenUnchecked: ['_a2a._agents.frankchen.tw (HTTPS)：Cloudflare 請求失敗｜Google 請求失敗'],
+    }),
+  );
+  assert.notEqual(problemOf(checks, '未提供的 agent 端點'), null);
+  assert.match(problemOf(checks, '未提供的 agent 端點'), /未能查證/);
+});
+
+test('evaluateDnsAid：偷加的記錄與查詢失敗同時發生時，訊息以偷加的記錄為主', () => {
+  const checks = evaluateDnsAid(
+    passingInput({
+      forbiddenPresent: ['_a2a._agents.frankchen.tw (HTTPS)'],
+      forbiddenUnchecked: ['_mcp._agents.frankchen.tw (SVCB)：Cloudflare 請求失敗｜Google 請求失敗'],
+    }),
+  );
+  assert.match(problemOf(checks, '未提供的 agent 端點'), /查到不該存在的記錄/);
   assert.match(problemOf(checks, '未提供的 agent 端點'), /_a2a/);
 });
 

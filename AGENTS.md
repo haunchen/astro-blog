@@ -19,7 +19,7 @@ TypeScript strict mode。部署到 Cloudflare Pages（`https://frankchen.tw`）�
 npm run dev          # 開發伺服器（會先跑字型裁切，見下方）
 npm run build         # 正式建置 → dist/
 npm run preview       # 預覽 build 產物
-npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出）
+npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出 + DNS-AID 解析／評估）
 npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
@@ -29,10 +29,13 @@ npx astro check       # TypeScript / Astro 型別檢查
 Node 官方文件建議的可攜寫法）。拿掉引號、或改傳目錄（`node --test scripts/lib/`）
 在 Windows 上會失敗，不要「順手修正」。
 
-另有三支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
-`verify:assets`。它們存在的理由就是 Cloudflare zone 層規則會覆寫 repo 裡的設定——
-`public/_headers` 與 `public/robots.txt` 是請求，zone 才是執行——所以指向 localhost
-等於讓這些檢查失去意義。要換來源用 `npm run verify:headers -- https://其他來源`。
+另有四支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
+`verify:assets`、`verify:dns-aid`。前三支存在的理由是 Cloudflare zone 層規則會覆寫
+repo 裡的設定——`public/_headers` 與 `public/robots.txt` 是請求，zone 才是執行——
+所以指向 localhost 等於讓這些檢查失去意義。`verify:dns-aid` 則是驗證 zone 上的
+DNS-AID 記錄（`_index._agents.<host>`）還在、還是對的：DNS 記錄完全不在 repo，
+沒有版控也沒有 code review，這支腳本是唯一會在記錄被改壞或刪掉時叫出來的東西。
+要換來源用 `npm run verify:headers -- https://其他來源`。
 
 `dev` / `build` 前會自動跑 `scripts/build-font-css.mjs`（產出 gitignore 的
 `src/styles/fonts.css` 與 `public/fonts/*`），不需要手動介入；只有改字型設定
@@ -51,8 +54,10 @@ src/
   utils/site-meta.ts SITE 常數與 JSON-LD 工廠函式，SEO 的單一來源
   styles/global.css  design tokens（CSS 變數），Tailwind v4 於此 @import
 scripts/             build-font-css.mjs（網頁字型裁切）、subset-fonts.mjs
-                     （OG 圖字型，用 satori）、verify-*.mjs（build 後與正式站驗證）
-  lib/               migrate-wp 與 markdown 匯出的純函式，npm test 的對象
+                     （OG 圖字型，用 satori）、verify-*.mjs（build 後與正式站驗證，
+                     含 verify-dns-aid.mjs 驗 zone 上的 DNS-AID 記錄）
+  lib/               migrate-wp、markdown 匯出、DNS-AID 解析／評估的純函式，
+                     npm test 的對象
 public/
   AGENTS.md          ← 給造訪網站的 agent，不是這一份
   _headers, _redirects, robots.txt
