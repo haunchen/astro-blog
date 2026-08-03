@@ -257,3 +257,59 @@ last_modified: 2026-08-03
   四個 link-value 寫成單行逗號分隔而非多行 `Link:`：Cloudflare 文件說明的是「多條**規則**
   命中時同名標頭以逗號串接」，同一區塊內重複寫同名標頭的行為未有明文，不賭
 - **Date**: 2026-08-03
+
+## Pending Changes
+
+> Source: docs/plans/2026-08-03-dns-aid-discovery-design.md
+> Date: 2026-08-03
+
+### ADDED R9: DNS 層的 agent 入口宣告
+- **Level**: MUST
+- **Description**: `_index._agents.<正規主機>` 提供一筆 ServiceMode 記錄，宣告本網域對 agent
+  的入口主機、連接埠與 ALPN。TargetName 須為可用公開憑證連線的主機名（不得含底線）且該主機
+  確實服務中。
+
+  記錄**不得**宣告本站未實際提供的 agent 協定端點——`_a2a._agents`、`_mcp._agents` 等名稱維持
+  不存在，直到本站真的有對應端點為止。
+
+  記錄內容只使用已由 IANA 註冊的 SvcParamKey，不使用尚待配號的實驗性 key。本站機器可讀資源的
+  清單不在 DNS 重述，由 R8 的 `Link` 標頭承擔——DNS 層只回答「入口在哪」。
+
+  本需求與 R4、R8 是同一條線的三層：R4 要求 agent 先解析 HTML 或 llms.txt，R8 讓一個 HEAD
+  請求拿到指路標，R9 讓 agent 在建立連線之前就知道入口位置。
+
+### ADDED S9: agent 從 DNS 取得入口且無虛假宣告
+- **Given**: 站台已部署
+- **When**: 以 DNS-over-HTTPS 查詢 `_index._agents.frankchen.tw` 的 ServiceMode 記錄，
+  並對其 TargetName 主機發出 HEAD 請求，另查 `_a2a._agents` 與 `_mcp._agents`
+- **Then**: `_index` 回傳至少一筆 priority ≠ 0 的記錄，TargetName 為 `frankchen.tw.`（無底線），
+  SvcParams 含 `alpn`；對該主機的 HEAD 回應 200 且帶 `Link` 標頭；
+  `_a2a._agents` 與 `_mcp._agents` 皆為 NXDOMAIN
+- **Implements**: #R9
+
+### ADDED D11: 只發 `_index`、用已註冊參數、記錄型別取 HTTPS
+- **Decision**: 於 `_index._agents.frankchen.tw` 發一筆 `HTTPS 1 frankchen.tw. alpn="h2,http/1.1"
+  port=443`；不發 `_a2a`／`_mcp`，不使用實驗性 SvcParamKey，不加 `mandatory`；DNSSEC 另案評估
+- **Rationale**: 起因是 isitagentready 掃描回報 dnsAid 找不到 well-known entrypoint 記錄。
+  但 DNS-AID 的用途是把 AI agent 發布到 DNS，而本站是純靜態內容部落格、沒有任何 agent 端點
+  （同一份掃描的 `a2aAgentCard`／`mcpServerCard` 也是 fail，那是實情不是疏漏）。照字面發滿三條
+  等於宣告不存在的服務，agent 連過來會撲空，比沒有記錄更糟——與 D10 對 api-catalog 的判斷同構，
+  一樣取「只宣告既有資源」。
+
+  draft §3.2 對 `_index` 沒有強制任何 SvcParamKey（「protocols and schemas are out of scope」），
+  只要求 TargetName 存在且不含底線。`alpn`／`port` 是 RFC 9460 已註冊的 key 且值為實情；
+  draft 專屬的 `well-known`／`cap` 等五個 key 全部 pending IANA、連數字都還沒配，自挑私有號等於
+  發明只有自己看得懂的語意。不加 `mandatory` 是因為它要求不認得該 key 的 client 整筆丟棄記錄，
+  而這條記錄存在的目的正是要被成熟度不一的 agent 看見。
+
+  型別取 HTTPS(65) 而非 SVCB(64) 出自實測：Cloudflare 與 Google 的 DoH JSON 都只把 HTTPS 轉成
+  presentation format，SVCB 回 RFC 3597 的十六進位 wire format。掃描器走同一條 CF DoH，發 SVCB
+  等於賭它有能力解那串 hex。SKILL.md 原文本就是「SVCB records, or HTTPS records for HTTPS
+  endpoints」，而本站入口確實是 HTTPS 端點。已知風險：CF 對 proxied 名稱會自動產生 HTTPS 記錄
+  並忽略手動的，`_index._agents` 底下無 A/AAAA 故形式上不受影響，但只能在 dashboard 實建一次
+  才算數；若被拒或被覆寫，退路是改發 SVCB(64) 並自行解析 wire format。
+
+  DNSSEC 在 draft 是 SHOULD（唯有併用 TLSA 才 MUST），本案不發 TLSA。不納入的理由是風險不對稱：
+  .tw 的 DS 要上傳到註冊商，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處；
+  且它的價值本來就不限於本案，適合獨立評估
+- **Date**: 2026-08-03
