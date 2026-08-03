@@ -3,6 +3,7 @@ import { SEO } from 'astro-seo';
 import { ClientRouter } from 'astro:transitions';
 import JsonLd from '../components/JsonLd.astro';
 import { SITE, ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
+import { pagePathToMdPath } from '../../scripts/lib/md-path.mjs';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
@@ -39,8 +40,10 @@ interface Props {
   preloadImage?: { src: string; srcSet?: string; sizes?: string };
   /**
    * 該頁 markdown 變體的路徑（例如 `/some-slug.md`）。
-   * 傳入才輸出 <link rel="alternate" type="text/markdown">——目前只有文章與首頁
-   * 有 md 變體，其餘頁面沒有對應產物，亂宣告等於給 agent 一個 404。
+   *
+   * 不傳則由 `Astro.url.pathname` 自動推導——全站頁面都有 md 變體（見 agent-markdown R10），
+   * 逐頁傳一次等於九個檔案各改一遍，而且新增頁面時一定會有人忘記。
+   * `noindex` 的頁面（404）沒有對應產物，自動推導會跳過它們。
    */
   markdownVariant?: string;
 }
@@ -94,6 +97,15 @@ const breadcrumbJsonLd = breadcrumbs?.length
       },
     ]
   : [];
+
+// Astro.url.pathname 在靜態建置下未必帶結尾斜線（視路由定義而定），而 md 路徑映射以
+// 「頁面一律帶結尾斜線」為前提。先正規化再推導，否則宣告會靜默消失——HTML 照樣正常，
+// 只是 agent 少了一條發現管道。verify-seo 有一條斷言專門守這件事。
+const normalizedPath = Astro.url.pathname.endsWith('/')
+  ? Astro.url.pathname
+  : `${Astro.url.pathname}/`;
+const resolvedMarkdownVariant =
+  markdownVariant ?? (noindex ? undefined : (pagePathToMdPath(normalizedPath) ?? undefined));
 
 const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...jsonLd];
 ---
@@ -193,8 +205,8 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
         值必須與 <html lang> 完全一致（zh-TW），否則驗證器認不出這是自我宣告。 */}
     <link rel="alternate" hreflang="zh-TW" href={canonicalURL.href} />
     <link rel="alternate" hreflang="x-default" href={canonicalURL.href} />
-    {markdownVariant && (
-      <link rel="alternate" type="text/markdown" href={markdownVariant} />
+    {resolvedMarkdownVariant && (
+      <link rel="alternate" type="text/markdown" href={resolvedMarkdownVariant} />
     )}
     <JsonLd data={allJsonLd} />
     <ClientRouter />
