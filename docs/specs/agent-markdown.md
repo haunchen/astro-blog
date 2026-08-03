@@ -94,6 +94,104 @@ last_modified: 2026-08-03
 
   DNS 記錄不在 repo，zone 是唯一事實來源；本需求的守門人是 `npm run verify:dns-aid`。
 
+## Pending Changes
+
+（2026-08-03 提出，設計見 `docs/plans/2026-08-03-markdown-negotiation-design.md`。
+實作完成後併入上方主體並移除本區塊。）
+
+### ADDED R10: 全站頁面的 markdown 變體
+- **Level**: MUST
+- **Description**: 除文章（R1）與首頁（R6）之外的所有 HTML 頁面——關於、聯絡、隱私權、
+  n8n 資源、文章總覽、分類索引與各分類、標籤索引與各標籤——皆須提供 markdown 表示，
+  路徑為該頁網址去掉結尾斜線後加 `.md`（`/tag/n8n/` → `/tag/n8n.md`）。
+  frontmatter 比照 R6 的非文章欄位集（`title`、`description`、`canonical`、`image`），
+  不套用 R2 的文章契約。
+
+  本需求與 R1、R6 分屬不同產出管線，這是刻意的：文章與首頁有手寫來源（原始 markdown、
+  共用文案常數），品質高於任何通用轉換；其餘頁面的內容住在版面裡，沒有可抄的來源。
+  兩條管線不得為了「統一」而合併——合併的方向只能是讓文章 md 退化成轉換產物。
+
+  每個 HTML 頁面都必須有對應的 md 產物，缺任一份即為建置失敗。這條是硬要求而非盡力而為：
+  R11 的協商在找不到 md 時會退回 HTML，缺漏因此是靜默的。
+
+### ADDED R11: Accept 內容協商
+- **Level**: MUST
+- **Description**: 對站台任一頁面網址發出的請求，若 `Accept` 明確含 `text/markdown`，
+  回應該頁的 markdown 表示；否則回應 HTML。HTML 為預設，不得因協商而改變一般瀏覽器的行為。
+  協商回應使用原網址、狀態碼 200，不得改以重導向達成。
+
+  無對應 md 產物的路徑（404 頁、靜態資產）須退回 HTML／原有行為，不得因協商而產生新的 404。
+
+  協商能力的存在不取代 R4 的既有管道：路徑慣例仍須獨立可用。
+
+### MODIFIED R4: 發現管道
+- 路徑慣例的適用範圍由「文章」擴及全站頁面（隨 R10）。
+- 新增第四條管道：同一網址的 `Accept` 內容協商（R11）。四條管道由淺至深為
+  路徑慣例／llms.txt／HTML 宣告、HTTP `Link` 標頭（R8）、DNS 記錄（R9）、內容協商（R11）。
+
+### MODIFIED R5: md 端點的回應標頭
+- 原文適用範圍限縮為「直接請求 `.md` 路徑」。
+- 新增協商回應（R11）的標頭契約，與前者刻意不同：
+  - `Content-Type: text/markdown; charset=utf-8`（相同）
+  - **不得**帶 `X-Robots-Tag: noindex`。該標頭的用途是防 `/<slug>.md` 與 `/<slug>/`
+    被判重複內容；協商回應走的是正規網址本身，帶上它等於要求搜尋引擎不要收錄頁面本體
+  - HTML 與 markdown 兩種回應皆須帶 `Vary: Accept`
+  - 有能力計算時帶 `x-markdown-tokens`
+
+### ADDED S10: agent 以 Accept 取得同一網址的 markdown
+- **Given**: 站台已部署
+- **When**: 對首頁與任一文章頁帶 `Accept: text/markdown` 發出請求
+- **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`、帶 `Vary: Accept`，
+  body 為該頁的 markdown 表示；同一網址不帶該標頭時回應 `Content-Type: text/html`
+- **Implements**: #R11
+
+### ADDED S11: 協商回應不得要求搜尋引擎略過本體
+- **Given**: 站台已部署
+- **When**: 對任一文章頁帶 `Accept: text/markdown` 請求並檢視回應標頭
+- **Then**: 回應**不含** `X-Robots-Tag`；同一篇文章的 `/<slug>.md` 直接請求則仍含 `noindex`
+- **Implements**: #R5
+
+### ADDED S12: 無 markdown 表示的路徑不因協商而壞掉
+- **Given**: 站台已部署
+- **When**: 對不存在的路徑與任一靜態資產帶 `Accept: text/markdown` 請求
+- **Then**: 行為與不帶該標頭時一致（404 頁仍為 404 HTML、資產仍為原本的型別），
+  不得出現因協商而新產生的 404
+- **Implements**: #R11
+
+### ADDED D12: 頁面 md 走 build 後處理，不逐頁寫 route
+- **Decision**: 以建置後掃描產物 HTML 轉出頁面 md，不比照 `/index.md` 為九個頁面各寫一支路由
+- **Rationale**: 逐頁寫路由的前提是文案有共用來源可讀，但關於（544 行）、n8n 資源（301 行）、
+  聯絡（131 行）、隱私權（77 行）的文案全寫在版面裡。照 D8 的教訓，不先抽出共用來源就會漂移，
+  而那種漂移不會讓建置失敗、只會讓 agent 拿到過期內容；抽上千行版面文案的成本遠高於本功能
+  的價值。以最終 HTML 為單一來源，結構上不可能漂移
+- **Date**: 2026-08-03
+
+### ADDED D13: 自建協商層，不升級方案也不用 zone 規則
+- **Decision**: 協商邏輯寫在 repo 內的邊緣中介層；不啟用 Cloudflare 原生的 Markdown for
+  Agents，也不用 zone 的 URL 重寫規則
+- **Rationale**: 本站 zone 為 Free 方案，原生功能（Pro 起）與 Snippets（Pro 起）都用不到。
+  但即使升級也不會採用它：原生方案在邊緣做通用 HTML→md 轉換並附 JSON-LD（D3 刻意排除的東西），
+  而本站文章 md 是作者手寫的原始 markdown，會變成兩套互相打架的表示——付費買到品質更差的結果。
+  zone 重寫規則的硬傷是無法在缺 md 時退回 HTML（會 404），且規則活在 zone 不在 repo，
+  與 R9 同一種漂移病
+- **Date**: 2026-08-03
+
+### ADDED D14: 協商回應顯式剝除 noindex
+- **Decision**: 協商回應必須主動移除 `X-Robots-Tag`，並以反向斷言守著
+- **Rationale**: 這是本功能唯一會造成實質傷害的失誤模式。md 產物本身帶 `noindex`（D5），
+  協商層若取出產物原封轉發，該標頭會跟著出現在正規網址的回應上，等於對文章本體下架指令。
+  正向斷言（協商有回 md）擋不住它，必須另立反向斷言
+- **Date**: 2026-08-03
+
+### ADDED D15: D1 標記 superseded
+- **Decision**: D1「不做內容協商」失效，但保留原文並標記 superseded
+- **Rationale**: D1 的兩個理由現在一個被實測推翻、一個被補上對策。快取分流那條的前提不成立
+  ——實測正式站 HTML 頁面為 `cf-cache-status: DYNAMIC`，本來就沒有邊緣快取可以被污染，
+  D1 擔心的賭注不存在。runtime 層那條仍然成立，因此把邊緣中介層納入本機與 CI 的可測範圍，
+  把風險拉回 CI。D1 當初寫的「靜態變體同時是內容協商的前置產物，日後補做不需重寫」已兌現：
+  既有的文章與首頁 md 一份都不用改
+- **Date**: 2026-08-03
+
 ## Scenarios
 
 ### S1: agent 依慣例抓取 md
