@@ -29,14 +29,14 @@ npm run verify:headers   # HTTP headers of the LIVE site
 npm run verify:robots    # robots.txt of the LIVE site
 npm run verify:assets    # Static assets referenced by LIVE pages actually resolve
 npm run verify:dns-aid   # DNS-AID records (_index._agents.<host>) on the LIVE zone
-npm run verify:negotiation  # Accept 內容協商 on the LIVE site (or pass an origin)
+npm run verify:negotiation  # Accept content negotiation on the LIVE site (or pass an origin)
 ```
 
-`verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` hit **https://frankchen.tw
-(production)** by default — they exist precisely because Cloudflare zone-level rules (and, for
-`verify:dns-aid`, the zone's DNS records themselves) can override or simply not exist in what the repo
-says, so pointing them at localhost defeats their purpose. Override the origin with
-`npm run verify:headers -- https://other-origin`.
+`verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` / `verify:negotiation` hit
+**https://frankchen.tw (production)** by default — they exist precisely because Cloudflare
+zone-level rules (and, for `verify:dns-aid`, the zone's DNS records themselves) can override or
+simply not exist in what the repo says, so pointing them at localhost defeats their purpose.
+Override the origin with `npm run verify:headers -- https://other-origin`.
 
 No linter is configured. TypeScript is strict; `@astrojs/check` is installed for `npx astro check`
 (not wired to an npm script).
@@ -104,8 +104,9 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 **Scripts:** `build-font-css` + `subset-fonts` (font pipeline, run by dev/build), `migrate-wp` +
 `scripts/lib/*` (one-off WordPress WXR importer, the part under test), `scripts/lib/md-export.mjs`
 (pure transforms behind `/[...slug].md`, also under test), `scripts/lib/page-md.mjs` + `md-path.mjs`
-（頁面 md 變體的轉換與路徑映射，前者只在 build 時跑、後者同時被 Pages Functions 引用所以必須零依賴）,
-`build-manifest`, `verify-*`.
+(page-markdown-variant conversion + path mapping — `page-md.mjs` converts a built page's HTML into
+its markdown variant and only runs at build time; `md-path.mjs` is also imported by Pages Functions
+at request time, so it must stay zero-dependency), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for
