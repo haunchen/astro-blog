@@ -560,9 +560,12 @@ check('每篇非草稿文章都有對應的 .md 變體', (failures) => {
   }
 });
 
+// 這條要用 allMdInDist（未經文章白名單過濾的全集）而不是 mdBySlug：mdBySlug 的定義是
+// 「allMdInDist ∩ articleSlugs」，而 articleSlugs 本身就已經排除了草稿——對任何草稿的 id，
+// mdBySlug.has(id) 恆為 false，這條檢查會變成死碼，草稿真的外流到 dist 也偵測不到。
 check('草稿文章不得產出 .md 變體', (failures) => {
   for (const { id, draft } of sourcePosts) {
-    if (draft && mdBySlug.has(id)) {
+    if (draft && allMdInDist.has(id)) {
       failures.push({ page: `/${id}.md`, reason: '草稿不應輸出 markdown 變體' });
     }
   }

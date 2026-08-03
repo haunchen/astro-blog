@@ -62,12 +62,19 @@ export const onRequest = async (context) => {
   if (request.method !== 'GET' && request.method !== 'HEAD') return next();
 
   const url = new URL(request.url);
-  const mdPath = wantsMarkdown(request) ? pagePathToMdPath(url.pathname) : null;
 
-  // 不要 markdown，或這個路徑根本不是頁面（靜態資產、.md 本身）→ 原本的行為。
-  if (mdPath === null) return withVaryOnAccept(await next());
+  // 補 Vary 的閘門是「這個路徑是不是頁面」，不是「Accept 想不想要 markdown」：
+  // 協商契約（spec MODIFIED R5）只涵蓋同一頁面的 HTML／markdown 兩種表示，
+  // pagePathToMdPath 回傳 null 就代表這不是頁面（靜態資產、.md 本身、404.html）。
+  // 這些路徑在 public/_headers 有刻意調過的快取秒數，多一個 Vary: Accept 會讓
+  // 瀏覽器快取改以 Accept 分鍵——<img> 與 fetch() 送的 Accept 不同，可能造成
+  // 同一資源被重複下載，因此完全不碰標頭，原樣交還。
+  const pageMdPath = pagePathToMdPath(url.pathname);
+  if (pageMdPath === null) return next();
 
-  const asset = await env.ASSETS.fetch(new URL(mdPath, url.origin));
+  if (!wantsMarkdown(request)) return withVaryOnAccept(await next());
+
+  const asset = await env.ASSETS.fetch(new URL(pageMdPath, url.origin));
   // 找不到 md 產物就退回 HTML，不製造新的 404（spec R11）。正常情況下不會走到這裡——
   // verify-seo 有一條硬斷言要求每個 HTML 頁面都有對應 md。
   if (!asset.ok) return withVaryOnAccept(await next());
