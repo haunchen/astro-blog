@@ -225,8 +225,8 @@ last_modified: 2026-07-31
 ### ADDED R8: HTTP 層的發現標頭
 
 - **Level**: MUST
-- **Description**: 站台所有 HTML 頁面的回應須帶 `Link` 標頭（RFC 8288），宣告本站的機器可讀
-  資源：`/AGENTS.md`（`rel="describedby"`）、`/llms.txt`（`rel="index"`）、`/rss.xml`
+- **Description**: 站台所有內容頁（一律以帶結尾斜線的路徑供應）的回應須帶 `Link` 標頭
+  （RFC 8288），宣告本站的機器可讀資源：`/AGENTS.md`（`rel="describedby"`）、`/llms.txt`（`rel="index"`）、`/rss.xml`
   （`rel="alternate"`）。首頁另含 `/index.md`（`rel="alternate"`，`type="text/markdown"`）——
   該項為首頁專屬，不得出現在其他頁面。靜態資產（`/_astro/`、`/fonts/`、圖片等）的回應
   不得帶此標頭。文章的 `/<slug>.md` 不在此標頭的宣告範圍內，其 md 宣告仍走 R4 的既有管道。
@@ -245,14 +245,14 @@ last_modified: 2026-07-31
 ### ADDED D10: 宣告既有資源，不做 api-catalog
 
 - **Decision**: 以 `describedby`／`index`／`alternate` 指向站上既有的四份產物，不新增
-  `/.well-known/api-catalog`；作用範圍以 `/` 與 `/*/ ` 兩條 `_headers` 規則表達，不掛在 `/*`
+  `/.well-known/api-catalog`；作用範圍以 `/` 與 `/*/` 兩條 `_headers` 規則表達，不掛在 `/*`
 - **Rationale**: 起因是 isitagentready 掃描回報首頁無 Link 標頭，建議加 `rel="api-catalog"`。
   但 RFC 9727 對 `api-catalog` 有硬性要求——目標文件必須是 `application/linkset+json`
   （RFC 9264）格式的 API 清單，而本站是純靜態內容部落格，沒有 API。照字面做等於把內容端點
   當 API 稱呼，並且多一份要維護、會與 llms.txt 漂移的副本。該檢測接受的四個 rel 中
   `describedby` 本來就是語意最準的那個（IANA：指向描述本資源的資源），通行證與正確性重合。
 
-  作用範圍選 `/` + `/*/ ` 而非 `/*`：Cloudflare 文件載明 splat 為貪心且跨斜線比對，`/*/ ` 因此
+  作用範圍選 `/` + `/*/` 而非 `/*`：Cloudflare 文件載明 splat 為貪心且跨斜線比對，`/*/` 因此
   等同「以 `/` 開頭、以 `/` 結尾」，剛好切開帶結尾斜線的頁面與不帶斜線的靜態資產。掛在 `/*`
   會讓每個字型、圖片、JS 回應都多背約 200 bytes，首頁一次載入 30+ 個子資源，等於為了給 agent
   看的東西讓每位讀者多付流量。代價是這個比對行為在本機驗不到（repo 無 wrangler，

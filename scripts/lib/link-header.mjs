@@ -122,7 +122,7 @@ export function parseLinkHeader(value) {
       rel = unquote(param.slice(eq + 1).trim()).toLowerCase();
     }
 
-    if (rel === null) {
+    if (!rel) {
       links.push({ target, rel: null });
       continue;
     }

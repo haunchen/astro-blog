@@ -59,6 +59,11 @@ test('parseLinkHeader：缺 rel 的 link-value 回報 rel 為 null 而非被略�
   assert.deepEqual(links, [{ target: '/a', rel: null }]);
 });
 
+test('parseLinkHeader：rel 為空字串時視同缺 rel，不可整筆消失', () => {
+  const links = parseLinkHeader('</a>; rel=""');
+  assert.deepEqual(links, [{ target: '/a', rel: null }]);
+});
+
 test('parseLinkHeader：同名參數重複時取第一個（RFC 8288）', () => {
   const links = parseLinkHeader('</a>; rel="index"; rel="alternate"');
   assert.deepEqual(links, [{ target: '/a', rel: 'index' }]);
