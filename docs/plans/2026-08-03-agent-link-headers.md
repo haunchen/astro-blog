@@ -421,7 +421,7 @@ function verifyLinks(expected) {
 Step 3: 加入首頁與內頁的正向斷言
 
 找到 `CHECKS` 陣列中最後一個項目——即 `Cache-Control 只有一組 max-age` 的那段 `.map(...)`，
-它以下列三行結尾：
+它以下列兩行結尾：
 
 ```js
   })),
@@ -449,7 +449,7 @@ Step 3: 加入首頁與內頁的正向斷言
 
 Step 4: 加入深層頁面的解析函式
 
-找到 `resolveMarkdownPath()` 函式的結尾——它的最後三行是：
+找到 `resolveMarkdownPath()` 函式的結尾——它的最後四行是：
 
 ```js
   } catch {
