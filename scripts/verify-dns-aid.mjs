@@ -17,7 +17,12 @@
  * 任一項不符即 exit 1。
  */
 
-import { parseServiceBinding, normalizeTargetName, evaluateDnsAid } from './lib/dns-aid.mjs';
+import {
+  parseServiceBinding,
+  normalizeTargetName,
+  evaluateDnsAid,
+  isNameAbsent,
+} from './lib/dns-aid.mjs';
 
 const ORIGIN = (process.argv[2] ?? 'https://frankchen.tw').replace(/\/$/, '');
 const HOST = new URL(ORIGIN).hostname;
@@ -87,9 +92,17 @@ if (indexData.length === 0) {
 }
 console.log(`${indexName} → ${usedType} 記錄 ${indexData.length} 筆（解析器：${indexHttps.resolver}）`);
 
-// 2. _a2a / _mcp：這兩個名稱必須不存在（spec R9 的負向需求），字面要求是 NXDOMAIN。
-//    只看「有沒有 HTTPS/SVCB 答案」不夠：名稱若因其他記錄型別而存在
-//    （NOERROR + NODATA），一樣違反「不存在」，只是查不到我們要的那個 RR type。
+// 2. _a2a / _mcp：這兩個名稱必須不存在（spec R9 的負向需求）。
+//
+//    別用 `Status === 3`（NXDOMAIN）當判準。本 zone 啟用 DNSSEC 後，Cloudflare 改用
+//    compact denial of existence（RFC 9824）：不存在的名稱一律回 NOERROR + 一筆帶
+//    `NXNAME` 的 NSEC，而不是 NXDOMAIN。拿 Status 判會讓這兩項在名稱明明不存在時
+//    系統性誤報（2026-08-03 實測，隨機子網域與 _a2a 的回應形狀完全相同）。
+//
+//    判準因此分兩層：有 HTTPS/SVCB 答案＝真的宣告了端點（實質風險，也是掃描器的
+//    serviceRecordCount 看的東西）；沒有答案時，再看「名稱是否確實不存在」——
+//    NXDOMAIN 或帶 NXNAME 的 NSEC 都算不存在，兩者皆非則是 NODATA（名稱因其他
+//    RR type 而存在），仍屬違反。
 const forbiddenPresent = [];
 const forbiddenUnchecked = [];
 for (const label of ['_a2a', '_mcp']) {
@@ -103,9 +116,17 @@ for (const label of ['_a2a', '_mcp']) {
       forbiddenUnchecked.push(`${name} (${typeName})：${result.error}`);
       continue;
     }
+    // SERVFAIL 等狀態代表這次查詢的結果不可信，不是「查到了記錄」。歸到未能查證，
+    // 否則訊息會說「查到不該存在的記錄」，與實情不符（方向雖保守，但會把人指錯地方）。
+    const status = result.json?.Status;
+    if (status !== 0 && status !== 3) {
+      console.log(`（未能查證 ${name} ${typeName}：DNS 回應 Status=${status}）`);
+      forbiddenUnchecked.push(`${name} (${typeName})：DNS 回應 Status=${status}，結果不可信`);
+      continue;
+    }
+
     const hasAnswer = answersOfType(result.json, typeCode).length > 0;
-    const isNxdomain = result.json.Status === 3;
-    if (hasAnswer || !isNxdomain) {
+    if (hasAnswer || !isNameAbsent(result.json, name)) {
       forbiddenPresent.push(`${name} (${typeName})`);
     }
   }

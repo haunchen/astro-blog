@@ -88,6 +88,32 @@ same name must be DNS-only」，但只能到 dashboard 真的建一次才算數�
 CF API 的 SVCBRecord 結構為 `data: {priority, target, value}`，`value` 即 SvcParams 字串；
 community 有 SVCB 建立異常的回報，這也是把「params 是否被吃掉」列為斷言項的原因。
 
+### 更正（2026-08-03，記錄實建之後）
+
+**上面那條理由是錯的，但結論（用 HTTPS(65)）維持不變。**
+
+記錄建好後對同一筆實測：
+
+```
+Cloudflare DoH → "\# 38 00 01 09 66 72 61 6e 6b 63 68 65 6e 02 74 77 00 00 01 00 0c 02 68 32 ..."
+Google DoH     → "1 frankchen.tw. alpn=h2,http/1.1 port=443"
+```
+
+CF DoH 對這筆 **HTTPS(65)** 記錄一樣回 RFC 3597 wire format。原本的實測取樣有偏差：當初量的是
+`cloudflare.com` 的 HTTPS 記錄，那是 CF 對 **proxied 名稱自動產生**的，CF 對自己合成的記錄才轉
+presentation format；**手動建立**的記錄兩種型別都回 wire format。所以「HTTPS 會被轉、SVCB 不會」
+這個區分不存在，選型別的理由不成立。
+
+結論不變的原因換成兩點，都比原本的理由紮實：一是 RFC 9460 定義的 HTTPS 本就是 https-scheme 的
+特化型，本站入口確實是 HTTPS 端點，語意上本來就該用它；二是實測 isitagentready **解得了**這串
+wire format——回報 `serviceRecordCount: 1`、`mode: "service"`、`target: "frankchen.tw"`、
+`alpn: ["h2","http/1.1"]`、`port: 443`、`validServiceMode: true`、`validationIssues: []`。
+
+真正的代價落在我們自己的驗證腳本上：它原本只解 presentation format，於是在記錄完全正確時誤報
+四項 FAIL——守門人在沒事時亂叫，比沒有守門人更糟。修法是把原本預留的「補 wire-format 解析器」
+退路直接做掉（而非改用 Google DoH 優先）：這支腳本存在的意義就是驗「掃描器會看到什麼」，換一條
+解析路徑等於驗了別的東西。
+
 ## 為何不發 TXT `_index._agents`
 
 掃描器的 7 個 query 裡有一個是 `TXT _index._agents`，`txtIndexEntryCount` 也是它四個判定欄位之一，
@@ -116,6 +142,24 @@ MUST be signed**」。本案不發 TLSA，因此是 SHOULD 而非 MUST。
 
 DNSSEC 的好處本來也不限於本案（全站防 DNS 篡改），適合以獨立議題評估，而不是被一條 agent
 發現記錄綁著做。
+
+### 更正（2026-08-03，記錄實建之後）：改為納入
+
+記錄建好後打 isitagentready，`serviceRecordCount` 已達標但 `status` 仍是 `fail`，訊息換成：
+
+> DNS for AI Discovery (DNS-AID) records found, but **DNSSEC was not validated**
+
+也就是掃描器把 DNSSEC 當成 pass 的**必要條件**而非加分項——這正是上面那句「先發記錄、實量掃描
+結果，再決定值不值得」要等的答案，資料到手了：`records[0]` 的每一欄都被認可（`validServiceMode:
+true`、`validationIssues: []`），唯一缺口是 `dnssecValidated: false`。
+
+站主據此決定啟用。風險評估沒有變（DS 填錯或日後 CF 換 KSK 而 DS 未同步，會讓驗證型 resolver
+直接解不出 frankchen.tw——全站不可達，不是退化），但它現在是「達成本案目的的唯一路徑」，而不是
+一個好處不明的額外工程。連帶把 DNSSEC 從腳本的「印出但不計入失敗」升為正式的第七項斷言：
+它既然是通行條件，就不該只是一行參考訊息。
+
+draft 的規格層級不變（無 TLSA 時只是 SHOULD），所以這是「為了通過某個檢測」而做，不是規格要求。
+記在這裡以免日後誤讀成前者。
 
 ## Repo 落地與驗證
 

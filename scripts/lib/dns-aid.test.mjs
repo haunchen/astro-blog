@@ -1,6 +1,62 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseServiceBinding, normalizeTargetName, evaluateDnsAid } from './dns-aid.mjs';
+import {
+  parseServiceBinding,
+  normalizeTargetName,
+  evaluateDnsAid,
+  isNameAbsent,
+} from './dns-aid.mjs';
+
+// 取自 2026-08-03 對 frankchen.tw（已啟用 DNSSEC）的實際 DoH 回應。
+// Cloudflare 走 compact denial of existence，不存在的名稱回 NOERROR 而非 NXDOMAIN。
+const COMPACT_DENIAL = {
+  Status: 0,
+  Authority: [
+    { name: 'frankchen.tw', type: 6, data: 'edward.ns.cloudflare.com. dns.cloudflare.com. 2411220037 10000 2400 604800 1800' },
+    { name: 'frankchen.tw', type: 46, data: 'SOA ECDSAP256SHA256 2 1800 1785824950 1785644950 34505 frankchen.tw. WrKC...' },
+    { name: '_a2a._agents.frankchen.tw', type: 47, data: '\\000._a2a._agents.frankchen.tw. RRSIG NSEC NXNAME' },
+    { name: '_a2a._agents.frankchen.tw', type: 46, data: 'NSEC ECDSAP256SHA256 4 1800 1785824761 1785644761 34505 frankchen.tw. sUFw...' },
+  ],
+};
+
+test('isNameAbsent：NXDOMAIN 視為不存在', () => {
+  assert.equal(isNameAbsent({ Status: 3 }, '_a2a._agents.frankchen.tw'), true);
+});
+
+test('isNameAbsent：DNSSEC compact denial（NOERROR + NXNAME）視為不存在', () => {
+  assert.equal(isNameAbsent(COMPACT_DENIAL, '_a2a._agents.frankchen.tw'), true);
+});
+
+test('isNameAbsent：名稱與大小寫、尾點差異不影響比對', () => {
+  assert.equal(isNameAbsent(COMPACT_DENIAL, '_A2A._Agents.FrankChen.TW.'), true);
+});
+
+test('isNameAbsent：NSEC 屬於別的名稱時不可誤判為不存在', () => {
+  assert.equal(isNameAbsent(COMPACT_DENIAL, '_mcp._agents.frankchen.tw'), false);
+});
+
+test('isNameAbsent：NODATA（名稱存在、只是沒有該型別）不算不存在', () => {
+  const nodata = {
+    Status: 0,
+    Authority: [{ name: 'frankchen.tw', type: 6, data: 'edward.ns.cloudflare.com. ...' }],
+  };
+  assert.equal(isNameAbsent(nodata, '_a2a._agents.frankchen.tw'), false);
+});
+
+test('isNameAbsent：NXNAME 為其他 token 子字串時不可誤判', () => {
+  const bogus = {
+    Status: 0,
+    Authority: [
+      { name: '_a2a._agents.frankchen.tw', type: 47, data: '\\000._a2a._agents.frankchen.tw. RRSIG NSEC NXNAMEX' },
+    ],
+  };
+  assert.equal(isNameAbsent(bogus, '_a2a._agents.frankchen.tw'), false);
+});
+
+test('isNameAbsent：SERVFAIL 等其他狀態不得當作不存在', () => {
+  assert.equal(isNameAbsent({ Status: 2 }, '_a2a._agents.frankchen.tw'), false);
+  assert.equal(isNameAbsent(null, '_a2a._agents.frankchen.tw'), false);
+});
 
 test('parseServiceBinding：ServiceMode 記錄取出 priority、target 與參數', () => {
   const r = parseServiceBinding('1 frankchen.tw. alpn="h2,http/1.1" port=443');

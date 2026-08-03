@@ -90,6 +90,8 @@ last_modified: 2026-08-03
   本需求與 R4、R8 是同一條線的三層：R4 要求 agent 先解析 HTML 或 llms.txt，R8 讓一個 HEAD
   請求拿到指路標，R9 讓 agent 在建立連線之前就知道入口位置。
 
+  發布該記錄的區域須經 DNSSEC 簽章，使驗證型解析器回傳可驗證的資料。
+
   DNS 記錄不在 repo，zone 是唯一事實來源；本需求的守門人是 `npm run verify:dns-aid`。
 
 ## Scenarios
@@ -152,8 +154,14 @@ last_modified: 2026-08-03
 - **When**: 以 DNS-over-HTTPS 查詢 `_index._agents.frankchen.tw` 的 ServiceMode 記錄，
   並對其 TargetName 主機發出 HEAD 請求，另查 `_a2a._agents` 與 `_mcp._agents`
 - **Then**: `_index` 回傳至少一筆 priority ≠ 0 的記錄，TargetName 為 `frankchen.tw.`（無底線），
-  SvcParams 含 `alpn`；對該主機的 HEAD 回應 200 且帶 `Link` 標頭；
-  `_a2a._agents` 與 `_mcp._agents` 皆為 NXDOMAIN
+  SvcParams 含 `alpn`，且回應帶已驗證的 DNSSEC 狀態；對該主機的 HEAD 回應 200 且帶 `Link` 標頭；
+  `_a2a._agents` 與 `_mcp._agents` 兩個名稱皆不存在。
+
+  兩項實作約束，皆出自實測而非推論：記錄以 presentation format 或 RFC 3597 wire format 回傳
+  都須判定成功——解析器不得因序列化格式而漏判（不同 DoH 供應者、以及同一供應者對自動產生與
+  手動建立的記錄，格式並不一致）。「名稱不存在」不得只認 NXDOMAIN——本 zone 啟用 DNSSEC 後
+  Cloudflare 走 compact denial of existence（RFC 9824），不存在的名稱回 NOERROR 加一筆帶
+  `NXNAME` 的 NSEC，只認 NXDOMAIN 會讓這一項在名稱確實不存在時系統性誤報
 - **Implements**: #R9
 
 ## Design Decisions
@@ -300,19 +308,26 @@ last_modified: 2026-08-03
   發明只有自己看得懂的語意。不加 `mandatory` 是因為它要求不認得該 key 的 client 整筆丟棄記錄，
   而這條記錄存在的目的正是要被成熟度不一的 agent 看見。
 
-  型別取 HTTPS(65) 而非 SVCB(64) 出自實測：Cloudflare 與 Google 的 DoH JSON 都只把 HTTPS 轉成
-  presentation format，SVCB 回 RFC 3597 的十六進位 wire format。掃描器走同一條 CF DoH，發 SVCB
-  等於賭它有能力解那串 hex。SKILL.md 原文本就是「SVCB records, or HTTPS records for HTTPS
-  endpoints」，而本站入口確實是 HTTPS 端點。已知風險：CF 對 proxied 名稱會自動產生 HTTPS 記錄
-  並忽略手動的，`_index._agents` 底下無 A/AAAA 故形式上不受影響，但只能在 dashboard 實建一次
-  才算數；若被拒或被覆寫，退路是改發 SVCB(64) 並自行解析 wire format。
+  型別取 HTTPS(65) 而非 SVCB(64)：RFC 9460 定義的 HTTPS 本就是 https-scheme 的特化型，而本站
+  入口確實是 HTTPS 端點；SKILL.md 原文亦為「SVCB records, or HTTPS records for HTTPS endpoints」。
+
+  （原本另有一條理由「CF DoH 只把 HTTPS 轉成 presentation format、SVCB 回 wire format」，
+  **2026-08-03 記錄實建後證實為誤**：當初取樣的是 `cloudflare.com` 那筆 CF 對 proxied 名稱
+  **自動產生**的記錄，只有 CF 自己合成的才轉 presentation format；**手動建立**的記錄兩種型別
+  都回 RFC 3597 wire format。選型別的結論不變，但驗證端必須自行解 wire format——實測
+  isitagentready 解得了它並完整認可本記錄，我們的腳本原本解不了、於是在記錄正確時誤報四項
+  FAIL，已補上解析器。詳見 design doc 的兩節「更正」。）
 
   同一個掃描器還會查 `TXT _index._agents`（`txtIndexEntryCount` 是它的判定欄位之一），一樣不發：
   TXT 不在 draft 的任何一節裡，是掃描器自己的擴充、格式無規格可循；而 TXT 唯一能塞的內容
   （資源清單或入口路徑）正是 R8 的 `Link` 標頭與 `/AGENTS.md` 已經在講的事，多一份就多一個
   不經 build、不經 code review 的漂移副本。
 
-  DNSSEC 在 draft 是 SHOULD（唯有併用 TLSA 才 MUST），本案不發 TLSA。不納入的理由是風險不對稱：
-  .tw 的 DS 要上傳到註冊商，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處；
-  且它的價值本來就不限於本案，適合獨立評估
+  DNSSEC 原判斷為「不納入、獨立評估」（draft 對無 TLSA 的記錄只是 SHOULD，而 .tw 的 DS 要上傳到
+  註冊商，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處）。**2026-08-03 記錄實建後
+  改為納入**：實測 isitagentready 對本記錄的每一欄都認可（`validServiceMode: true`、
+  `validationIssues: []`、`serviceRecordCount: 1`），但 `status` 仍為 `fail`，訊息是
+  「records found, but DNSSEC was not validated」——它把 DNSSEC 當通行的必要條件而非加分項，
+  是達成本案目的的唯一路徑。風險評估未變，只是不再有替代方案。連帶把 DNSSEC 從腳本的
+  「印出但不計入失敗」升為正式斷言。注意這是為通過該檢測而做，**draft 本身仍只要求 SHOULD**
 - **Date**: 2026-08-03

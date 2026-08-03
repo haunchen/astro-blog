@@ -267,6 +267,36 @@ export function normalizeTargetName(target, ownerName) {
 }
 
 /**
+ * 判斷一次 DoH 回應是否表示「這個名稱不存在」。
+ *
+ * 不能只看 `Status === 3`（NXDOMAIN）。zone 啟用 DNSSEC 後，Cloudflare 改用
+ * compact denial of existence（RFC 9824）：不存在的名稱回 **NOERROR**，並在 Authority
+ * 附一筆該名稱的 NSEC，其 type bitmap 含偽型別 `NXNAME` 代表「名稱不存在」。
+ * 只認 NXDOMAIN 會讓不存在的名稱被判成存在——2026-08-03 本站啟用 DNSSEC 後實測，
+ * 隨機不存在的子網域與 `_a2a._agents` 的回應形狀完全相同，兩者都是 Status 0 + NXNAME。
+ *
+ * 回 `false` 涵蓋兩種情形：名稱確實因其他 RR type 而存在（NODATA），或回應形狀無法判定。
+ * 兩者對呼叫端的意義相同——都不能宣稱它不存在。
+ *
+ * @param {{ Status?: number, Authority?: Array<{ name?: string, type?: number, data?: string }> }} json
+ * @param {string} name 查詢的名稱（尾點與大小寫皆可）
+ * @returns {boolean}
+ */
+export function isNameAbsent(json, name) {
+  if (json?.Status === 3) return true;
+  if (json?.Status !== 0) return false;
+
+  const wanted = String(name ?? '').replace(/\.$/, '').toLowerCase();
+  for (const rr of json.Authority ?? []) {
+    if (rr?.type !== 47) continue; // NSEC
+    if (String(rr.name ?? '').replace(/\.$/, '').toLowerCase() !== wanted) continue;
+    // data 形如 `\000._a2a._agents.example.com. RRSIG NSEC NXNAME`——尾段是 type bitmap
+    if (/(^|\s)NXNAME(\s|$)/.test(String(rr.data ?? ''))) return true;
+  }
+  return false;
+}
+
+/**
  * 評估一次 DNS-AID 查詢結果，回傳固定七項檢查。
  *
  * 為什麼回傳「檢查陣列」而不是「問題陣列」：verify 腳本要能逐項印 PASS/FAIL，
