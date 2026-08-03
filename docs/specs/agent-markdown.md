@@ -2,13 +2,14 @@
 domain: agent-markdown
 status: active
 created: 2026-07-29
-last_modified: 2026-07-31
+last_modified: 2026-08-03
 ---
 
 # Agent Markdown
 
 對 AI agent 供應文章的原生 markdown 表示：build 時為每篇非草稿文章輸出一份 `.md` 變體，
-含白名單 frontmatter 與絕對化的圖片網址，並透過路徑慣例、llms.txt 與 HTML 宣告讓 agent 找得到。
+含白名單 frontmatter 與絕對化的圖片網址，並透過路徑慣例、llms.txt、HTML 宣告與 HTTP
+`Link` 標頭讓 agent 找得到。
 首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6），
 並以 `/AGENTS.md` 供應一份取用手冊（見 R7）。
 
@@ -61,6 +62,18 @@ last_modified: 2026-07-31
   `/robots.txt` 與 canonical 引用規範五個取用管道。
   與 repo 根目錄的 `AGENTS.md`（coding agent 用）是兩份不同文件，內容不得混用。
 
+### R8: HTTP 層的發現標頭
+- **Level**: MUST
+- **Description**: 站台所有內容頁（一律以帶結尾斜線的路徑供應）的回應須帶 `Link` 標頭
+  （RFC 8288），宣告本站的機器可讀資源：`/AGENTS.md`（`rel="describedby"`）、
+  `/llms.txt`（`rel="index"`）、`/rss.xml`（`rel="alternate"`）。首頁另含 `/index.md`
+  （`rel="alternate"`，`type="text/markdown"`）——該項為首頁專屬，不得出現在其他頁面。
+  靜態資產（`/_astro/`、`/fonts/`、圖片等）的回應不得帶此標頭。文章的 `/<slug>.md`
+  不在此標頭的宣告範圍內，其 md 宣告仍走 R4 的既有管道。
+
+  本需求與 R4 是補強關係而非取代：R4 的三種途徑都要求 agent 先取得並解析 HTML 或 llms.txt，
+  R8 讓一個 HEAD 請求即可取得指路標。
+
 ## Scenarios
 
 ### S1: agent 依慣例抓取 md
@@ -108,6 +121,13 @@ last_modified: 2026-07-31
 - **Then**: 回應 200、`Content-Type: text/markdown; charset=utf-8`，內容為非空 markdown
   且涵蓋 R7 列出的五個取用管道
 - **Implements**: #R7
+
+### S8: agent 以 HEAD 請求取得指路標
+- **Given**: 站台已部署
+- **When**: 分別請求首頁、任一文章頁與任一字型檔的回應標頭
+- **Then**: 首頁的 `Link` 含上述四個目標且 rel 正確；文章頁含三個目標（不含 `/index.md`）；
+  字型檔無 `Link` 標頭。比對以 `(target, rel)` 集合進行，出現未預期的 link-value 即為失敗
+- **Implements**: #R8
 
 ## Design Decisions
 
@@ -217,33 +237,7 @@ last_modified: 2026-07-31
   在第三個地方再抄一份只是多一個會過期的副本
 - **Date**: 2026-07-31
 
-## Pending Changes
-
-> Source: docs/plans/2026-08-03-agent-link-headers-design.md
-> Date: 2026-08-03
-
-### ADDED R8: HTTP 層的發現標頭
-
-- **Level**: MUST
-- **Description**: 站台所有內容頁（一律以帶結尾斜線的路徑供應）的回應須帶 `Link` 標頭
-  （RFC 8288），宣告本站的機器可讀資源：`/AGENTS.md`（`rel="describedby"`）、`/llms.txt`（`rel="index"`）、`/rss.xml`
-  （`rel="alternate"`）。首頁另含 `/index.md`（`rel="alternate"`，`type="text/markdown"`）——
-  該項為首頁專屬，不得出現在其他頁面。靜態資產（`/_astro/`、`/fonts/`、圖片等）的回應
-  不得帶此標頭。文章的 `/<slug>.md` 不在此標頭的宣告範圍內，其 md 宣告仍走 R4 的既有管道。
-
-  本需求與 R4 是補強關係而非取代：R4 的三種途徑都要求 agent 先取得並解析 HTML 或 llms.txt，
-  R8 讓一個 HEAD 請求即可取得指路標。
-
-### ADDED S8: agent 以 HEAD 請求取得指路標
-
-- **Given**: 站台已部署
-- **When**: 分別請求首頁、任一文章頁與任一字型檔的回應標頭
-- **Then**: 首頁的 `Link` 含上述四個目標且 rel 正確；文章頁含三個目標（不含 `/index.md`）；
-  字型檔無 `Link` 標頭。比對以 `(target, rel)` 集合進行，出現未預期的 link-value 即為失敗
-- **Implements**: #R8
-
-### ADDED D10: 宣告既有資源，不做 api-catalog
-
+### D10: 宣告既有資源，不做 api-catalog
 - **Decision**: 以 `describedby`／`index`／`alternate` 指向站上既有的四份產物，不新增
   `/.well-known/api-catalog`；作用範圍以 `/` 與 `/*/` 兩條 `_headers` 規則表達，不掛在 `/*`
 - **Rationale**: 起因是 isitagentready 掃描回報首頁無 Link 標頭，建議加 `rel="api-catalog"`。
