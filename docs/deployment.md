@@ -94,3 +94,48 @@ frankchen.tw cutover 屬另一個 milestone，需要：
 2. `public/_redirects` 含舊 slug 對新 slug 的 301
 3. WordPress 端關閉或設好 301
 4. CF Pages 加入自訂網域、DNS 切換
+
+## DNS 記錄（zone 層，不在 repo）
+
+以下記錄由 Cloudflare zone 提供，**repo 裡沒有任何東西會產生它們**。唯一的守門人是
+`npm run verify:dns-aid`（打線上、查 DoH），改動 zone 後請跑一次。
+
+### DNS-AID：`_index._agents`
+
+```
+_index._agents.frankchen.tw. 3600 IN HTTPS 1 frankchen.tw. alpn="h2,http/1.1" port=443
+```
+
+Dashboard 欄位對照（DNS → Records → Add record）：
+
+| 欄位 | 值 |
+|---|---|
+| Type | `HTTPS` |
+| Name | `_index._agents` |
+| TTL | `1 hour` |
+| Priority | `1` |
+| Target | `frankchen.tw.` |
+| Value | `alpn="h2,http/1.1" port=443` |
+
+兩個會靜默失效的填法：
+
+- **Priority 填 0** → AliasMode，isitagentready 的掃描器會算進 `aliasRecordCount` 而非
+  `serviceRecordCount`，記錄看起來建好了卻不算數。
+- **Target 留空或填 `.`** → `.` 在 SVCB 語意上代表 owner name，即 `_index._agents.frankchen.tw`，
+  含底線，違反 draft-mozleywilliams-dnsop-dnsaid §3.2 的 MUST（該處要用公開 x.509 憑證通訊）。
+
+型別用 `HTTPS`(65) 而非 `SVCB`(64) 是實測的結果：Cloudflare 與 Google 的 DoH JSON 只把 HTTPS
+轉成 presentation format，SVCB 回 RFC 3597 的十六進位 wire format，而掃描器走同一條 DoH。
+理由詳見 `docs/plans/2026-08-03-dns-aid-discovery-design.md`。
+
+**不發 `_a2a._agents` 與 `_mcp._agents`**：本站沒有 A2A agent 也沒有 MCP server，宣告它們會讓
+agent 連過來撲空。`verify:dns-aid` 有一條反向斷言確保這兩個名稱維持不存在。
+
+### DNSSEC：尚未啟用
+
+frankchen.tw 目前沒有 DS 記錄（`AD` flag 為 false）。DNS-AID 的 draft 對未併用 TLSA 的記錄
+只要求 SHOULD，因此不是缺陷而是待評估項目。
+
+要啟用得在 Cloudflare DNS → Settings → DNSSEC 取得 DS，再到 **.tw 的註冊商**上傳——那是
+Cloudflare 之外的第三方介面，設錯的後果是全站 DNS 解析失敗，量級遠大於一條發現記錄的好處。
+因此列為獨立議題，不與 DNS-AID 綁著做。
