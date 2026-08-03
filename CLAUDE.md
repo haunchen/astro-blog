@@ -11,7 +11,7 @@ npm run preview    # Preview production build
 ```
 
 ```bash
-npm test           # 33 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown export)
+npm test           # 71 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown export + DNS-AID parsing/evaluation)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -25,11 +25,14 @@ npm run verify:seo       # Static SEO assertions against dist/ — run AFTER npm
 npm run verify:headers   # HTTP headers of the LIVE site
 npm run verify:robots    # robots.txt of the LIVE site
 npm run verify:assets    # Static assets referenced by LIVE pages actually resolve
+npm run verify:dns-aid   # DNS-AID records (_index._agents.<host>) on the LIVE zone
 ```
 
-`verify:headers` / `verify:robots` / `verify:assets` hit **https://frankchen.tw (production)** by default —
-they exist precisely because Cloudflare zone-level rules can override what the repo says, so pointing them
-at localhost defeats their purpose. Override the origin with `npm run verify:headers -- https://other-origin`.
+`verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` hit **https://frankchen.tw
+(production)** by default — they exist precisely because Cloudflare zone-level rules (and, for
+`verify:dns-aid`, the zone's DNS records themselves) can override or simply not exist in what the repo
+says, so pointing them at localhost defeats their purpose. Override the origin with
+`npm run verify:headers -- https://other-origin`.
 
 No linter is configured. TypeScript is strict; `@astrojs/check` is installed for `npx astro check`
 (not wired to an npm script).

@@ -94,3 +94,77 @@ frankchen.tw cutover 屬另一個 milestone，需要：
 2. `public/_redirects` 含舊 slug 對新 slug 的 301
 3. WordPress 端關閉或設好 301
 4. CF Pages 加入自訂網域、DNS 切換
+
+## DNS 記錄（zone 層，不在 repo）
+
+以下記錄由 Cloudflare zone 提供，**repo 裡沒有任何東西會產生它們**。唯一的守門人是
+`npm run verify:dns-aid`（打線上、查 DoH），改動 zone 後請跑一次。
+
+### DNS-AID：`_index._agents`
+
+```
+_index._agents.frankchen.tw. 3600 IN HTTPS 1 frankchen.tw. alpn="h2,http/1.1" port=443
+```
+
+Dashboard 欄位對照（DNS → Records → Add record）：
+
+| 欄位 | 值 |
+|---|---|
+| Type | `HTTPS` |
+| Name | `_index._agents` |
+| TTL | `1 hour` |
+| Priority | `1` |
+| Target | `frankchen.tw.` |
+| Value | `alpn="h2,http/1.1" port=443` |
+
+兩個會靜默失效的填法：
+
+- **Priority 填 0** → AliasMode，isitagentready 的掃描器會算進 `aliasRecordCount` 而非
+  `serviceRecordCount`，記錄看起來建好了卻不算數。
+- **Target 留空或填 `.`** → `.` 在 SVCB 語意上代表 owner name，即 `_index._agents.frankchen.tw`，
+  含底線，違反 draft-mozleywilliams-dnsop-dnsaid §3.2 的 MUST（該處要用公開 x.509 憑證通訊）。
+
+型別用 `HTTPS`(65) 而非 `SVCB`(64)：RFC 9460 定義的 HTTPS 本就是 https-scheme 的特化型，而本站
+入口確實是 HTTPS 端點。理由詳見 `docs/plans/2026-08-03-dns-aid-discovery-design.md`。
+
+**不發 `_a2a._agents` 與 `_mcp._agents`**：本站沒有 A2A agent 也沒有 MCP server，宣告它們會讓
+agent 連過來撲空。`verify:dns-aid` 有一條反向斷言確保這兩個名稱維持不存在。
+
+查詢這筆記錄時會看到兩種格式，**都是正常的**：
+
+```
+Cloudflare DoH → "\# 38 00 01 09 66 72 61 6e 6b 63 68 65 6e 02 74 77 00 ..."   （RFC 3597 wire format）
+Google DoH     → "1 frankchen.tw. alpn=h2,http/1.1 port=443"                    （presentation format）
+```
+
+CF 的 DoH JSON 只對**自己為 proxied 名稱自動產生**的 HTTPS 記錄轉成 presentation format；
+**手動建立**的記錄一律回十六進位 wire format，與 RR 型別無關。看到 hex 不代表建錯型別——
+要確認型別，查 `type=SVCB` 應為 NODATA、`type=HTTPS` 才有答案。`verify:dns-aid` 兩種格式都讀得懂。
+
+2026-08-03 實建確認 Cloudflare **不會**拒絕或覆寫這筆手動 HTTPS 記錄（`_index._agents` 底下無
+A/AAAA、不是 proxied 名稱）。原先預留的退路（改發 SVCB(64)）用不上。
+
+### DNSSEC
+
+**必須啟用**——不是本記錄的規格要求，而是外部檢測的通行條件。DNS-AID 的 draft 對未併用 TLSA 的
+記錄只要求 SHOULD，但 isitagentready 實測把它當必要條件：記錄的每一欄都被認可
+（`validServiceMode: true`、`validationIssues: []`）後，`dnsAid.status` 仍是 `fail`，訊息為
+「records found, but DNSSEC was not validated」。
+
+啟用步驟：
+
+1. Cloudflare DNS → Settings → DNSSEC → Enable DNSSEC，取得 DS 記錄（Key Tag／Algorithm／
+   Digest Type／Digest）
+2. 到 **.tw 的註冊商**填入該 DS——那是 Cloudflare 之外的第三方介面
+3. 等父區（`tw`）更新後驗證：
+
+   ```bash
+   curl -s -H 'accept: application/dns-json' \
+     'https://cloudflare-dns.com/dns-query?name=frankchen.tw&type=A&do=1'
+   ```
+
+   回應的 `"AD": true` 即為成功。`npm run verify:dns-aid` 也會斷言這一項。
+
+**風險**：DS 填錯、或日後 Cloudflare 換 KSK 而註冊商端的 DS 未同步，會讓驗證型 resolver
+**直接解不出 frankchen.tw**——全站不可達，不是效能退化。真出事的回復方式是到 CF 關閉 DNSSEC，
+或到註冊商移除 DS 記錄。
