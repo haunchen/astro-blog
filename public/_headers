@@ -126,3 +126,38 @@
   Cache-Control: public, max-age=600, must-revalidate
   Content-Type: text/markdown; charset=utf-8
   X-Robots-Tag: noindex
+
+# ── agent 發現用的 Link 標頭（RFC 8288，見 docs/specs/agent-markdown.md R8）────────────
+# 把 /AGENTS.md、/llms.txt、/rss.xml、/index.md 這幾份既有的機器可讀產物搬到 HTTP 層宣告，
+# agent 一個 HEAD 請求就拿得到指路標，不必先下載並解析 HTML。內容本身沒有新增，只是多一個
+# 宣告管道。
+#
+# 為什麼是 `/` 與 `/*/` 兩條，而不是掛在本檔開頭的 `/*`：Cloudflare 的 splat 是貪心且跨斜線
+# 的完整比對，`/*/` 因此等同「以 / 開頭、以 / 結尾」——本站所有頁面都帶結尾斜線
+# （/about/、/category/n8n/、/<slug>/），所有靜態資產都不帶（/_astro/x.js、/fonts/x.woff2、
+# /og/x.png、/<slug>.md）。掛在 `/*` 會讓每個字型、圖片、JS 回應都多背約 200 bytes，而首頁
+# 一次載入 30+ 個子資源——等於為了給 agent 看的東西讓每位讀者多付流量。
+#
+# 首頁只吻合 `/` 這一條（`/*/` 的 splat 就算能吃空字串，pattern 也會是 `//` 而不是 `/`），
+# 所以四個 link-value 必須完整寫在這裡，不能倚賴與下面那條規則的合併。
+#
+# 為什麼四個擠成一行，而不是寫四行 `Link:`：本檔開頭記載的合併規則講的是「多條*規則*命中
+# 同一路徑時，同名標頭的值以逗號串接」，同一個區塊內重複寫同名標頭的行為 Cloudflare 沒有
+# 明文。RFC 8288 本來就允許單一標頭放多個逗號分隔的 link-value，走有明文的那條路。
+#
+# rel 的選擇都是 IANA 已註冊的關係，不是為了通過外部檢測而編的：AGENTS.md 描述「怎麼取用
+# 本站」故 describedby；llms.txt 是全站文章索引故 index（用 alternate 會說謊，它不是本站的
+# 替代表示）；rss.xml 與 index.md 才是替代表示。刻意不做 RFC 9727 的 api-catalog——那要求
+# 目標必須是 application/linkset+json 的 API 清單，而本站沒有 API。
+#
+# 文章的 /<slug>.md 刻意不進這裡：那要逐篇 35 條規則、每發一篇新文都得改這個檔，正是
+# spec D5 當初拒絕逐篇 `Link: rel="canonical"` 的同一個理由。文章的 md 宣告留在 HTML <head>。
+#
+# 這兩條規則的比對行為在本機驗不到（repo 無 wrangler、astro preview 不套用本檔），
+# 只能靠 Pages preview 或正式站；scripts/verify-headers.mjs 因此同時有正向斷言（頁面要有）
+# 與反向斷言（字型檔不能有）——少了反向那條，比對過頭時會靜默退化成 `/*` 而無人察覺。
+/
+  Link: </AGENTS.md>; rel="describedby"; type="text/markdown", </index.md>; rel="alternate"; type="text/markdown", </llms.txt>; rel="index"; type="text/plain", </rss.xml>; rel="alternate"; type="application/rss+xml"
+
+/*/
+  Link: </AGENTS.md>; rel="describedby"; type="text/markdown", </llms.txt>; rel="index"; type="text/plain", </rss.xml>; rel="alternate"; type="application/rss+xml"
