@@ -216,3 +216,50 @@ last_modified: 2026-07-31
   Cloudflare zone 的清單本來就不同步（`public/_headers` 的註解已記載這件事），
   在第三個地方再抄一份只是多一個會過期的副本
 - **Date**: 2026-07-31
+
+## Pending Changes
+
+> Source: docs/plans/2026-08-03-agent-link-headers-design.md
+> Date: 2026-08-03
+
+### ADDED R8: HTTP 層的發現標頭
+
+- **Level**: MUST
+- **Description**: 站台所有 HTML 頁面的回應須帶 `Link` 標頭（RFC 8288），宣告本站的機器可讀
+  資源：`/AGENTS.md`（`rel="describedby"`）、`/llms.txt`（`rel="index"`）、`/rss.xml`
+  （`rel="alternate"`）。首頁另含 `/index.md`（`rel="alternate"`，`type="text/markdown"`）——
+  該項為首頁專屬，不得出現在其他頁面。靜態資產（`/_astro/`、`/fonts/`、圖片等）的回應
+  不得帶此標頭。文章的 `/<slug>.md` 不在此標頭的宣告範圍內，其 md 宣告仍走 R4 的既有管道。
+
+  本需求與 R4 是補強關係而非取代：R4 的三種途徑都要求 agent 先取得並解析 HTML 或 llms.txt，
+  R8 讓一個 HEAD 請求即可取得指路標。
+
+### ADDED S8: agent 以 HEAD 請求取得指路標
+
+- **Given**: 站台已部署
+- **When**: 分別請求首頁、任一文章頁與任一字型檔的回應標頭
+- **Then**: 首頁的 `Link` 含上述四個目標且 rel 正確；文章頁含三個目標（不含 `/index.md`）；
+  字型檔無 `Link` 標頭。比對以 `(target, rel)` 集合進行，出現未預期的 link-value 即為失敗
+- **Implements**: #R8
+
+### ADDED D10: 宣告既有資源，不做 api-catalog
+
+- **Decision**: 以 `describedby`／`index`／`alternate` 指向站上既有的四份產物，不新增
+  `/.well-known/api-catalog`；作用範圍以 `/` 與 `/*/ ` 兩條 `_headers` 規則表達，不掛在 `/*`
+- **Rationale**: 起因是 isitagentready 掃描回報首頁無 Link 標頭，建議加 `rel="api-catalog"`。
+  但 RFC 9727 對 `api-catalog` 有硬性要求——目標文件必須是 `application/linkset+json`
+  （RFC 9264）格式的 API 清單，而本站是純靜態內容部落格，沒有 API。照字面做等於把內容端點
+  當 API 稱呼，並且多一份要維護、會與 llms.txt 漂移的副本。該檢測接受的四個 rel 中
+  `describedby` 本來就是語意最準的那個（IANA：指向描述本資源的資源），通行證與正確性重合。
+
+  作用範圍選 `/` + `/*/ ` 而非 `/*`：Cloudflare 文件載明 splat 為貪心且跨斜線比對，`/*/ ` 因此
+  等同「以 `/` 開頭、以 `/` 結尾」，剛好切開帶結尾斜線的頁面與不帶斜線的靜態資產。掛在 `/*`
+  會讓每個字型、圖片、JS 回應都多背約 200 bytes，首頁一次載入 30+ 個子資源，等於為了給 agent
+  看的東西讓每位讀者多付流量。代價是這個比對行為在本機驗不到（repo 無 wrangler，
+  `astro preview` 不套用 `_headers`），只能在 Pages preview 部署上實測；因此
+  `verify-headers.mjs` 必須同時有正向斷言（頁面有）與反向斷言（字型檔沒有），否則比對過頭
+  時會靜默退化成 `/*` 而無人察覺
+
+  四個 link-value 寫成單行逗號分隔而非多行 `Link:`：Cloudflare 文件說明的是「多條**規則**
+  命中時同名標頭以逗號串接」，同一區塊內重複寫同名標頭的行為未有明文，不賭
+- **Date**: 2026-08-03
