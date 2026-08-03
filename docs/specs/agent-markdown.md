@@ -12,6 +12,7 @@ last_modified: 2026-08-03
 `Link` 標頭讓 agent 找得到。
 首頁另有一份 `/index.md`（站台入口的 markdown 表示，契約與文章不同，見 R6），
 並以 `/AGENTS.md` 供應一份取用手冊（見 R7）。
+發現管道由淺至深分三層：HTML／llms.txt（R4）、HTTP `Link` 標頭（R8）、DNS 記錄（R9）。
 
 ## Requirements
 
@@ -74,6 +75,23 @@ last_modified: 2026-08-03
   本需求與 R4 是補強關係而非取代：R4 的三種途徑都要求 agent 先取得並解析 HTML 或 llms.txt，
   R8 讓一個 HEAD 請求即可取得指路標。
 
+### R9: DNS 層的 agent 入口宣告
+- **Level**: MUST
+- **Description**: `_index._agents.<正規主機>` 提供一筆 ServiceMode 記錄，宣告本網域對 agent
+  的入口主機、連接埠與 ALPN。TargetName 須為可用公開憑證連線的主機名（不得含底線）且該主機
+  確實服務中。
+
+  記錄**不得**宣告本站未實際提供的 agent 協定端點——`_a2a._agents`、`_mcp._agents` 等名稱維持
+  不存在，直到本站真的有對應端點為止。
+
+  記錄內容只使用已由 IANA 註冊的 SvcParamKey，不使用尚待配號的實驗性 key。本站機器可讀資源的
+  清單不在 DNS 重述，由 R8 的 `Link` 標頭承擔——DNS 層只回答「入口在哪」。
+
+  本需求與 R4、R8 是同一條線的三層：R4 要求 agent 先解析 HTML 或 llms.txt，R8 讓一個 HEAD
+  請求拿到指路標，R9 讓 agent 在建立連線之前就知道入口位置。
+
+  DNS 記錄不在 repo，zone 是唯一事實來源；本需求的守門人是 `npm run verify:dns-aid`。
+
 ## Scenarios
 
 ### S1: agent 依慣例抓取 md
@@ -128,6 +146,15 @@ last_modified: 2026-08-03
 - **Then**: 首頁的 `Link` 含上述四個目標且 rel 正確；文章頁含三個目標（不含 `/index.md`）；
   字型檔無 `Link` 標頭。比對以 `(target, rel)` 集合進行，出現未預期的 link-value 即為失敗
 - **Implements**: #R8
+
+### S9: agent 從 DNS 取得入口且無虛假宣告
+- **Given**: 站台已部署
+- **When**: 以 DNS-over-HTTPS 查詢 `_index._agents.frankchen.tw` 的 ServiceMode 記錄，
+  並對其 TargetName 主機發出 HEAD 請求，另查 `_a2a._agents` 與 `_mcp._agents`
+- **Then**: `_index` 回傳至少一筆 priority ≠ 0 的記錄，TargetName 為 `frankchen.tw.`（無底線），
+  SvcParams 含 `alpn`；對該主機的 HEAD 回應 200 且帶 `Link` 標頭；
+  `_a2a._agents` 與 `_mcp._agents` 皆為 NXDOMAIN
+- **Implements**: #R9
 
 ## Design Decisions
 
@@ -258,36 +285,7 @@ last_modified: 2026-08-03
   命中時同名標頭以逗號串接」，同一區塊內重複寫同名標頭的行為未有明文，不賭
 - **Date**: 2026-08-03
 
-## Pending Changes
-
-> Source: docs/plans/2026-08-03-dns-aid-discovery-design.md
-> Date: 2026-08-03
-
-### ADDED R9: DNS 層的 agent 入口宣告
-- **Level**: MUST
-- **Description**: `_index._agents.<正規主機>` 提供一筆 ServiceMode 記錄，宣告本網域對 agent
-  的入口主機、連接埠與 ALPN。TargetName 須為可用公開憑證連線的主機名（不得含底線）且該主機
-  確實服務中。
-
-  記錄**不得**宣告本站未實際提供的 agent 協定端點——`_a2a._agents`、`_mcp._agents` 等名稱維持
-  不存在，直到本站真的有對應端點為止。
-
-  記錄內容只使用已由 IANA 註冊的 SvcParamKey，不使用尚待配號的實驗性 key。本站機器可讀資源的
-  清單不在 DNS 重述，由 R8 的 `Link` 標頭承擔——DNS 層只回答「入口在哪」。
-
-  本需求與 R4、R8 是同一條線的三層：R4 要求 agent 先解析 HTML 或 llms.txt，R8 讓一個 HEAD
-  請求拿到指路標，R9 讓 agent 在建立連線之前就知道入口位置。
-
-### ADDED S9: agent 從 DNS 取得入口且無虛假宣告
-- **Given**: 站台已部署
-- **When**: 以 DNS-over-HTTPS 查詢 `_index._agents.frankchen.tw` 的 ServiceMode 記錄，
-  並對其 TargetName 主機發出 HEAD 請求，另查 `_a2a._agents` 與 `_mcp._agents`
-- **Then**: `_index` 回傳至少一筆 priority ≠ 0 的記錄，TargetName 為 `frankchen.tw.`（無底線），
-  SvcParams 含 `alpn`；對該主機的 HEAD 回應 200 且帶 `Link` 標頭；
-  `_a2a._agents` 與 `_mcp._agents` 皆為 NXDOMAIN
-- **Implements**: #R9
-
-### ADDED D11: 只發 `_index`、用已註冊參數、記錄型別取 HTTPS
+### D11: 只發 `_index`、用已註冊參數、記錄型別取 HTTPS
 - **Decision**: 於 `_index._agents.frankchen.tw` 發一筆 `HTTPS 1 frankchen.tw. alpn="h2,http/1.1"
   port=443`；不發 `_a2a`／`_mcp`，不使用實驗性 SvcParamKey，不加 `mandatory`；DNSSEC 另案評估
 - **Rationale**: 起因是 isitagentready 掃描回報 dnsAid 找不到 well-known entrypoint 記錄。
