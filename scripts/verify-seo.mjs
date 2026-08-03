@@ -676,7 +676,7 @@ check('AGENTS.md 存在且涵蓋主要取用管道', (failures) => {
     failures.push({ page: '/AGENTS.md', reason: '內容是 HTML，不是 markdown' });
     return;
   }
-  for (const channel of ['/llms.txt', '/index.md', '/rss.xml', '/robots.txt', 'canonical']) {
+  for (const channel of ['/llms.txt', '/index.md', '/rss.xml', '/robots.txt', 'canonical', 'Accept: text/markdown']) {
     if (!text.includes(channel)) {
       failures.push({ page: '/AGENTS.md', reason: `未提及 ${channel}` });
     }

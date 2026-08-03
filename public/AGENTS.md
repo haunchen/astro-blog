@@ -29,6 +29,21 @@
 抓 HTML 版本沒有壞處，但同一篇文章的可見文字只佔 HTML 的一成多，其餘是標記、
 腳本與樣式——`.md` 版本能省下這部分的 token。
 
+## 內容協商（Accept: text/markdown）
+
+除了把網址結尾的斜線換成 `.md`，你也可以直接對原網址帶 `Accept: text/markdown`：
+
+```
+curl -H "Accept: text/markdown" https://frankchen.tw/about/
+```
+
+回應為 `Content-Type: text/markdown; charset=utf-8`，並帶 `Vary: Accept` 與
+`x-markdown-tokens`（token 數估算，供你決定是否抓取全文）。不帶這個標頭時一律回 HTML，
+`Accept: */*` 也視為要 HTML。
+
+兩條路徑取得的內容相同，差別只在引用：協商回應走的是正規網址，可以直接引用；
+`/<path>.md` 這個網址帶 `X-Robots-Tag: noindex`，引用時請改用 frontmatter 的 `canonical`。
+
 ## 格式契約
 
 文章 `.md` 的 YAML frontmatter 欄位固定為：

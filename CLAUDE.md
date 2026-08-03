@@ -5,13 +5,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Dev server (localhost:4321), regenerates font CSS first
-npm run build      # build-font-css → subset-fonts → astro build → dist/
-npm run preview    # Preview production build
+npm run dev            # Dev server (localhost:4321), regenerates font CSS first
+npm run build          # build-font-css → subset-fonts → astro build → dist/
+npm run preview        # Preview production build
+npm run preview:pages  # Preview WITH Pages Functions (wrangler) — astro preview does NOT run them
 ```
 
 ```bash
-npm test           # 71 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown export + DNS-AID parsing/evaluation)
+npm test           # 106 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+                    # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
+                    # md-path.mjs path mapping)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -26,6 +29,7 @@ npm run verify:headers   # HTTP headers of the LIVE site
 npm run verify:robots    # robots.txt of the LIVE site
 npm run verify:assets    # Static assets referenced by LIVE pages actually resolve
 npm run verify:dns-aid   # DNS-AID records (_index._agents.<host>) on the LIVE zone
+npm run verify:negotiation  # Accept 內容協商 on the LIVE site (or pass an origin)
 ```
 
 `verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` hit **https://frankchen.tw
@@ -64,6 +68,10 @@ Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 - `/AGENTS.md` (`public/AGENTS.md`) — how-to-consume manual for agents *visiting the site*:
   `.md` path convention, frontmatter contract, canonical/citation rules. **Not the same file
   as the repo-root `AGENTS.md`**, which is the coding-agent guide (vendor-neutral `CLAUDE.md`)
+- **Content negotiation:** any page URL with `Accept: text/markdown` returns that page's markdown
+  variant at the same URL (`functions/_middleware.js`). HTML stays the default; `Accept: */*` gets
+  HTML. The negotiated response strips `X-Robots-Tag` — that header belongs to the `/<path>.md`
+  URLs only. See `docs/specs/agent-markdown.md` R11
 - `/rss.xml`, `/llms.txt`, `/sitemap.xml`
 
 **Sitemap:** `@astrojs/sitemap` always emits `sitemap-index.xml` + `sitemap-0.xml`; a custom
@@ -88,10 +96,16 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 - `vite.build.cssCodeSplit: false` merges all CSS into one file — trades ~1.7 KB for 4 fewer round trips
   on the homepage. Revisit only if total CSS grows well beyond its current ~15 KB gzipped.
 - A Shiki transformer rewrites tokyo-night's comment color `#51597D` → `#7A82AB` for WCAG AA contrast.
+- `functions/_middleware.js` runs on every page request. `public/_routes.json` excludes
+  `/_astro/`, `/fonts/`, `/og/`, `/samples/` so static assets skip the Worker. Do not add
+  extension-style excludes (`/*.png`) — Cloudflare only documents greedy-prefix wildcards, and
+  a mis-matched pattern silently disables negotiation for whole page sets.
 
 **Scripts:** `build-font-css` + `subset-fonts` (font pipeline, run by dev/build), `migrate-wp` +
 `scripts/lib/*` (one-off WordPress WXR importer, the part under test), `scripts/lib/md-export.mjs`
-(pure transforms behind `/[...slug].md`, also under test), `build-manifest`, `verify-*`.
+(pure transforms behind `/[...slug].md`, also under test), `scripts/lib/page-md.mjs` + `md-path.mjs`
+（頁面 md 變體的轉換與路徑映射，前者只在 build 時跑、後者同時被 Pages Functions 引用所以必須零依賴）,
+`build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for
