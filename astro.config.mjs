@@ -1,12 +1,14 @@
-import { readFileSync, renameSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { globSync } from 'glob';
 import matter from 'gray-matter';
 import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
+import { pagePathToMdPath } from './scripts/lib/md-path.mjs';
+import { buildPageMarkdown } from './scripts/lib/page-md.mjs';
 
 // sitemap serialize callback 只拿得到 URL，先從文章 frontmatter 建 pathname → lastmod 對照。
 // astro.config 內無法使用 astro:content，直接以 gray-matter 讀 frontmatter；
@@ -49,6 +51,48 @@ function sitemapAsSingleFile() {
   };
 }
 
+// 為列表頁與靜態頁產出 markdown 變體（見 docs/specs/agent-markdown.md R10）。
+//
+// 文章與首頁不走這裡：它們由 src/pages/[...slug].md.ts 與 index.md.ts 在此之前產出，
+// 內容是手寫來源（原始 markdown、HOME 常數），品質高於任何通用轉換。判斷方式刻意用
+// 「目標檔案已存在就跳過」而不是維護一份「哪些是文章」的清單——清單會在新增頁面型別時過期，
+// 而過期的後果是靜默覆寫掉品質較好的那一份。
+function pageMarkdownVariants(site) {
+  return {
+    name: 'page-markdown-variants',
+    hooks: {
+      'astro:build:done': ({ dir, logger }) => {
+        const outDir = fileURLToPath(dir);
+        const origin = site.replace(/\/$/, '');
+        let written = 0;
+        let skipped = 0;
+
+        for (const file of globSync('**/*.html', { cwd: outDir })) {
+          const posix = file.replace(/\\/g, '/');
+          // dist/about/index.html → /about/；dist/index.html → /；dist/404.html → /404.html
+          const pathname = `/${posix.replace(/(^|\/)index\.html$/, '$1')}`;
+          const mdPath = pagePathToMdPath(pathname);
+          // null 代表這不是以斜線結尾的頁面（404.html 落在這裡），不產 md。
+          if (mdPath === null) continue;
+
+          const target = join(outDir, mdPath.slice(1));
+          if (existsSync(target)) {
+            skipped++;
+            continue;
+          }
+
+          const html = readFileSync(join(outDir, file), 'utf8');
+          mkdirSync(dirname(target), { recursive: true });
+          writeFileSync(target, buildPageMarkdown(html, origin), 'utf8');
+          written++;
+        }
+
+        logger.info(`頁面 markdown 變體：新產出 ${written} 份，沿用既有 ${skipped} 份`);
+      },
+    },
+  };
+}
+
 export default defineConfig({
   site: 'https://frankchen.tw',
   integrations: [
@@ -66,6 +110,7 @@ export default defineConfig({
       },
     }),
     sitemapAsSingleFile(),
+    pageMarkdownVariants('https://frankchen.tw'),
   ],
   vite: {
     plugins: [tailwindcss()],
