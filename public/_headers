@@ -22,6 +22,19 @@
   #     內容不同的 view-transition-name 樣式並內聯輸出，無法外部化也無法預先算 hash。
   #     這是留 unsafe-inline 的唯一原因；XSS 防護的關鍵面 script-src 已收緊。
   #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
+  #   - AdSense 例外（docs/specs/monetization.md R10、D5）：這是本檔目前最大的一處
+  #     讓步，要知道換到了什麼、付出了什麼。
+  #     付出的是 script-src 的 'unsafe-inline'——上面那句「全站掃描 0 個內聯 script，
+  #     故可鎖到最嚴」從此不再成立，XSS 防護最關鍵的一面被打開。兩條想保住它的路都
+  #     走不通：nonce 要 per-request 產生，本站 HTML 是靜態資產，得在 middleware 用
+  #     HTMLRewriter 逐請求改寫才行，等於毀掉邊緣快取，而且 AdSense 動態注入的 script
+  #     也不會帶我們的 nonce；'strict-dynamic' 同樣需要 nonce 或 hash 當信任根。
+  #     逐路徑分設寬鬆／嚴格也不行：文章頁是 /<slug>/，在本檔的萬用字元下與 /about/
+  #     無法區分，而且同名標頭是合併不是覆蓋，兩份 CSP 並存時瀏覽器對每份都強制，
+  #     取交集後廣告照樣被擋。
+  #     下面這組來源是起始集合，不是實測結果——本機與 Pages preview 都拿不到真實廣告
+  #     （AdSense 只在通過審核的網域投放），完整的違規清單只有正式站量得到。上線後要
+  #     實際開文章頁看 console，把沒用到的來源刪掉、把漏掉的補上。
   #   - Cloudflare Web Analytics 例外：static.cloudflareinsights.com（beacon 指令碼）
   #     與 cloudflareinsights.com（回報端點）。這兩個不在 repo 裡，是 Cloudflare 在
   #     邊緣注入的——只看專案原始碼會漏掉，實測 CSP 違規事件才發現
@@ -34,7 +47,17 @@
   #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
   #     全站字型、圖片、樣式表皆同源。
   #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 鎖到最嚴。
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com; connect-src 'self' https://cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  # 收緊版的觀測用副本（docs/specs/monetization.md R10）：與上面那條唯一的差別是
+  # script-src 沒有 'unsafe-inline'。Report-Only 只回報不阻擋，掛著它不會讓廣告壞掉，
+  # 但只要 AdSense 真的用到內聯腳本，正式站的 console 就會冒出違規訊息——那就是
+  # 「這個讓步收不回來」的實證。反過來說，掛了一段時間都沒有任何違規，就代表上面那條
+  # 的 'unsafe-inline' 可以拿掉，把 XSS 防護那一面收回來。
+  #
+  # 順序是刻意的：先讓 enforcing 放寬到確定能動，再用 Report-Only 試收緊。反過來做
+  # （先發 Report-Only 觀察、再改 enforcing）在這裡不成立——enforcing 還是嚴格版時
+  # 廣告腳本根本載不進來，也就永遠收集不到後續的違規。
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
   # HTML 頁面的預設快取：內容會持續更新（改字句、補圖、修正），不能比照雜湊檔名的
   # 靜態資產用 immutable 長快取；但完全不快取又浪費 CDN 邊緣節點的快取能力，讓每次
   # 瀏覽都回源。短 max-age 讓 CDN／瀏覽器能快取一小段時間，過期後 must-revalidate
