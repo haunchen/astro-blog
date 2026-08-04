@@ -52,8 +52,9 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 ### R10: CSP 放行以實測為準
 - **Level**: MUST
 - **Description**: CSP 的廣告相關放行集合，以 `Content-Security-Policy-Report-Only` 在正式站收集到的真實違規為準，不照抄聯播網文件的建議清單。最終放行了什麼、為什麼、代價是什麼，記錄於 `public/_headers` 註解。
-- **首輪實測**（2026-08-04，正式站文章頁 console）：
-  - 補進一個文件清單沒有的來源——`fundingchoicesmessages.google.com`（Google Privacy & Messaging，AdSense 載入後自行拉取）。它當時是被 enforcing 擋掉的（訊息結尾 `The action has been blocked`），除了功能受影響，被擋的資源會產生 console error 而扣 Best Practices
+- **首輪實測**（2026-08-04，正式站文章頁 console，分兩次）：
+  - 補進一個文件清單沒有的來源——`fundingchoicesmessages.google.com`（Google Privacy & Messaging，AdSense 載入後自行拉取），放行於 `script-src`／`connect-src`／`frame-src` 三處。它當時是被 enforcing 擋掉的（訊息結尾 `The action has been blocked`），除了功能受影響，被擋的資源會產生 console error 而扣 Best Practices
+  - **判準修正**：第一次只補 `script-src`，理由是「`connect-src` 還沒出現違規，依本條以實測為準就不先加」——那是誤用。腳本一載入成功，它的三個子模組（`ad_blocking_detection`、`web_iab_tcf_v2_signal`、`cookie_refresh`）立刻對 `/el/` 端點回報，全被 `connect-src` 擋下並不斷重試，一次瀏覽刷出十幾則 console error。**本條的「以實測為準」管的是網域清單本身（哪些網域要放行），不是同一個已證實需要的網域每個 directive 都要各等一次實測**。一個第三方要載腳本就幾乎必然要發請求，會顯示 UI 的就必然要 iframe
   - Report-Only 的兩則 inline 違規，來源**全部**是 Cloudflare JS Detections 的 per-request 腳本（同頁連抓兩次皆 921 bytes 但 sha256 不同，坐實無法用 hash 放行）；**AdSense 一則內聯違規都沒有**
   - 因此「`'unsafe-inline'` 收不回來」目前成立，但卡點不是 AdSense 而是 JSD。關掉 JS Detections（API `PATCH /zones/<id>/bot_management` 帶 `{"enable_js": false}`）即可立刻收回這條讓步
   - 這是三次抽查的第一次，尚未結案
