@@ -856,7 +856,11 @@ Interfaces:
 - Consumes: Task 5 產生的含廣告文章頁
 - Produces: 校正後的 Best Practices 門檻
 
-背景：Best Practices 100 在有 AdSense 之後守不住，兩個已知失分項是 `third-party-cookies`（Google 會種 doubleclick.net 的 cookie）與 `csp-xss`（Task 6 加了 `'unsafe-inline'`）。實際分數要跑過才知道，所以這個 task 是「先設一個保守值 → 用第一輪 CI 的實際數字收緊」。
+背景：Best Practices 100 在有 AdSense 之後可能守不住，已知的失分項是 `third-party-cookies`——Google 會種 doubleclick.net 的 cookie。
+
+**Task 6 放寬的 CSP 不影響 CI 分數**，這點容易誤判：CI 的 Lighthouse 跑在 `npm run preview`（astro preview），它不套用 `public/_headers`，CSP 標頭根本不在量測範圍內。`'unsafe-inline'` 的代價要用 PageSpeed Insights 打正式站才量得到，屬於「上線後才做得完的收尾」。
+
+實際分數要跑過才知道——localhost 是 no-fill，Google 可能根本沒種下 cookie，分數也可能還是 100。所以這個 task 的做法是「先量、再依實際數字定門檻」，不是照抄本 plan 寫死的數字。
 
 Step 1: 先量本機的實際分數
 
@@ -873,13 +877,15 @@ Step 2: 改 `.github/workflows/seo-pr.yml` 的 THRESHOLDS
 把第 116-121 行的 `THRESHOLDS` 物件替換為（`'best-practices'` 的值用上一步量到的實際分數往下取整到 5 的倍數，若量到 92 就填 90；本 plan 先寫 85 是保底值，量到更高務必收緊）：
 
 ```js
-          // Best Practices 從 100 降下來，是 AdSense 的直接代價，有兩個已知失分項：
-          //   1. third-party-cookies——Google 會種 doubleclick.net 的第三方 cookie，
-          //      這條無解，除非不放廣告。
-          //   2. csp-xss——public/_headers 為了 AdSense 在 script-src 加了 'unsafe-inline'，
-          //      Lighthouse 會判 CSP 對 XSS 防護不足。
-          // 兩者都是設計階段明確接受的取捨（docs/specs/monetization.md D5、R9），
-          // 不是回歸。若哪天這個數字再往下掉，那才是真的有東西壞了。
+          // Best Practices 的門檻依 AdSense 上線後的實測值設定。已知失分項是
+          // third-party-cookies——Google 會種 doubleclick.net 的第三方 cookie，
+          // 這條無解，除非不放廣告，是設計階段明確接受的取捨
+          // （docs/specs/monetization.md R9）。若這個數字再往下掉，才是真的壞了。
+          //
+          // 注意這裡量不到 CSP 的代價：public/_headers 為了 AdSense 在 script-src
+          // 加了 'unsafe-inline'，但本 job 的 Lighthouse 跑在 astro preview 上，
+          // 它不套用 _headers，CSP 標頭不在量測範圍內。那一項要用 PageSpeed
+          // Insights 打正式站才看得到。
           const THRESHOLDS = {
             seo: 100,
             accessibility: 95,
