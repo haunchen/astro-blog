@@ -42,9 +42,19 @@
   #     尚未評估：Cloudflare Pages 是否允許 Function 覆寫 _headers 已設好的同名
   #     標頭。這是未來可收斂的方向，不是已經走過、確認走不通的路，不要下次看到
   #     這段就跳過不試。
-  #     下面這組來源是起始集合，不是實測結果——本機與 Pages preview 都拿不到真實廣告
-  #     （AdSense 只在通過審核的網域投放），完整的違規清單只有正式站量得到。上線後要
-  #     實際開文章頁看 console，把沒用到的來源刪掉、把漏掉的補上。
+  #     下面這組來源最初是照文件寫的起始集合，2026-08-04 上線當天已在正式站實測過一輪
+  #     （本機與 Pages preview 都拿不到真實廣告，AdSense 只在通過審核的網域投放，所以
+  #     這件事非上線不可驗）。實測補進來的是 fundingchoicesmessages.google.com——那是
+  #     Google 的 Privacy & Messaging，AdSense 載入後會自己去拉，官方 CSP 指引沒有明確
+  #     列它，只有真實投放才會冒出來，當時是被 enforcing 這條擋掉（console 訊息結尾為
+  #     「The action has been blocked」，不是 report-only 的那種）。擋著的代價不只是
+  #     功能：被擋的資源會產生 console error，而 errors-in-console 是 Lighthouse
+  #     Best Practices 的稽核項。
+  #     還沒實測到、因此刻意沒放進來的：fundingchoicesmessages 顯示訊息時可能需要
+  #     frame-src 或 connect-src，目前 console 沒有出現對應違規就不先加（spec R10 的
+  #     原則是以實測為準，不照抄文件清單）。日後 console 冒出來再補。
+  #     另外，這組來源裡沒有任何一個是被實測證明「用不到」而該刪的——刪之前要有證據，
+  #     沒出現違規不等於沒用到（可能只是那次投放的素材沒走到那條路徑）。
   #   - Cloudflare Web Analytics 例外：static.cloudflareinsights.com（beacon 指令碼）
   #     與 cloudflareinsights.com（回報端點）。這兩個不在 repo 裡，是 Cloudflare 在
   #     邊緣注入的——只看專案原始碼會漏掉，實測 CSP 違規事件才發現
@@ -56,13 +66,18 @@
   #     這支腳本現在也會被放行執行——「已知並接受：代價是 console 違規訊息、
   #     Lighthouse Best Practices 扣分」這個結論是加 unsafe-inline 之前的舊假設，
   #     已經不成立，要重新評估這支腳本執行帶來的實際風險與 CI 門檻怎麼設。
+  #     2026-08-04 已實測坐實「無法用 hash 放行」：同一頁連抓兩次，那支 inline script
+  #     都是 921 bytes、內容開頭同為 (function(){function c(){var b=a.contentDocument...，
+  #     但 sha256 分別是 GDcNB4v/I/+LXIjqgzzOjkR3E3RuzQqy9jUvgX9EDHM= 與
+  #     63oMcuLlTp/wVbhl9rhhCa7RZ1Y7kEuSvHU7c8c5niU=。這個差異決定了下面 Report-Only
+  #     的判讀結論，別再重算一次。
   #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
   #     全站字型、圖片、樣式表皆同源。
   #   - 全站無 <form>，form-action 鎖到最嚴。frame-ancestors 管的是「別人能不能把本站
   #     嵌進他們的頁面」，跟本站有沒有嵌別人的 iframe 是兩件事——AdSense 例外（見上段）
   #     放寬的是 frame-src，本站現在會嵌 AdSense 的廣告 iframe；frame-ancestors 跟這個
   #     讓步無關，沒有理由跟著鬆動，一樣鎖到最嚴。
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
   # 收緊版的觀測用副本（docs/specs/monetization.md R10）：script-src 沒有
   # 'unsafe-inline'，這是與上面那條唯一有意義的差別；結尾也沒有 upgrade-insecure-
   # requests，因為那個指令是叫瀏覽器把混合內容的請求升級成 https，Report-Only
@@ -80,6 +95,16 @@
   # Bot Fight 模式再觀察一段時間，此時如果依然零違規，才代表上面那條的 'unsafe-inline'
   # 可以拿掉，把 XSS 防護那一面收回來。
   #
+  # 2026-08-04 首輪實測結論（正式站文章頁，站主回報的 console）：Report-Only 冒出的
+  # 兩則 inline 違規，來源全部是 JS Detections 那支 per-request 腳本，**AdSense 一則
+  # 內聯違規都沒有**。也就是說「'unsafe-inline' 收不回來」目前成立，但卡點不是 AdSense，
+  # 是 Cloudflare 的 JS Detections——只要哪天把 JSD 關掉（唯一修法是 API
+  # PATCH /zones/<id>/bot_management 帶 {"enable_js": false}，dashboard 在 Bot Fight
+  # 關閉後不提供該開關），這條 script-src 的 'unsafe-inline' 就能立刻拿掉。這個因果
+  # 一定要留著：沒有它，下次看到那兩則違規只會再誤判一次成「AdSense 需要 inline」。
+  # 上面那段抽查條件（3 次、間隔 1 週、涵蓋 2 種素材類型）仍然要跑完才算數，這裡記的
+  # 是第一次的結果，不是結案。
+  #
   # 順序是刻意的：先讓 enforcing 放寬到確定能動，再用 Report-Only 試收緊。反過來做
   # （先發 Report-Only 觀察、再改 enforcing）在這裡不成立——enforcing 還是嚴格版時
   # 廣告腳本根本載不進來，也就永遠收集不到後續的違規。
@@ -90,7 +115,7 @@
   # 結論。抽查要滿足的驗收條件（次數、間隔、涵蓋的素材類型）寫在
   # docs/plans/2026-08-04-adsense-placement.md 檔尾「上線後才做得完的收尾」第 1 項，
   # 不是「有空看一下 console」這種隨興標準。
-  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
   # HTML 頁面的預設快取：內容會持續更新（改字句、補圖、修正），不能比照雜湊檔名的
   # 靜態資產用 immutable 長快取；但完全不快取又浪費 CDN 邊緣節點的快取能力，讓每次
   # 瀏覽都回源。短 max-age 讓 CDN／瀏覽器能快取一小段時間，過期後 must-revalidate
