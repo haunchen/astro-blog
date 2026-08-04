@@ -20,7 +20,8 @@
   #     當可執行腳本解析，無需另外開放。
   #   - style-src 'unsafe-inline'：Astro View Transitions（ClientRouter）會逐頁產生
   #     內容不同的 view-transition-name 樣式並內聯輸出，無法外部化也無法預先算 hash。
-  #     這是留 unsafe-inline 的唯一原因；XSS 防護的關鍵面 script-src 已收緊。
+  #     這是本站程式碼本身需要 unsafe-inline 的唯一原因；script-src 目前是否也帶
+  #     'unsafe-inline'，見下面 AdSense 例外那一段——那是另一組取捨，不要合併著讀。
   #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
   #   - AdSense 例外（docs/specs/monetization.md R10、D5）：這是本檔目前最大的一處
   #     讓步，要知道換到了什麼、付出了什麼。
@@ -41,15 +42,20 @@
   #     （script-src-elem 擋掉 beacon.min.js，window.__cfBeacon 為 undefined）。
   #     列成具名來源而非放寬成 'unsafe-inline'，攻擊面差距很大。
   #     註：Bot Fight 模式的 JS Detections 另外會注入一段每次請求內容都不同的
-  #     inline script（含 per-request token），無法用 hash 放行，會被 CSP 擋掉。
-  #     已知並接受：站台功能不受影響，代價是 console 有違規訊息、Lighthouse
-  #     Best Practices 因此扣分。要拿回滿分只能關掉 Bot Fight 模式。
+  #     inline script（含 per-request token），無法用 hash 放行。這段原本會被 CSP
+  #     擋掉，但 AdSense 例外把 script-src 加了 'unsafe-inline'（見下段）之後，
+  #     這支腳本現在也會被放行執行——「已知並接受：代價是 console 違規訊息、
+  #     Lighthouse Best Practices 扣分」這個結論是加 unsafe-inline 之前的舊假設，
+  #     已經不成立，要重新評估這支腳本執行帶來的實際風險與 CI 門檻怎麼設。
   #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
   #     全站字型、圖片、樣式表皆同源。
   #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 鎖到最嚴。
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
-  # 收緊版的觀測用副本（docs/specs/monetization.md R10）：與上面那條唯一的差別是
-  # script-src 沒有 'unsafe-inline'。Report-Only 只回報不阻擋，掛著它不會讓廣告壞掉，
+  # 收緊版的觀測用副本（docs/specs/monetization.md R10）：script-src 沒有
+  # 'unsafe-inline'，這是與上面那條唯一有意義的差別；結尾也沒有 upgrade-insecure-
+  # requests，因為那個指令是叫瀏覽器把混合內容的請求升級成 https，Report-Only
+  # 模式下沒有東西可「升級」，寫了也不會被回報、純屬多餘。Report-Only 只回報不阻擋，
+  # 掛著它不會讓廣告壞掉，
   # 但只要 AdSense 真的用到內聯腳本，正式站的 console 就會冒出違規訊息——那就是
   # 「這個讓步收不回來」的實證。反過來說，掛了一段時間都沒有任何違規，就代表上面那條
   # 的 'unsafe-inline' 可以拿掉，把 XSS 防護那一面收回來。
