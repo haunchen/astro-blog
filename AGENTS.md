@@ -97,9 +97,13 @@ docs/
   字型／間距數值。
 - 語言：zh-TW（正體中文台灣用語），所有內容與 UI 文案皆同。
 - `astro.config.mjs` 的 `vite.build.assetsInlineLimit: 0` 與 `cssCodeSplit: false`
-  是 load-bearing 的，不要當成待最佳化的設定。前者一旦調高會把 `Nav.astro` 的
-  script 內聯，`public/_headers` 的 CSP（`script-src 'self'`）就會在執行期把選單
-  打死——build 不會報錯，只有真的在瀏覽器點下去才會發現。
+  是 load-bearing 的，不要當成待最佳化的設定。前者讓所有 script 保持外部化——
+  `public/_headers` 的 CSP 目前**不是**單純 `script-src 'self'`：為了 Google
+  AdSense 另外加了 `'unsafe-inline'`（見 `docs/specs/monetization.md` D5），所以
+  調高這個值、把 `Nav.astro` 的 script 內聯，今天不會被 CSP 擋下來執行。但這個
+  設定仍然值得保持：它是讓日後收緊 CSP（或改由 middleware 逐路徑覆寫，同樣見
+  D5）時能從「所有 script 本來就已外部化」出發，而不必先找出並外部化中途混進來
+  的內聯 script。
 - 站台層級的共用資料（分類、導覽、首頁文案、JSON-LD）集中在
   `src/utils/site-meta.ts`，沿用單一來源，不要在頁面裡另抄一份。
 - 正規主機是 **non-www**。內容、sitemap、站內連結都不得出現 www 網址。

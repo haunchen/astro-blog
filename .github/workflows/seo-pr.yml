@@ -97,7 +97,10 @@ jobs:
             { name: '首頁', file: 'lighthouse-reports/home.json' },
             { name: '文章列表', file: 'lighthouse-reports/articles.json' },
             { name: '關於我', file: 'lighthouse-reports/about.json' },
-            { name: '文章頁樣本', file: 'lighthouse-reports/article.json' },
+            // overrides：只有這頁掛廣告（spec monetization.md R2），Best Practices
+            // 門檻依實測放寬，理由見下方 THRESHOLDS 上方註解。其餘三頁沒有第三方
+            // cookie 的來源，不跟著鬆，繼續吃 THRESHOLDS 的預設值 100。
+            { name: '文章頁樣本', file: 'lighthouse-reports/article.json', overrides: { 'best-practices': 75 } },
           ];
 
           // Performance 門檻刻意設低（85，非 90 也非 95）：GitHub Actions 共用 runner 的
@@ -113,6 +116,33 @@ jobs:
           // 代價要知道：真的退化到 86 不會被擋下。這是刻意的取捨——單次門檻本來就
           // 攔不住那種程度的回歸（它落在雜訊裡），硬把門檻設在雜訊帶只會讓 CI 訊號
           // 失去可信度，紅燈變成「再跑一次就好」的例行動作，那才是真正危險的狀態。
+
+          // Best Practices 門檻預設維持 100，只有「文章頁樣本」那個 target 用
+          // TARGETS 上的 overrides 降到實測後的 75——首頁、文章列表、關於我依
+          // spec R2（monetization.md）本來就不會出現廣告，沒有第三方 cookie 的
+          // 來源，這三頁的 Best Practices 沒理由跟著鬆掉：日後若這三頁出現與
+          // 廣告無關的回歸（例如某個共用元件在非文章頁誤觸發 console error），
+          // 應該還是被 100 卡住，不該一路掉到 76 以下才被攔。
+          //
+          // 75 這個數字：文章頁掛了廣告後的已知失分項是 third-party-cookies——
+          // Google 會種 doubleclick.net 的第三方 cookie，這條無解，除非不放
+          // 廣告，是設計階段明確接受的取捨（docs/specs/monetization.md R9）。
+          // 若這個數字再往下掉，才是真的壞了。
+          //
+          // 實測來源：2026-08-04 於本機以 Lighthouse 13.4.1 對同一篇文章頁量測
+          // 兩次，皆為 77（兩次一致）。75 留了 2 分緩衝而非直接取 77，避免正常的
+          // 量測擺幅（見上方 Performance 90→85 那次事故）誤觸紅燈。
+          //
+          // 掉破門檻時別急著結論成廣告回歸：先看 report 的 errors-in-console 與
+          // image-* 兩類稽核項——本 job 抽的文章頁樣本取自 sitemap 第一篇「非列表
+          // 頁」（見上一個 step 的取樣邏輯），每次 PR 不保證同一篇，新增一篇圖片
+          // 沒處理好的文章也會讓這頁掉分，紅燈原因看起來卻像廣告回歸，其實與
+          // AdSense 無關。
+          //
+          // 注意這裡量不到 CSP 的代價：public/_headers 為了 AdSense 在 script-src
+          // 加了 'unsafe-inline'，但本 job 的 Lighthouse 跑在 astro preview 上，
+          // 它不套用 _headers，CSP 標頭不在量測範圍內。那一項要用 PageSpeed
+          // Insights 打正式站才看得到。
           const THRESHOLDS = {
             seo: 100,
             accessibility: 95,
@@ -131,7 +161,7 @@ jobs:
           const rows = ['| 頁面 | SEO | Accessibility | Best Practices | Performance |', '|---|---|---|---|---|'];
           const failureLines = [];
 
-          for (const { name, file } of TARGETS) {
+          for (const { name, file, overrides = {} } of TARGETS) {
             const report = JSON.parse(readFileSync(file, 'utf8'));
             const categories = report.categories;
             const scores = Object.fromEntries(
@@ -151,20 +181,33 @@ jobs:
                 `best-practices=${scores['best-practices']} performance=${scores.performance}`,
             );
 
+            // overrides 只有「文章頁樣本」會帶（見上方 TARGETS），其餘三頁 overrides
+            // 是空物件，effectiveMin 一律退回 THRESHOLDS 的共用值——seo/accessibility/
+            // performance 三項因此仍是四頁共用門檻，沒有被這個機制複雜化。
             for (const [key, min] of Object.entries(THRESHOLDS)) {
-              if (scores[key] < min) {
+              const effectiveMin = overrides[key] ?? min;
+              if (scores[key] < effectiveMin) {
                 anyFailed = true;
-                failureLines.push(`${name}：${LABELS[key]} = ${scores[key]}（門檻 ${min}）`);
+                failureLines.push(`${name}：${LABELS[key]} = ${scores[key]}（門檻 ${effectiveMin}）`);
               }
             }
           }
+
+          // Best Practices 的門檻說明要單獨組字串：文章頁樣本吃 overrides、其餘三頁吃
+          // THRESHOLDS 預設，兩者不同，寫死一個數字會讓看報表的人誤以為四頁同門檻。
+          const bpOverrideNote = TARGETS.filter((t) => t.overrides?.['best-practices'] !== undefined)
+            .map((t) => `${t.name} ${t.overrides['best-practices']}`)
+            .join('、');
+          const bpDesc = bpOverrideNote
+            ? `${THRESHOLDS['best-practices']}（${bpOverrideNote}——只有掛廣告的頁面降門檻）`
+            : `${THRESHOLDS['best-practices']}`;
 
           const summary = [
             '## Lighthouse SEO 稽核結果',
             '',
             ...rows,
             '',
-            `門檻：SEO ${THRESHOLDS.seo} / Accessibility ≥${THRESHOLDS.accessibility} / Best Practices ${THRESHOLDS['best-practices']} / Performance ≥${THRESHOLDS.performance}`,
+            `門檻：SEO ${THRESHOLDS.seo} / Accessibility ≥${THRESHOLDS.accessibility} / Best Practices ${bpDesc} / Performance ≥${THRESHOLDS.performance}`,
             '',
           ];
 

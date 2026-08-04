@@ -5,6 +5,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import AdSide from '../components/AdSide.astro';
+import AdEnd from '../components/AdEnd.astro';
+import AdLoader from '../components/AdLoader.astro';
 import { SITE, CATEGORY_LABEL, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
 
@@ -129,12 +132,20 @@ const crumbs = [
       )}
     </div>
 
+    {/* 廣告只掛文章頁（spec R2）。兩側版位放在版面容器之外——它們是 position: fixed，
+        定位錨點是視窗中線而不是這個容器，放進 .layout-with-aside 只會讓人以為它們
+        跟 flex 佈局有關。 */}
+    <AdSide />
+    <AdLoader />
+
     <!-- Two-column layout -->
     <div class="layout-with-aside">
       <div class="layout-main">
         <div class="prose">
           <Content />
         </div>
+
+        <AdEnd />
 
         <!-- 文章標籤：frontmatter 的 tags 原本只用在 article:tag 與 JSON-LD keywords，
              頁面上完全沒有出口，導致 54 個標籤頁的唯一入站連結只有 /tag/ 索引頁。

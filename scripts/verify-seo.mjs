@@ -22,6 +22,17 @@ const DIST = path.join(PROJECT_ROOT, 'dist');
 const SITE_HOST = 'frankchen.tw';
 const SITE_ORIGIN = `https://${SITE_HOST}`;
 
+// AdSense 的賣家授權宣告（docs/specs/monetization.md R1）。ads.txt 用 pub- 前綴，
+// 元素屬性 data-ad-client 用 ca-pub- 前綴，是同一個帳號的兩種寫法，不能互換。
+//
+// 與 src/utils/ads.ts 的 ADSENSE_CLIENT 同源（同一個 publisher ID，只是前綴不同）。
+// .mjs 無法 import .ts 的常數（此腳本跑在 dist/ 建置後、獨立於 Astro 的型別系統之外），
+// 所以兩邊各存一份，改一邊要記得改兩邊。
+const ADS_TXT_PUBLISHER_ID = 'pub-5544842849576289';
+// 元素屬性上的寫法（data-ad-client）。用它當「這一頁有沒有廣告」的判準，
+// 比對打包後的 JS 檔名穩定得多——檔名帶內容雜湊，每次改動都會變。
+const ADSENSE_CLIENT_ATTR = 'ca-pub-5544842849576289';
+
 const quiet = process.argv.includes('--quiet');
 
 if (!existsSync(DIST)) {
@@ -792,6 +803,40 @@ check('每個 HTML 頁面都宣告自己的 markdown 變體', (failures) => {
     );
     if (!re.test(html)) {
       failures.push({ page: pathname, reason: `缺少指向 ${expected} 的 text/markdown 宣告` });
+    }
+  }
+});
+
+// ads.txt 宣告誰有權販售本站的廣告空間。它失效的方式是完全靜默的——檔案不見、改名、
+// 或 publisher ID 被動過，站台一切正常，只有 AdSense 後台會冒出一行「找不到 ads.txt」，
+// 而那個畫面沒有人天天看。這次就是這麼發生的：WordPress 遷移時（commit 212f279）把檔名
+// 搬成 app-ads.txt（那是 AdMob 的規格），內容一字不差卻整整兩個多月沒被 Google 認到。
+// 兩個檔都驗：app-ads.txt 是給已上架的行動 App 用的，不是可以拿掉的舊物。
+check('ads.txt 與 app-ads.txt 都宣告正確的 publisher ID', (failures) => {
+  for (const file of ['ads.txt', 'app-ads.txt']) {
+    const filePath = path.join(DIST, file);
+    if (!existsSync(filePath)) {
+      failures.push({ page: `/${file}`, reason: '檔案不存在' });
+      continue;
+    }
+    const text = readFileSync(filePath, 'utf8');
+    if (!text.includes(ADS_TXT_PUBLISHER_ID)) {
+      failures.push({ page: `/${file}`, reason: `未宣告 ${ADS_TXT_PUBLISHER_ID}` });
+    }
+  }
+});
+
+// 廣告只准出現在文章頁（spec R2）。這條斷言守的是兩個方向，漏哪一邊都很痛：
+// 文章頁漏掉等於整件事白做；漏到列表頁或關於我頁則會直接打中 CI 稽核的另外三個
+// 頁面，Lighthouse 門檻立刻紅，而原因會看起來像是與該 PR 無關的效能波動。
+check('廣告版位只出現在文章頁', (failures) => {
+  for (const { pathname, html } of pages) {
+    const hasAd = html.includes(`data-ad-client="${ADSENSE_CLIENT_ATTR}"`);
+    const isArticle = articlePathnames.has(pathname);
+    if (isArticle && !hasAd) {
+      failures.push({ page: pathname, reason: '文章頁缺少廣告版位' });
+    } else if (!isArticle && hasAd) {
+      failures.push({ page: pathname, reason: '非文章頁不應出現廣告版位' });
     }
   }
 });

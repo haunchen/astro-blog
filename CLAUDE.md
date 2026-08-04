@@ -97,8 +97,13 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 - `TagBadge.astro` — Renders as `<a>` if href provided, otherwise `<span>`
 
 **Build constraints (do not change casually — each is load-bearing):**
-- `vite.build.assetsInlineLimit: 0` keeps every script external so the CSP in `public/_headers` can stay
-  `script-src 'self'`. Raising it inlines `Nav.astro`'s script and CSP kills the menu at runtime.
+- `vite.build.assetsInlineLimit: 0` keeps every script external. `script-src` in `public/_headers` is
+  **no longer** `'self'` only — it also carries `'unsafe-inline'` because Google AdSense requires it
+  (see `docs/specs/monetization.md` D5), so raising the limit would not actually break at runtime today;
+  CSP would let an inlined `Nav.astro` script through either way. Keep the setting anyway: it's the
+  discipline that lets any future CSP tightening (or a per-path middleware override, also discussed in
+  D5) start from "every script is already external" instead of first having to find and re-externalize
+  whatever crept in.
 - `vite.build.cssCodeSplit: false` merges all CSS into one file — trades ~1.7 KB for 4 fewer round trips
   on the homepage. Revisit only if total CSS grows well beyond its current ~15 KB gzipped.
 - A Shiki transformer rewrites tokyo-night's comment color `#51597D` → `#7A82AB` for WCAG AA contrast.
