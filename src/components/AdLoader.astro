@@ -1,0 +1,125 @@
+---
+/**
+ * 廣告的 client 邏輯總入口：載入 adsbygoogle.js、決定哪些版位送請求、處理收合。
+ *
+ * 為什麼集中在一個沒有 DOM 輸出的元件，而不是分散在 AdSide / AdEnd 各自的 <script>：
+ * adsbygoogle.js 全站只能載入一次，兩個元件各寫一份會重複注入並在 console 報錯，
+ * 而 console error 會扣 Lighthouse Best Practices（spec R9）。
+ */
+---
+
+<script>
+  import { ADSENSE_CLIENT, SIDE_AD_MIN_WIDTH } from '../utils/ads';
+
+  const SCRIPT_SRC = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
+  const COLLAPSE_KEY = 'ads-side-collapsed';
+
+  // window 上的兩個欄位都不在標準型別裡：adsbygoogle 是 Google 的腳本自己建的佇列，
+  // __adsenseLoaded 是我們自己的旗標。用一次性斷言取代 declare global，避免把型別
+  // 洩漏到整個專案的全域命名空間。
+  const w = window as unknown as {
+    adsbygoogle?: unknown[];
+    __adsenseLoaded?: boolean;
+    requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+  };
+
+  /** 與 AdSide.astro 的 media query 同一個門檻，兩邊必須一致。 */
+  function sideAdsVisible(): boolean {
+    return window.matchMedia(`(min-width: ${SIDE_AD_MIN_WIDTH}px)`).matches;
+  }
+
+  function isCollapsed(): boolean {
+    try {
+      return sessionStorage.getItem(COLLAPSE_KEY) === '1';
+    } catch {
+      // 部分隱私模式下光是讀 sessionStorage 就會丟 SecurityError。
+      // 讀不到就當作沒收合過，不值得為此讓整段初始化中斷。
+      return false;
+    }
+  }
+
+  function applyCollapsed(collapsed: boolean): void {
+    for (const side of document.querySelectorAll<HTMLElement>('.ad-side')) {
+      side.classList.toggle('ad-side--collapsed', collapsed);
+      const toggle = side.querySelector<HTMLButtonElement>('.ad-side-toggle');
+      if (!toggle) continue;
+      toggle.setAttribute('aria-expanded', String(!collapsed));
+      toggle.setAttribute('aria-label', collapsed ? '展開廣告' : '收合廣告');
+    }
+  }
+
+  function loadScript(): void {
+    if (w.__adsenseLoaded) return;
+    w.__adsenseLoaded = true;
+    const script = document.createElement('script');
+    script.src = SCRIPT_SRC;
+    script.async = true;
+    script.crossOrigin = 'anonymous';
+    document.head.appendChild(script);
+  }
+
+  /**
+   * 對尚未填充的版位送出廣告請求。
+   *
+   * 只挑沒有 data-adsbygoogle-status 的元素——那個屬性是 adsbygoogle.js 自己標上的，
+   * 對已填充的元素再 push 一次會拿到「All ins elements in the DOM with
+   * class=adsbygoogle already have ads in them」的例外並印進 console。
+   */
+  function fillSlots(): void {
+    const showSides = sideAdsVisible() && !isCollapsed();
+    const slots = document.querySelectorAll<HTMLElement>(
+      'ins.adsbygoogle:not([data-adsbygoogle-status])',
+    );
+    for (const slot of slots) {
+      // 未達斷點時兩側版位是 display:none，在隱藏容器上初始化會拿到
+      // availableWidth=0 並報錯；讀者主動收合過的也一樣要跳過，
+      // 既省他的流量也避免對看不見的版位刷曝光。
+      if (slot.closest('.ad-side') && !showSides) continue;
+      (w.adsbygoogle = w.adsbygoogle || []).push({});
+    }
+  }
+
+  function initAds(): void {
+    if (!document.querySelector('ins.adsbygoogle')) return;
+
+    applyCollapsed(isCollapsed());
+
+    for (const toggle of document.querySelectorAll<HTMLButtonElement>('.ad-side-toggle')) {
+      // View Transitions 每次換頁都會重跑這支初始化，而換頁後的 DOM 是全新的節點。
+      // 這個標記防的是同一個節點被重複綁定（例如哪天 ClientRouter 被拿掉、
+      // 初始化改回直接呼叫）——重複綁定會讓一次點擊觸發兩次，收合完立刻又展開。
+      if (toggle.dataset.bound) continue;
+      toggle.dataset.bound = '1';
+      toggle.addEventListener('click', () => {
+        const collapsed = toggle.getAttribute('aria-expanded') === 'true';
+        applyCollapsed(collapsed);
+        try {
+          sessionStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+        } catch {
+          // 寫不進去就只在這一頁生效，不值得為此擋掉收合這個動作本身。
+        }
+      });
+    }
+
+    // 延後到瀏覽器空閒才載入第三方腳本（spec R7）。
+    //
+    // 為什麼不用 IntersectionObserver：兩側版位是 position: fixed，一載入頁面就在
+    // 視窗內，用 observer 等於沒有延後；而文末版位在行動版位置很深，Lighthouse
+    // 量測時不捲動頁面，用 observer 會讓腳本在 CI 裡永遠不載入——四頁分數一分不掉，
+    // 但那讓「CI 反映讀者真實成本」失效，正是 spec R8 與 D8 要擋的事。
+    const start = () => {
+      loadScript();
+      fillSlots();
+    };
+    if (typeof w.requestIdleCallback === 'function') {
+      w.requestIdleCallback(start, { timeout: 3000 });
+    } else {
+      // Safari 沒有 requestIdleCallback。
+      window.setTimeout(start, 2000);
+    }
+  }
+
+  // 只掛事件不直接呼叫：BaseLayout 有 ClientRouter，astro:page-load 在初次載入
+  // 與每次換頁都會觸發。兩者都做會讓初次載入跑兩遍。
+  document.addEventListener('astro:page-load', initAds);
+</script>
