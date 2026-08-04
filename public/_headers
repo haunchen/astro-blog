@@ -43,7 +43,7 @@
   #     列成具名來源而非放寬成 'unsafe-inline'，攻擊面差距很大。
   #     註：Bot Fight 模式的 JS Detections 另外會注入一段每次請求內容都不同的
   #     inline script（含 per-request token），無法用 hash 放行。這段原本會被 CSP
-  #     擋掉，但 AdSense 例外把 script-src 加了 'unsafe-inline'（見下段）之後，
+  #     擋掉，但 AdSense 例外（見上段）把 script-src 加了 'unsafe-inline' 之後，
   #     這支腳本現在也會被放行執行——「已知並接受：代價是 console 違規訊息、
   #     Lighthouse Best Practices 扣分」這個結論是加 unsafe-inline 之前的舊假設，
   #     已經不成立，要重新評估這支腳本執行帶來的實際風險與 CI 門檻怎麼設。
@@ -57,8 +57,16 @@
   # 模式下沒有東西可「升級」，寫了也不會被回報、純屬多餘。Report-Only 只回報不阻擋，
   # 掛著它不會讓廣告壞掉，
   # 但只要 AdSense 真的用到內聯腳本，正式站的 console 就會冒出違規訊息——那就是
-  # 「這個讓步收不回來」的實證。反過來說，掛了一段時間都沒有任何違規，就代表上面那條
-  # 的 'unsafe-inline' 可以拿掉，把 XSS 防護那一面收回來。
+  # 「這個讓步收不回來」的實證。
+  #
+  # 判讀時不能只看「有沒有違規」：Bot Fight 段落（見上段）記載的 per-request inline
+  # script 在不含 unsafe-inline 的這份 Report-Only 底下必然每次請求都觸發違規，這與
+  # AdSense 有沒有用內聯腳本無關，字面上的「零違規」在 Bot Fight 開著時永遠達不到。
+  # 正確判法是先認出並排除那個已知來源（違規訊息裡的 blocked-uri 是 inline，且每次
+  # token 不同），只看剩下的違規是否含 pagead2.googlesyndication.com／
+  # tpc.googlesyndication.com 等 AdSense 相關來源；另一個更乾淨的判法是暫時關掉
+  # Bot Fight 模式再觀察一段時間，此時如果依然零違規，才代表上面那條的 'unsafe-inline'
+  # 可以拿掉，把 XSS 防護那一面收回來。
   #
   # 順序是刻意的：先讓 enforcing 放寬到確定能動，再用 Report-Only 試收緊。反過來做
   # （先發 Report-Only 觀察、再改 enforcing）在這裡不成立——enforcing 還是嚴格版時
