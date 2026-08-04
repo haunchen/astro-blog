@@ -970,3 +970,4 @@ ci(lighthouse): Best Practices 門檻依 AdSense 實測校正
 2. **ads.txt 認證**：部署後回 AdSense 後台按「檢查更新」，確認「找不到 ads.txt」的警告消失。Google 說明需要幾天才會反映。
 3. **正式站桌機分數**：CI 的行動版 emulation 量不到兩側版位（斷點 1600px vs 375px），它們的效能代價只能用 PageSpeed Insights 的桌機模式打正式站量。
 4. **文末版位實際高度**（spec R6）：`AdEnd.astro` 的 `min-height: 280px` 是估計值，只保證地板不保證天花板——回應式單元若解析出更高的高度，`contain: layout` 擋不住它推擠下方的標籤區與上下篇導覽，而 R6 是 MUST「CLS 貢獻為 0」。本機與 Pages preview 是 no-fill 驗不到，上線後要實測填充後的實際高度，確認 CLS 是否仍為 0、`min-height` 是否需要調整。
+5. **COOP 對廣告點擊的影響**：`public/_headers` 的 `Cross-Origin-Opener-Policy: same-origin` 會切斷新開分頁與本站 window 的連結（那正是它防 tabnabbing 的機制）。廣告點擊一律開新分頁，這個組合對 AdSense 的點擊與轉換流程有沒有影響，整批改動裡沒有人評估過——本機 no-fill 也驗不到。上線後點幾則真實廣告確認落地正常；若確認有影響，要在「放寬 COOP」與「維持防 tabnabbing」之間重新取捨，不要默默改掉其中一邊。
