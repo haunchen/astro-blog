@@ -22,6 +22,10 @@ const DIST = path.join(PROJECT_ROOT, 'dist');
 const SITE_HOST = 'frankchen.tw';
 const SITE_ORIGIN = `https://${SITE_HOST}`;
 
+// AdSense 的賣家授權宣告（docs/specs/monetization.md R1）。ads.txt 用 pub- 前綴，
+// 元素屬性 data-ad-client 用 ca-pub- 前綴，是同一個帳號的兩種寫法，不能互換。
+const ADS_TXT_PUBLISHER_ID = 'pub-5544842849576289';
+
 const quiet = process.argv.includes('--quiet');
 
 if (!existsSync(DIST)) {
@@ -792,6 +796,25 @@ check('每個 HTML 頁面都宣告自己的 markdown 變體', (failures) => {
     );
     if (!re.test(html)) {
       failures.push({ page: pathname, reason: `缺少指向 ${expected} 的 text/markdown 宣告` });
+    }
+  }
+});
+
+// ads.txt 宣告誰有權販售本站的廣告空間。它失效的方式是完全靜默的——檔案不見、改名、
+// 或 publisher ID 被動過，站台一切正常，只有 AdSense 後台會冒出一行「找不到 ads.txt」，
+// 而那個畫面沒有人天天看。這次就是這麼發生的：WordPress 遷移時（commit 212f279）把檔名
+// 搬成 app-ads.txt（那是 AdMob 的規格），內容一字不差卻整整兩個多月沒被 Google 認到。
+// 兩個檔都驗：app-ads.txt 是給已上架的行動 App 用的，不是可以拿掉的舊物。
+check('ads.txt 與 app-ads.txt 都宣告正確的 publisher ID', (failures) => {
+  for (const file of ['ads.txt', 'app-ads.txt']) {
+    const filePath = path.join(DIST, file);
+    if (!existsSync(filePath)) {
+      failures.push({ page: `/${file}`, reason: '檔案不存在' });
+      continue;
+    }
+    const text = readFileSync(filePath, 'utf8');
+    if (!text.includes(ADS_TXT_PUBLISHER_ID)) {
+      failures.push({ page: `/${file}`, reason: `未宣告 ${ADS_TXT_PUBLISHER_ID}` });
     }
   }
 });
