@@ -2,8 +2,8 @@
 import { ADSENSE_CLIENT, AD_SLOTS } from '../utils/ads';
 ---
 
-<aside class="ad-end" aria-label="廣告">
-  <span class="ad-end-label">廣告</span>
+<aside class="ad-end" aria-labelledby="ad-end-label">
+  <span class="ad-end-label" id="ad-end-label">廣告</span>
   <ins
     class="adsbygoogle"
     style="display:block"
@@ -26,8 +26,9 @@ import { ADSENSE_CLIENT, AD_SLOTS } from '../utils/ads';
     contain: layout;
   }
 
-  /* 廣告必須與內容可區分——這既是 AdSense 政策要求，也是不想讓讀者把它讀成
-     文章的一部分。刻意用最低調的樣式：站上其他小標（.aside-widget-title）
+  /* 用一個小標把廣告與內容區隔開，不想讓讀者把它讀成文章的一部分——AdSense
+     政策要求的是廣告不得偽裝成內容，不是強制規定要加標示，這裡的小標是我們
+     自己選的保守做法。刻意用最低調的樣式：站上其他小標（.aside-widget-title）
      是同一組字級與字色。 */
   .ad-end-label {
     display: block;

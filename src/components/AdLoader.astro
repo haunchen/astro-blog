@@ -13,6 +13,8 @@
 
   const SCRIPT_SRC = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
   const COLLAPSE_KEY = 'ads-side-collapsed';
+  const SIDE_KEYS = ['left', 'right'] as const;
+  type SideKey = (typeof SIDE_KEYS)[number];
 
   // window 上的兩個欄位都不在標準型別裡：adsbygoogle 是 Google 的腳本自己建的佇列，
   // __adsenseLoaded 是我們自己的旗標。用一次性斷言取代 declare global，避免把型別
@@ -23,9 +25,22 @@
     requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
   };
 
+  // 兩側版位暫時不該送請求時，把 <ins> 從 DOM 移出、留在這裡而非直接丟棄。
+  //
+  // 為什麼不能只在迴圈裡 continue 跳過（曾經這樣寫過，是這支檔案原本的臭蟲）：
+  // AdSense 的 push({}) 是「處理文件中下一個尚未初始化的 ins」，跟呼叫端當下想
+  // 餵哪一個無關。只要不該投放的 <ins> 還留在 DOM 裡，之後任何一次 push() 都會先
+  // 落到它頭上——本站 DOM 順序是左側、右側、文末（見 [...slug].astro），行動版
+  // 與收合狀態下這會讓文末版位（spec R5 的行動版唯一版位）一次請求都收不到，
+  // 廣告全套到一個 display:none 的容器上，也踩了對隱藏容器投放的政策問題。
+  // 唯一能保證對齊的做法：不想送請求的 <ins>，送出前就不能出現在 DOM 裡。
+  const detachedIns: Record<SideKey, HTMLElement | null> = { left: null, right: null };
+
+  const sideMql = window.matchMedia(`(min-width: ${SIDE_AD_MIN_WIDTH}px)`);
+
   /** 與 AdSide.astro 的 media query 同一個門檻，兩邊必須一致。 */
   function sideAdsVisible(): boolean {
-    return window.matchMedia(`(min-width: ${SIDE_AD_MIN_WIDTH}px)`).matches;
+    return sideMql.matches;
   }
 
   function isCollapsed(): boolean {
@@ -59,28 +74,77 @@
   }
 
   /**
-   * 對尚未填充的版位送出廣告請求。
+   * 讓兩側版位的 <ins> 是否在 DOM 裡，與「現在該不該投放」保持一致。
    *
-   * 只挑沒有 data-adsbygoogle-status 的元素——那個屬性是 adsbygoogle.js 自己標上的，
-   * 對已填充的元素再 push 一次會拿到「All ins elements in the DOM with
-   * class=adsbygoogle already have ads in them」的例外並印進 console。
+   * 只動未初始化、也還沒排進請求佇列的 <ins>：已經有 data-adsbygoogle-status
+   * （adsbygoogle.js 標的「已處理」）或 data-ad-requested（我們自己標的「已 push
+   * 但腳本還沒處理」）的版位不搬動——搬走一個已經排進佇列等著被處理的節點，
+   * 會讓腳本實際處理那個 push 時找不到它、改抓別的 <ins>，一樣會對錯位置。
+   */
+  function syncSideSlot(key: SideKey, shouldShow: boolean): void {
+    const body = document.getElementById(`ad-side-body-${key}`);
+    if (!body) return;
+    const ins = body.querySelector<HTMLElement>('ins.adsbygoogle');
+
+    if (shouldShow) {
+      const detached = detachedIns[key];
+      if (!ins && detached) {
+        body.appendChild(detached);
+        detachedIns[key] = null;
+      }
+      return;
+    }
+
+    if (ins && !ins.hasAttribute('data-adsbygoogle-status') && !ins.dataset.adRequested) {
+      detachedIns[key] = body.removeChild(ins);
+    }
+  }
+
+  /**
+   * 對尚未送過請求的版位送出廣告請求。
+   *
+   * 每次呼叫都先跑 syncSideSlot：兩側版位該不該投放（斷點、收合狀態）可能在
+   * 兩次呼叫之間變化，「移出不該投放的 <ins>」與「送請求」必須綁在同一次呼叫裡，
+   * 拆開成只在第一次呼叫時設定一次，就會回到本函式想解決的對齊問題本身
+   * （見上面 detachedIns 的註解）。
+   *
+   * 選取條件排除兩種狀態：data-adsbygoogle-status（已由 adsbygoogle.js 處理）與
+   * data-ad-requested（已被本函式 push 過、腳本還沒處理）。後者是必要的防重複——
+   * push({}) 進佇列到腳本實際處理之間有時間差（尤其腳本尚未載入、還在等
+   * requestIdleCallback 時），這段時間裡若收合鈕被連點或斷點被跨越而再次呼叫
+   * fillSlots，少了這個標記會對同一個 <ins> 重複 push，讓 push 次數超過剩餘
+   * <ins> 數量，一樣會對錯位置。
    */
   function fillSlots(): void {
     const showSides = sideAdsVisible() && !isCollapsed();
+    for (const key of SIDE_KEYS) {
+      syncSideSlot(key, showSides);
+    }
+
     const slots = document.querySelectorAll<HTMLElement>(
-      'ins.adsbygoogle:not([data-adsbygoogle-status])',
+      'ins.adsbygoogle:not([data-adsbygoogle-status]):not([data-ad-requested])',
     );
     for (const slot of slots) {
-      // 未達斷點時兩側版位是 display:none，在隱藏容器上初始化會拿到
-      // availableWidth=0 並報錯；讀者主動收合過的也一樣要跳過，
-      // 既省他的流量也避免對看不見的版位刷曝光。
-      if (slot.closest('.ad-side') && !showSides) continue;
+      slot.dataset.adRequested = '1';
       (w.adsbygoogle = w.adsbygoogle || []).push({});
     }
   }
 
+  function requestAds(): void {
+    // loadScript() 是幂等的，這裡可以放心從多個呼叫點（idle callback、收合鈕、
+    // 斷點跨越）直接呼叫。首次呼叫仍然只會在瀏覽器空閒或使用者互動之後才發生
+    // （見下方兩個呼叫點），不影響 spec R7 對首屏渲染路徑的要求。
+    loadScript();
+    fillSlots();
+  }
+
   function initAds(): void {
     if (!document.querySelector('ins.adsbygoogle')) return;
+
+    // 每次換頁（含 View Transitions）都是全新的 DOM，先清掉上一頁可能殘留的
+    // 已移出節點參照——那些節點已經不屬於這份文件，留著只是白佔記憶體。
+    detachedIns.left = null;
+    detachedIns.right = null;
 
     applyCollapsed(isCollapsed());
 
@@ -98,6 +162,12 @@
         } catch {
           // 寫不進去就只在這一頁生效，不值得為此擋掉收合這個動作本身。
         }
+        // 展開時要把剛才被 syncSideSlot 移出的 <ins> 放回來並送請求；收合時這裡
+        // 也會跑，但 syncSideSlot 只移出「還沒送過請求」的 <ins>，已送過或已
+        // 填充的版位不受影響，兩個方向呼叫都是安全的（fillSlots 本身也是
+        // 前面 initAds 之外唯一會改動兩側版位 DOM 的地方，見 requestAds 的兩個
+        // 呼叫點）。
+        requestAds();
       });
     }
 
@@ -107,17 +177,24 @@
     // 視窗內，用 observer 等於沒有延後；而文末版位在行動版位置很深，Lighthouse
     // 量測時不捲動頁面，用 observer 會讓腳本在 CI 裡永遠不載入——四頁分數一分不掉，
     // 但那讓「CI 反映讀者真實成本」失效，正是 spec R8 與 D8 要擋的事。
-    const start = () => {
-      loadScript();
-      fillSlots();
-    };
     if (typeof w.requestIdleCallback === 'function') {
-      w.requestIdleCallback(start, { timeout: 3000 });
+      w.requestIdleCallback(requestAds, { timeout: 3000 });
     } else {
       // Safari 沒有 requestIdleCallback。
-      window.setTimeout(start, 2000);
+      window.setTimeout(requestAds, 2000);
     }
   }
+
+  // 掛在模組層級、只註冊一次（不放進 initAds，換頁重跑 initAds 會疊加重複的
+  // listener）：change 只在視窗真的跨越 SIDE_AD_MIN_WIDTH 這個斷點時觸發，讀者
+  // 拉伸視窗或旋轉裝置都可能讓兩側版位從不可見變可見（或反過來）。少了這個
+  // listener，fillSlots 只在 requestIdleCallback 那一刻跑一次，之後任何一次
+  // 跨越斷點都不會再有機會送請求或再移除節點。requestAds 內部一律用
+  // document.querySelectorAll／getElementById 查「當下」的 DOM，掛在模組層級
+  // 一樣能正確套用到換頁後的新頁面。
+  sideMql.addEventListener('change', () => {
+    requestAds();
+  });
 
   // 只掛事件不直接呼叫：BaseLayout 有 ClientRouter，astro:page-load 在初次載入
   // 與每次換頁都會觸發。兩者都做會讓初次載入跑兩遍。

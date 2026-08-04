@@ -2,14 +2,14 @@
 import { ADSENSE_CLIENT, AD_SLOTS } from '../utils/ads';
 
 const SIDES = [
-  { key: 'left', slot: AD_SLOTS.sideLeft },
-  { key: 'right', slot: AD_SLOTS.sideRight },
+  { key: 'left', slot: AD_SLOTS.sideLeft, label: '左側廣告' },
+  { key: 'right', slot: AD_SLOTS.sideRight, label: '右側廣告' },
 ] as const;
 ---
 
 {
-  SIDES.map(({ key, slot }) => (
-    <aside class={`ad-side ad-side--${key}`} aria-label="廣告">
+  SIDES.map(({ key, slot, label }) => (
+    <aside class={`ad-side ad-side--${key}`} aria-label={label}>
       <div class="ad-side-body" id={`ad-side-body-${key}`}>
         <ins
           class="adsbygoogle"
@@ -18,9 +18,9 @@ const SIDES = [
           data-ad-slot={slot}
         />
       </div>
-      {/* aria-label 與 aria-expanded 由 AdLoader 的 client script 依收合狀態改寫。
-          這裡給的是展開狀態的初始值——沒有可及名稱的按鈕會直接扣破 Accessibility
-          門檻(95)，seo-perfection spec 記載過同一個坑：40 頁的 caret 按鈕可及
+      {/* aria-expanded 由 AdLoader 的 client script 依收合狀態改寫。這裡給的是
+          展開狀態的初始值——沒有可及名稱的按鈕會直接扣破 Accessibility 門檻
+          （95），seo-perfection spec 記載過同一個坑：40 頁的 caret 按鈕可及
           名稱不符，當時是 error 等級。 */}
       <button
         type="button"
@@ -34,12 +34,14 @@ const SIDES = [
 }
 
 <style>
-  /* 定位算式：容器 --width-max 是 1200px，從視窗中線往外推半個容器寬(600px)
-     再留 20px 間距，廣告就貼在內容區外緣。用 50% 而非固定值，版面加寬時自動跟著跑。
+  /* 定位算式：從視窗中線往外推半個容器寬（var(--width-max) / 2）再留 20px 間距，
+     廣告就貼在內容區外緣。用 var(--width-max) 而非寫死 600px，是因為容器寬度本身
+     就是 src/styles/global.css 的既有 design token，寫死等於知道 token 存在卻
+     不用；改 token 時這裡自動跟著跑，不必回頭改這個檔案。
 
-     z-index 50 的位置：低於 Nav(100)所以捲動時不會蓋住 header，高於一般內容。
+     z-index 50 的位置：低於 Nav（100）所以捲動時不會蓋住 header，高於一般內容。
      body::after 的紙張雜訊疊層是 9998 但 pointer-events: none，會蓋在廣告上方
-     疊一層 0.03 的雜訊(與全站一致)，不影響點擊。 */
+     疊一層 0.03 的雜訊（與全站一致），不影響點擊。 */
   .ad-side {
     position: fixed;
     top: calc(var(--height-header) + 24px);
@@ -51,16 +53,19 @@ const SIDES = [
   }
 
   .ad-side--left {
-    right: calc(50% + 600px + 20px);
+    right: calc(50% + var(--width-max) / 2 + 20px);
   }
 
   .ad-side--right {
-    left: calc(50% + 600px + 20px);
+    left: calc(50% + var(--width-max) / 2 + 20px);
   }
 
   /* 1600 這個數字與 src/utils/ads.ts 的 SIDE_AD_MIN_WIDTH 是同一個門檻，改一邊
      就要改另一邊：CSS 負責隱藏、JS 負責不送請求，走鐘會導致在隱藏容器上初始化
-     廣告並在 console 報錯(Lighthouse Best Practices 稽核項)。 */
+     廣告並在 console 報錯（Lighthouse Best Practices 稽核項）。
+     這裡維持字面值而非 var(--width-max)：@media 條件式讀不到自訂屬性，是 CSS
+     語言本身的限制，跟上面 .ad-side--left/--right 用得到 var() 不衝突——那兩條
+     是屬性值（calc() 的運算元），這裡是條件式，兩種語法位置的規則不同。 */
   @media (min-width: 1600px) {
     .ad-side {
       display: flex;
@@ -71,7 +76,7 @@ const SIDES = [
     display: none;
   }
 
-  /* 收合鈕：站上既有的 caret 樣式語彙(Nav 下拉、TOC)都是同一組低彩度的
+  /* 收合鈕：站上既有的 caret 樣式語彙（Nav 下拉、TOC）都是同一組低彩度的
      muted 字色 + 細框，這裡沿用，不另外發明一種按鈕長相。 */
   .ad-side-toggle {
     width: 32px;
