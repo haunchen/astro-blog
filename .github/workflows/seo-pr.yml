@@ -113,10 +113,20 @@ jobs:
           // 代價要知道：真的退化到 86 不會被擋下。這是刻意的取捨——單次門檻本來就
           // 攔不住那種程度的回歸（它落在雜訊裡），硬把門檻設在雜訊帶只會讓 CI 訊號
           // 失去可信度，紅燈變成「再跑一次就好」的例行動作，那才是真正危險的狀態。
+
+          // Best Practices 的門檻依 AdSense 上線後的實測值設定。已知失分項是
+          // third-party-cookies——Google 會種 doubleclick.net 的第三方 cookie，
+          // 這條無解，除非不放廣告，是設計階段明確接受的取捨
+          // （docs/specs/monetization.md R9）。若這個數字再往下掉，才是真的壞了。
+          //
+          // 注意這裡量不到 CSP 的代價：public/_headers 為了 AdSense 在 script-src
+          // 加了 'unsafe-inline'，但本 job 的 Lighthouse 跑在 astro preview 上，
+          // 它不套用 _headers，CSP 標頭不在量測範圍內。那一項要用 PageSpeed
+          // Insights 打正式站才看得到。
           const THRESHOLDS = {
             seo: 100,
             accessibility: 95,
-            'best-practices': 100,
+            'best-practices': 75,
             performance: 85,
           };
 

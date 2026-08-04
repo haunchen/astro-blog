@@ -22,7 +22,7 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 
 ### R3: 桌機兩側固定版位
 - **Level**: MUST
-- **Description**: 視窗寬度 ≥1600px 時，內容區左右留白各出現一個 160×600 固定版位，垂直起點在站台 header 之下。低於此寬度時該版位的 DOM 完全不輸出——不得以隱藏方式保留節點，隱藏容器上的廣告初始化會產生 console error，而 console error 是 Lighthouse Best Practices 的稽核項。
+- **Description**: 視窗寬度 ≥1600px 時，內容區左右留白各出現一個 160×600 固定版位，垂直起點在站台 header 之下。低於此寬度時該版位不可見，且不得對它送出廣告請求——在不可見的容器上初始化廣告會產生 console error，而 console error 是 Lighthouse Best Practices 的稽核項。可見性判斷與送出請求的判斷必須以同一個門檻值為準。
 
 ### R4: 兩側版位可由讀者收合
 - **Level**: MUST
@@ -77,13 +77,13 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 ### S3: 一般桌機讀者閱讀文章
 - **Given**: 視窗寬度 1440px
 - **When**: 開啟任一文章頁並檢視 DOM
-- **Then**: 兩側版位的節點不存在，console 無廣告相關錯誤
+- **Then**: 兩側版位不可見，且未對其送出廣告請求，console 無廣告相關錯誤
 - **Implements**: #R3
 
 ### S4: 行動版讀者閱讀文章
 - **Given**: 視窗寬度 375px
 - **When**: 開啟任一文章頁
-- **Then**: 只有文末一個版位，兩側版位節點不存在
+- **Then**: 只有文末一個版位可見，兩側版位不可見且未送出廣告請求
 - **Implements**: #R3, #R5
 
 ### S5: 讀者收合側邊廣告
@@ -154,4 +154,15 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 
 ## Pending Changes
 
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
+> Source: docs/plans/2026-08-04-adsense-placement.md
+> Date: 2026-08-04
+
+### MODIFIED R3: 桌機兩側固定版位
+- **Level**: MUST
+- **Description**: 見上方主區塊（已就地更新，S3／S4 一併同步）
+- **Reason**: 原措辭要求「DOM 完全不輸出」，靜態建置時不知道視窗寬度而做不到；純由 JS 建立節點做得到，但換來 scoped style 失效與收合鈕 a11y 屬性無法靜態驗證。改以「不可見且不送請求」表述，守住原本要守的行為
+
+### 待正式站實測補完
+- CSP 最小放行集（R10）：目前 `public/_headers` 的 enforcing 那條是起始集合，另掛了一份不含 `'unsafe-inline'` 的 Report-Only 副本試收緊。本機與 Pages preview 都是 no-fill，兩者的判讀只有正式站做得到
+- Best Practices 實際分數（R9）：本機文章頁量到 77（兩次量測一致），CI 門檻依此設為 75。第一輪 CI 跑完後若穩定高於門檻，應收緊
+- EEA/UK 的 CMP 政策（D7）：執行前已查證一次（見 plan 的人工前置第 3 項），政策每年在變，日後有歐洲流量時要重查
