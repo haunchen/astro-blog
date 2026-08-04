@@ -12,11 +12,7 @@ Design: `docs/plans/2026-08-04-adsense-placement-design.md`
 
 ## 執行前的人工前置（程式碼管不到，缺一項就白做）
 
-1. **AdSense 後台建立三個廣告單元**，並把 `data-ad-slot` ID 交給執行者：
-   - 左側：顯示廣告，固定 160×600
-   - 右側：顯示廣告，固定 160×600
-   - 文末：顯示廣告，回應式
-   三個版位分開建單元才能在後台分別看到各自表現。Task 2 需要這三個值，**沒拿到就回報 BLOCKED，不得自行編造或留空**。
+1. ~~**AdSense 後台建立三個廣告單元**~~ **已完成**（2026-08-04）：左 `4732356388`／右 `2386995389`／文末 `4958822751`，三個都是回應式單元。Task 2 已填入實際值。
 2. **AdSense 後台關閉「自動廣告」**。設計決定用手動 ad unit（spec D1），但 Auto ads 的開關在後台不在程式碼——後台開著的話 Google 仍會自行往內文插入廣告，CLS 與排版控制全部失效，spec R6 直接破功。
 3. **查證 Google 現行對 EEA/UK 流量未設 CMP 的處理方式**。spec D7 決定第一版不裝同意管理平台，依據是「Google 的處理是停止投放該區廣告而非違規」——這條政策每年在變，design doc 已把它標為待驗證。查證結果若仍是「不投放而非違規」，照本 plan 執行；若已變成「未設 CMP 即違反政策」，停止並回報，D7 需要重新決定（那會多出一個 CMP 腳本、一輪 CSP 放行與一輪效能成本，屬於本 plan 範圍外的新設計）。
 
@@ -149,11 +145,13 @@ Interfaces:
   - `src/utils/ads.ts` 匯出 `ADSENSE_CLIENT: string`、`AD_SLOTS: { sideLeft: string; sideRight: string; articleEnd: string }`、`SIDE_AD_MIN_WIDTH: number`
   - `src/components/AdEnd.astro`：無 props，輸出一個 `<aside class="ad-end">`，內含 `<ins class="adsbygoogle">`
 
-**BLOCKED 條件**：`AD_SLOTS` 的三個值必須是使用者從 AdSense 後台取得的真實 ad unit ID（純數字字串，例如 `'1234567890'`）。若執行時尚未拿到，停止並回報 BLOCKED，不要填入假值、空字串或 TODO 註記——假的 slot ID 會讓廣告靜默不填充，而那正是最難察覺的失敗模式。
+Slot ID 已由使用者提供，直接照抄下面程式碼即可（左 `4732356388`／右 `2386995389`／文末 `4958822751`）。
+
+**三個單元在 AdSense 後台都建成回應式**（後台給的範例碼是 `data-ad-format="auto"` + `data-full-width-responsive="true"`）。文末版位照用回應式，兩側版位刻意覆寫成固定 160×600——側邊留白只有 160px 寬，回應式在這個寬度會挑到小方形且高度不確定，容器就無法預先鎖高，spec R6 的 CLS 保證失去依據。ad unit ID 決定的是「這是哪個版位」，實際請求的尺寸由 `<ins>` 的樣式決定，同一個單元帶固定尺寸樣式是合規用法。
+
+後台範例碼裡那段 `(adsbygoogle = window.adsbygoogle || []).push({})` 的 inline script **不要照抄**：三個版位各自載入一次 `adsbygoogle.js` 會重複注入並在 console 報錯，且 inline script 違反本 plan 的 Global Constraints。載入與 push 統一由 Task 4 的 `AdLoader` 處理。
 
 Step 1: 建立 `src/utils/ads.ts`
-
-把下面 `AD_SLOTS` 的三個 `'REPLACE_WITH_REAL_ID'` 換成使用者提供的實際 ID：
 
 ```ts
 // AdSense 設定單一來源（docs/specs/monetization.md）。
@@ -166,9 +164,9 @@ export const ADSENSE_CLIENT = 'ca-pub-5544842849576289';
 // 廣告單元 ID，取自 AdSense 後台「廣告 → 依廣告單元」。三個版位分開建立單元，
 // 才能在後台分別看到各版位的表現；共用一個單元會讓三處的數據混成一筆。
 export const AD_SLOTS = {
-  sideLeft: 'REPLACE_WITH_REAL_ID',
-  sideRight: 'REPLACE_WITH_REAL_ID',
-  articleEnd: 'REPLACE_WITH_REAL_ID',
+  sideLeft: '4732356388',
+  sideRight: '2386995389',
+  articleEnd: '4958822751',
 } as const;
 
 // 兩側固定版位的顯示門檻（px）。
