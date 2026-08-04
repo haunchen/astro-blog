@@ -18,6 +18,7 @@ Design: `docs/plans/2026-08-04-adsense-placement-design.md`
    - 文末：顯示廣告，回應式
    三個版位分開建單元才能在後台分別看到各自表現。Task 2 需要這三個值，**沒拿到就回報 BLOCKED，不得自行編造或留空**。
 2. **AdSense 後台關閉「自動廣告」**。設計決定用手動 ad unit（spec D1），但 Auto ads 的開關在後台不在程式碼——後台開著的話 Google 仍會自行往內文插入廣告，CLS 與排版控制全部失效，spec R6 直接破功。
+3. **查證 Google 現行對 EEA/UK 流量未設 CMP 的處理方式**。spec D7 決定第一版不裝同意管理平台，依據是「Google 的處理是停止投放該區廣告而非違規」——這條政策每年在變，design doc 已把它標為待驗證。查證結果若仍是「不投放而非違規」，照本 plan 執行；若已變成「未設 CMP 即違反政策」，停止並回報，D7 需要重新決定（那會多出一個 CMP 腳本、一輪 CSP 放行與一輪效能成本，屬於本 plan 範圍外的新設計）。
 
 ## 設計上的一處措辭偏離（照做，但要知道）
 
@@ -38,6 +39,7 @@ Spec R3 寫「低於斷點時該版位的 DOM 完全不輸出」。靜態建置�
 - 品牌色半透明宣告若有用到，必須是 `rgba()` fallback + `color-mix()` 連續兩行的漸進增強 pair（`docs/specs/design-system.md` R1）。
 - `public/_headers` 對同一個標頭是**合併不是覆蓋**。任何需要改寫既有標頭的規則，都必須先 `! <Header-Name>` 清掉再設，否則會產生兩組值而後者失效。
 - AdSense publisher ID 是 `ca-pub-5544842849576289`（`data-ad-client` 用）／`pub-5544842849576289`（ads.txt 用）。它不是機密，本來就要公開，不得藏進環境變數。
+- `AdLoader`、`AdSide`、`AdEnd` 三個元件**不得讀取 `import.meta.env` 或任何環境變數做條件輸出**。spec R8 要求廣告在 CI、preview、正式站的行為完全一致；用環境旗標讓 CI 量不到廣告是設計階段明確排除的方案（design doc「被排除的方案」），因為那會讓 CI 綠燈不再代表讀者的真實體驗。
 - 每個 task 結束都要 commit，訊息用正體中文，格式沿用 repo 既有慣例（`feat(scope): ...`、`fix(scope): ...`、`docs(scope): ...`）。
 
 ---
@@ -673,14 +675,16 @@ verify-seo 補一條雙向斷言：漏到非文章頁會直接打中 CI 的另�
 Implements: `monetization.md` #R10
 
 Files:
-- Modify: `public/_headers`（第 14-37 行的 CSP 註解與宣告）
+- Modify: `public/_headers`（`/*` 區塊裡的 CSP 註解與 `Content-Security-Policy:` 宣告，並新增一條 `Content-Security-Policy-Report-Only:`）
 - Test: `npm run build && npm run preview:pages`，手動開文章頁看 console
 
 Interfaces:
 - Consumes: Task 4 注入的 `pagead2.googlesyndication.com` 腳本來源
 - Produces: 放寬後的 `Content-Security-Policy` 標頭
 
-背景與已知代價：使用者在設計階段已明確拍板接受 `script-src` 放寬（spec D5）。下面這組是**起始集合**，spec R10 要求以實測校正——本機與 preview 都是 no-fill（AdSense 只在通過審核的網域投放），完整的違規清單只有正式站量得到，所以上線後還要跑一次 Task 8 的收尾檢查。
+背景與已知代價：使用者在設計階段已明確拍板接受 `script-src` 放寬（spec D5）。下面這組是**起始集合**，spec R10 要求以實測校正——本機與 preview 都是 no-fill（AdSense 只在通過審核的網域投放），完整的違規清單只有正式站量得到。
+
+**Report-Only 的用法要反過來，這點容易搞錯**：spec R10 寫「以 Report-Only 收集到的真實違規為準」，直覺會以為是「先發 Report-Only 觀察、再改成 enforcing」。那個順序在這裡行不通——enforcing 的 CSP 現在還是嚴格版，廣告腳本根本載不進來，也就永遠收集不到後續的違規。正確順序是 enforcing 先放寬到確定能動，同時掛一份**不含 `'unsafe-inline'` 的收緊版當 Report-Only**，用正式站的真實流量去試「能不能收回來」。Report-Only 只觀測不阻擋，廣告不會因此壞掉。兩個是不同的標頭名稱，`_headers` 不會把它們合併在一起。
 
 Step 1: 改寫 `public/_headers` 的 CSP 註解
 
@@ -716,12 +720,29 @@ Step 2: 改寫 CSP 宣告本身
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
 ```
 
-Step 3: 本機跑 Pages Functions 環境
+Step 3: 加上收緊版的 Report-Only 標頭
+
+在 Step 2 替換進去的 `Content-Security-Policy:` 那一行**之後**，緊接著插入兩段（註解 + 標頭）：
+
+```
+  # 收緊版的觀測用副本（docs/specs/monetization.md R10）：與上面那條唯一的差別是
+  # script-src 沒有 'unsafe-inline'。Report-Only 只回報不阻擋，掛著它不會讓廣告壞掉，
+  # 但只要 AdSense 真的用到內聯腳本，正式站的 console 就會冒出違規訊息——那就是
+  # 「這個讓步收不回來」的實證。反過來說，掛了一段時間都沒有任何違規，就代表上面那條
+  # 的 'unsafe-inline' 可以拿掉，把 XSS 防護那一面收回來。
+  #
+  # 順序是刻意的：先讓 enforcing 放寬到確定能動，再用 Report-Only 試收緊。反過來做
+  # （先發 Report-Only 觀察、再改 enforcing）在這裡不成立——enforcing 還是嚴格版時
+  # 廣告腳本根本載不進來，也就永遠收集不到後續的違規。
+  Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'
+```
+
+Step 4: 本機跑 Pages Functions 環境
 
 Run: `npm run build && npm run preview:pages`
 Expected: wrangler 啟動並列出 `http://localhost:8788`
 
-Step 4: 手動確認 CSP 沒有擋掉腳本本身
+Step 5: 手動確認 CSP 沒有擋掉腳本本身
 
 開瀏覽器到 `http://localhost:8788/<任一文章 slug>/`，開 DevTools Console。
 
@@ -730,12 +751,12 @@ Expected:
 - 允許出現與廣告填充相關的訊息（no-fill、`availableWidth` 之外的 AdSense 提示）——localhost 不是授權網域，拿不到廣告是正常的
 - **不允許**出現 `availableWidth=0` 或 `already have ads in them`：這兩個代表 Task 4 的判斷寫錯了，回頭修
 
-Step 5: 確認標頭真的送出
+Step 6: 確認兩個標頭都真的送出
 
 Run: `curl -sI http://localhost:8788/ | grep -i content-security-policy`
-Expected: 輸出一行含 `pagead2.googlesyndication.com` 的 CSP，且**只有一組** `Content-Security-Policy`（出現兩組代表 `_headers` 的合併規則被觸發，要回頭檢查是否漏了 `!` 清除）
+Expected: 恰好兩行——一行 `Content-Security-Policy:`（含 `'unsafe-inline'`）與一行 `Content-Security-Policy-Report-Only:`（不含 `'unsafe-inline'`）。若 `Content-Security-Policy` 出現兩組值以逗號串接，代表 `_headers` 的合併規則被觸發，要回頭檢查是否有第二條規則命中同一路徑而漏了 `!` 清除。
 
-Step 6: Commit
+Step 7: Commit
 
 ```
 chore(csp): 放行 AdSense 所需來源
@@ -763,21 +784,23 @@ Interfaces:
 
 背景：現行政策第 30 行明寫「本站本身不使用追蹤型 Cookie」。放上 AdSense 之後這句話變成不實陳述，這是本次改動裡唯一有法律面意義的一項。
 
-Step 1: 更新 meta description（第 13 行）
+Step 1: 更新 meta description
 
-description 有 120-160 字元的長度紀律（`src/utils/site-meta.ts` 的 `DESC_MIN`/`DESC_MAX`），改寫後要落在區間內。把第 13 行整行替換為：
+找到 `<BaseLayout` 開頭標籤裡以 `description="本站的隱私權政策：` 起頭的那一行整行。description 有 120-160 字元的長度紀律（`src/utils/site-meta.ts` 的 `DESC_MIN`/`DESC_MAX`），改寫後要落在區間內。替換為：
 
 ```astro
   description="本站的隱私權政策：說明本站為靜態網站、不主動蒐集個人資料，並逐項解釋 Google AdSense 廣告與第三方 Cookie 的運作方式、如何退出個人化廣告，以及 Cookie、第三方嵌入內容與外部連結的處理方式。"
 ```
 
-Step 2: 更新最後更新日期（第 19 行）
+Step 2: 更新最後更新日期
+
+找到 `<p class="legal-updated">最後更新：2026-07-23</p>` 那一行，替換為：
 
 ```astro
     <p class="legal-updated">最後更新：2026-08-04</p>
 ```
 
-Step 3: 改寫 Cookie 段落（第 29-30 行）
+Step 3: 改寫 Cookie 段落
 
 把這兩行：
 
@@ -797,9 +820,9 @@ Step 3: 改寫 Cookie 段落（第 29-30 行）
       <p>除上述廣告 Cookie 外，本站本身不設置用於識別身分或跨站追蹤的 Cookie。流量統計使用無 Cookie 的 Cloudflare Web Analytics。網站由 Cloudflare Pages 代管，平台可能基於資訊安全與效能設置必要性 Cookie；這類 Cookie 不用於識別你的身分。</p>
 ```
 
-Step 4: 更新「我們蒐集哪些資料」段落的第二句（第 26 行）
+Step 4: 更新「我們蒐集哪些資料」段落的第二句
 
-第 26 行結尾「本站未安裝 Google Analytics 這類會建立跨站瀏覽輪廓的分析工具。」在有了 AdSense 之後容易讀成「本站完全沒有跨站追蹤」。把第 26 行整行替換為：
+找到以「本站為靜態網站，不提供留言、註冊或登入功能」開頭的那一段 `<p>`。它結尾的「本站未安裝 Google Analytics 這類會建立跨站瀏覽輪廓的分析工具。」在有了 AdSense 之後容易被讀成「本站完全沒有跨站追蹤」。整行替換為：
 
 ```astro
       <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站未安裝 Google Analytics 這類分析工具；跨站層面的資料蒐集僅來自下方說明的廣告服務。</p>
@@ -839,9 +862,11 @@ Interfaces:
 
 Step 1: 先量本機的實際分數
 
-Run: `npm run build && npx --yes lighthouse@13.4.1 http://localhost:4321/<任一文章 slug>/ --output=json --output-path=/dev/stdout --chrome-flags="--headless --no-sandbox" --quiet | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);for(const k of ['seo','accessibility','best-practices','performance'])console.log(k, Math.round(r.categories[k].score*100));})"`
+先在另一個終端跑 `npm run build && npm run preview`，確認 `http://localhost:4321/` 起得來。
 
-（另一個終端先跑 `npm run preview`。）
+Run: `npx --yes lighthouse@13.4.1 http://localhost:4321/<任一文章 slug>/ --output=json --output-path=lighthouse-local.json --chrome-flags="--headless --no-sandbox" --quiet && node -e "const r=require('./lighthouse-local.json');for(const k of ['seo','accessibility','best-practices','performance'])console.log(k, Math.round(r.categories[k].score*100));"`
+
+（輸出寫成檔案再讀，不要用 `--output-path=/dev/stdout`——本機是 Windows，Node 會把 `/dev/stdout` 當成相對路徑解析成 `D:\dev\stdout` 並丟 ENOENT。量完記得 `rm lighthouse-local.json`，那是暫存檔不要進版控。）
 
 Expected: 四個分數。記下 `best-practices` 的值——下一步的門檻要以它為基準，不是照抄本 plan 寫死的數字。
 
@@ -873,6 +898,20 @@ Step 3: 同步 spec R3 的措辭
 - **Description**: 視窗寬度 ≥1600px 時，內容區左右留白各出現一個 160×600 固定版位，垂直起點在站台 header 之下。低於此寬度時該版位不可見，且不得對它送出廣告請求——在不可見的容器上初始化廣告會產生 console error，而 console error 是 Lighthouse Best Practices 的稽核項。可見性判斷與送出請求的判斷必須以同一個門檻值為準。
 ```
 
+同一份 spec 的 S3 與 S4 目前寫著「兩側版位的節點不存在」，與改過的 R3 互相矛盾，一併改掉——留著會讓日後照 Scenario 寫驗收測試的人踩空。
+
+S3 的 **Then** 整行替換為：
+
+```markdown
+- **Then**: 兩側版位不可見，且未對其送出廣告請求，console 無廣告相關錯誤
+```
+
+S4 的 **Then** 整行替換為：
+
+```markdown
+- **Then**: 只有文末一個版位可見，兩側版位不可見且未送出廣告請求
+```
+
 Step 4: 在 spec 記錄本次的實測結果
 
 把 `docs/specs/monetization.md` 檔尾的 Pending Changes 區塊替換為（`{實際分數}` 填入 Step 1 量到的值）：
@@ -885,12 +924,13 @@ Step 4: 在 spec 記錄本次的實測結果
 
 ### MODIFIED R3: 桌機兩側固定版位
 - **Level**: MUST
-- **Description**: 見上方主區塊（已就地更新）
+- **Description**: 見上方主區塊（已就地更新，S3／S4 一併同步）
 - **Reason**: 原措辭要求「DOM 完全不輸出」，靜態建置時不知道視窗寬度而做不到；純由 JS 建立節點做得到，但換來 scoped style 失效與收合鈕 a11y 屬性無法靜態驗證。改以「不可見且不送請求」表述，守住原本要守的行為
 
 ### 待正式站實測補完
-- CSP 最小放行集（R10）：目前 `public/_headers` 是起始集合。本機與 Pages preview 都是 no-fill，完整違規清單只有正式站量得到
+- CSP 最小放行集（R10）：目前 `public/_headers` 的 enforcing 那條是起始集合，另掛了一份不含 `'unsafe-inline'` 的 Report-Only 副本試收緊。本機與 Pages preview 都是 no-fill，兩者的判讀只有正式站做得到
 - Best Practices 實際分數（R9）：本機文章頁量到 {實際分數}，CI 門檻依此設為 85。第一輪 CI 跑完後若穩定高於門檻，應收緊
+- EEA/UK 的 CMP 政策（D7）：執行前已查證一次（見 plan 的人工前置第 3 項），政策每年在變，日後有歐洲流量時要重查
 ```
 
 Step 5: 完整驗證
@@ -916,6 +956,6 @@ ci(lighthouse): Best Practices 門檻依 AdSense 實測校正
 
 以下三項在合併前做不完，因為 AdSense 只在通過審核的正式網域投放廣告，本機與 Pages preview 一律是 no-fill：
 
-1. **CSP 收斂**（spec R10）：正式站開文章頁看 console，把 `public/_headers` 裡沒用到的來源刪掉、漏掉的補上。
+1. **CSP 收斂**（spec R10）：正式站開文章頁看 console，把 `public/_headers` 裡沒用到的來源刪掉、漏掉的補上。同時判讀 Task 6 掛上的 Report-Only 副本——那份不含 `'unsafe-inline'`，掛一段時間都沒有違規訊息，就代表 enforcing 的那條可以把 `'unsafe-inline'` 拿掉，XSS 防護那一面收得回來；持續冒違規則相反，那個讓步是永久的，把結論寫回 `_headers` 註解。
 2. **ads.txt 認證**：部署後回 AdSense 後台按「檢查更新」，確認「找不到 ads.txt」的警告消失。Google 說明需要幾天才會反映。
 3. **正式站桌機分數**：CI 的行動版 emulation 量不到兩側版位（斷點 1600px vs 375px），它們的效能代價只能用 PageSpeed Insights 的桌機模式打正式站量。
