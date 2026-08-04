@@ -25,6 +25,9 @@ const SITE_ORIGIN = `https://${SITE_HOST}`;
 // AdSense 的賣家授權宣告（docs/specs/monetization.md R1）。ads.txt 用 pub- 前綴，
 // 元素屬性 data-ad-client 用 ca-pub- 前綴，是同一個帳號的兩種寫法，不能互換。
 const ADS_TXT_PUBLISHER_ID = 'pub-5544842849576289';
+// 元素屬性上的寫法（data-ad-client）。用它當「這一頁有沒有廣告」的判準，
+// 比對打包後的 JS 檔名穩定得多——檔名帶內容雜湊，每次改動都會變。
+const ADSENSE_CLIENT_ATTR = 'ca-pub-5544842849576289';
 
 const quiet = process.argv.includes('--quiet');
 
@@ -815,6 +818,21 @@ check('ads.txt 與 app-ads.txt 都宣告正確的 publisher ID', (failures) => {
     const text = readFileSync(filePath, 'utf8');
     if (!text.includes(ADS_TXT_PUBLISHER_ID)) {
       failures.push({ page: `/${file}`, reason: `未宣告 ${ADS_TXT_PUBLISHER_ID}` });
+    }
+  }
+});
+
+// 廣告只准出現在文章頁（spec R2）。這條斷言守的是兩個方向，漏哪一邊都很痛：
+// 文章頁漏掉等於整件事白做；漏到列表頁或關於我頁則會直接打中 CI 稽核的另外三個
+// 頁面，Lighthouse 門檻立刻紅，而原因會看起來像是與該 PR 無關的效能波動。
+check('廣告版位只出現在文章頁', (failures) => {
+  for (const { pathname, html } of pages) {
+    const hasAd = html.includes(`data-ad-client="${ADSENSE_CLIENT_ATTR}"`);
+    const isArticle = articlePathnames.has(pathname);
+    if (isArticle && !hasAd) {
+      failures.push({ page: pathname, reason: '文章頁缺少廣告版位' });
+    } else if (!isArticle && hasAd) {
+      failures.push({ page: pathname, reason: '非文章頁不應出現廣告版位' });
     }
   }
 });
