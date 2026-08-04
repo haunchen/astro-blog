@@ -10,24 +10,28 @@ const crumbs = [{ name: '首頁', href: '/' }];
 
 <BaseLayout
   title={pageTitle(pageName)}
-  description="本站的隱私權政策：說明本站為靜態網站、不提供留言與註冊功能、不主動蒐集個人資料，僅使用無 Cookie 的 Cloudflare Web Analytics 統計流量，並逐項解釋 Cookie、第三方嵌入內容與外部連結的處理方式，以及如何來信提出隱私疑問。"
+  description="本站的隱私權政策：說明本站為靜態網站、不主動蒐集個人資料、僅使用無 Cookie 的 Cloudflare Web Analytics 統計流量，並逐項解釋 Google AdSense 廣告與第三方 Cookie 的運作方式、如何退出個人化廣告，以及第三方嵌入內容與外部連結的處理方式。"
   breadcrumbs={crumbs}
 >
   <main class="legal">
     <Breadcrumbs items={crumbs} current={pageName} />
     <h1 class="legal-title">隱私權政策</h1>
-    <p class="legal-updated">最後更新：2026-07-23</p>
+    <p class="legal-updated">最後更新：2026-08-04</p>
 
     <div class="prose">
       <h2>我們是誰</h2>
       <p>本網站網址為 {SITE.url}，由 Frank Chen 經營。如有任何隱私相關問題，歡迎來信 <a href={`mailto:${SITE.email}`}>{SITE.email}</a>。</p>
 
       <h2>我們蒐集哪些資料</h2>
-      <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站未安裝 Google Analytics 這類會建立跨站瀏覽輪廓的分析工具。</p>
+      <p>本站為靜態網站，不提供留言、註冊或登入功能，因此不會主動向你蒐集姓名、電子郵件等個人資料。本站未安裝 Google Analytics 這類分析工具；跨站層面的資料蒐集僅來自下方說明的廣告服務。</p>
       <p>代管平台 Cloudflare 提供的 Web Analytics 為啟用狀態。它以無 Cookie 的方式運作，僅彙總網頁瀏覽量、來源網站、裝置類型等統計資訊，不使用 Cookie、不追蹤個別使用者，也不會跨網站建立你的行為輪廓。相關說明見 <a href="https://developers.cloudflare.com/web-analytics/" rel="noopener noreferrer" target="_blank">Cloudflare Web Analytics 文件</a>。</p>
 
+      <h2>廣告</h2>
+      <p>本站文章頁面投放 Google AdSense 廣告。Google 及其合作夥伴會使用 Cookie 或類似技術，依你先前造訪本站與其他網站的紀錄放送廣告，這類 Cookie 由 Google 設置與讀取，本站無法存取其內容。</p>
+      <p>你可以前往 <a href="https://myadcenter.google.com/" rel="noopener noreferrer" target="_blank">Google 廣告設定</a> 關閉個人化廣告；關閉後仍會看到廣告，但內容不再依你的瀏覽紀錄調整。若想更全面地管理第三方廣告 Cookie，可參考 <a href="https://www.aboutads.info/choices/" rel="noopener noreferrer" target="_blank">aboutads.info</a> 的退出工具。</p>
+
       <h2>Cookie</h2>
-      <p>本站本身不使用追蹤型 Cookie。網站由 Cloudflare Pages 代管，平台可能基於資訊安全與效能設置必要性 Cookie；這類 Cookie 不用於識別你的身分。</p>
+      <p>除上述廣告 Cookie 外，本站本身不設置用於識別身分或跨站追蹤的 Cookie。流量統計使用無 Cookie 的 Cloudflare Web Analytics。網站由 Cloudflare Pages 代管，平台可能基於資訊安全與效能設置必要性 Cookie；這類 Cookie 不用於識別你的身分。</p>
 
       <h2>第三方嵌入內容</h2>
       <p>本站文章可能嵌入來自第三方網站的內容（例如圖片、影片、程式碼片段）。這些內容的隱私權處理方式，與你直接造訪該第三方網站時相同；它們可能會蒐集你的資料、使用 Cookie，或追蹤你與嵌入內容的互動。</p>
