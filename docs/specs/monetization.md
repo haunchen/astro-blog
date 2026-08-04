@@ -52,6 +52,11 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 ### R10: CSP 放行以實測為準
 - **Level**: MUST
 - **Description**: CSP 的廣告相關放行集合，以 `Content-Security-Policy-Report-Only` 在正式站收集到的真實違規為準，不照抄聯播網文件的建議清單。最終放行了什麼、為什麼、代價是什麼，記錄於 `public/_headers` 註解。
+- **首輪實測**（2026-08-04，正式站文章頁 console）：
+  - 補進一個文件清單沒有的來源——`fundingchoicesmessages.google.com`（Google Privacy & Messaging，AdSense 載入後自行拉取）。它當時是被 enforcing 擋掉的（訊息結尾 `The action has been blocked`），除了功能受影響，被擋的資源會產生 console error 而扣 Best Practices
+  - Report-Only 的兩則 inline 違規，來源**全部**是 Cloudflare JS Detections 的 per-request 腳本（同頁連抓兩次皆 921 bytes 但 sha256 不同，坐實無法用 hash 放行）；**AdSense 一則內聯違規都沒有**
+  - 因此「`'unsafe-inline'` 收不回來」目前成立，但卡點不是 AdSense 而是 JSD。關掉 JS Detections（API `PATCH /zones/<id>/bot_management` 帶 `{"enable_js": false}`）即可立刻收回這條讓步
+  - 這是三次抽查的第一次，尚未結案
 
 ### R11: 隱私揭露
 - **Level**: MUST
@@ -159,7 +164,7 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 以下五項在合併前做不完——AdSense 只在通過審核的正式網域投放，本機與 Pages preview 一律是 no-fill。
 驗收條件與判讀方式寫在 `docs/plans/2026-08-04-adsense-placement.md` 的「上線後才做得完的收尾」。
 
-1. CSP 最小放行集（R10）：`public/_headers` 的 enforcing 那條是起始集合，另掛了不含 `'unsafe-inline'` 的 Report-Only 副本試收緊。判讀要先排除 Bot Fight 的 per-request inline script 這個必然觸發的雜訊來源
+1. CSP 最小放行集（R10）：**第一次抽查已完成**（2026-08-04，見 R10 的首輪實測），補進 `fundingchoicesmessages.google.com`、確認 `'unsafe-inline'` 的卡點是 JSD 而非 AdSense。還差兩次抽查（間隔至少 1 週、涵蓋 2 種素材類型）才能結案
 2. Best Practices 收緊（R9）：第一輪 CI 跑完後，文章頁若穩定高於 75 就該把門檻收回來
 3. 文末版位實際高度（R6）：`min-height: 280px` 是估計值，只保證地板不保證天花板
 4. COOP 對廣告點擊的影響：`Cross-Origin-Opener-Policy: same-origin` 會切斷新開分頁與本站 window 的連結，而廣告點擊一律開新分頁，這個組合沒有人評估過
