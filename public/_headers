@@ -12,10 +12,12 @@
   # same-origin-allow-popups 沒有必要，本站無跨源需求）。
   Cross-Origin-Opener-Policy: same-origin
   # CSP：全站為 Astro 靜態輸出，逐一核對 dist/ 實際產物後才定案，避免寫得比實際更嚴而壞站：
-  #   - script-src 'self'（不含 unsafe-inline）：astro.config.mjs 已設
-  #     vite.build.assetsInlineLimit: 0，Astro 不再把小體積 hoisted script 內聯，
-  #     全站掃描結果為 0 個內聯 script，故可鎖到最嚴。若日後有人加了
-  #     is:inline 的 <script>，該腳本會被 CSP 擋掉——這是刻意的，要加請改走外部檔。
+  #   - script-src 'self'：astro.config.mjs 已設 vite.build.assetsInlineLimit: 0，
+  #     Astro 不再把小體積 hoisted script 內聯，全站掃描結果為 0 個內聯 script——這說的是
+  #     本站程式碼本身乾不乾淨，不是這條標頭現在實際生效的樣子。'unsafe-inline' 已經因
+  #     下面的 AdSense 例外被加回 script-src，若現在有人加 is:inline 的 <script>，CSP
+  #     不會擋下它——「內聯腳本會被擋掉」這道防線目前不存在，得靠 code review 自律頂著，
+  #     完整取捨見下面 AdSense 例外段落。
   #     JSON-LD（type="application/ld+json"）不受 script-src 管控，瀏覽器不會把它
   #     當可執行腳本解析，無需另外開放。
   #   - style-src 'unsafe-inline'：Astro View Transitions（ClientRouter）會逐頁產生
@@ -25,8 +27,9 @@
   #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
   #   - AdSense 例外（docs/specs/monetization.md R10、D5）：這是本檔目前最大的一處
   #     讓步，要知道換到了什麼、付出了什麼。
-  #     付出的是 script-src 的 'unsafe-inline'——上面那句「全站掃描 0 個內聯 script，
-  #     故可鎖到最嚴」從此不再成立，XSS 防護最關鍵的一面被打開。兩條想保住它的路都
+  #     付出的是 script-src 的 'unsafe-inline'——上面 script-src 那則說的「全站掃描 0 個
+  #     內聯 script」只是本站程式碼本身的狀態，不代表這條標頭仍鎖到最嚴：它已經因為這裡
+  #     的讓步被打開，XSS 防護最關鍵的一面不再受 script-src 把關。兩條想保住它的路都
   #     走不通：nonce 要 per-request 產生，本站 HTML 是靜態資產，得在 middleware 用
   #     HTMLRewriter 逐請求改寫才行，等於毀掉邊緣快取，而且 AdSense 動態注入的 script
   #     也不會帶我們的 nonce；'strict-dynamic' 同樣需要 nonce 或 hash 當信任根。
@@ -49,7 +52,10 @@
   #     已經不成立，要重新評估這支腳本執行帶來的實際風險與 CI 門檻怎麼設。
   #   - 其餘（font/manifest/media/worker 等）皆退回 default-src 'self'：
   #     全站字型、圖片、樣式表皆同源。
-  #   - 全站無 <form>、無 <iframe>，form-action/frame-ancestors 鎖到最嚴。
+  #   - 全站無 <form>，form-action 鎖到最嚴。frame-ancestors 管的是「別人能不能把本站
+  #     嵌進他們的頁面」，跟本站有沒有嵌別人的 iframe 是兩件事——AdSense 例外（見上段）
+  #     放寬的是 frame-src，本站現在會嵌 AdSense 的廣告 iframe；frame-ancestors 跟這個
+  #     讓步無關，沒有理由跟著鬆動，一樣鎖到最嚴。
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://ep2.adtrafficquality.google; connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://ep1.adtrafficquality.google; frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://ep2.adtrafficquality.google; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests
   # 收緊版的觀測用副本（docs/specs/monetization.md R10）：script-src 沒有
   # 'unsafe-inline'，這是與上面那條唯一有意義的差別；結尾也沒有 upgrade-insecure-
