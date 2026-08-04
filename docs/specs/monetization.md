@@ -1,6 +1,6 @@
 ---
 domain: monetization
-status: draft
+status: active
 created: 2026-08-04
 last_modified: 2026-08-04
 ---
@@ -46,7 +46,8 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 
 ### R9: 品質門檻
 - **Level**: MUST
-- **Description**: 加上廣告後，CI 四個稽核頁面的 SEO 100、Accessibility ≥95、Performance ≥85 維持不變。Best Practices 門檻依實測結果調整（第三方 cookie 稽核必然失分），調整後的數值與實測依據記錄於 workflow 註解。
+- **Description**: 加上廣告後，CI 四個稽核頁面的 SEO 100、Accessibility ≥95、Performance ≥85 維持不變。Best Practices 門檻依實測結果調整（第三方 cookie 稽核必然失分），且只有掛廣告的頁面能降——首頁、文章列表、關於我沒有第三方 cookie 的來源，不得連帶失去原本的 100 防線。調整後的數值與實測依據記錄於 workflow 註解。
+- **實測基準**（2026-08-04，Lighthouse 13.4.1 本機文章頁，兩次量測一致）：Best Practices 77，失分項 `third-party-cookies` 與 `inspector-issues` 的 Cookie issue，同根因是 doubleclick.net 的第三方 cookie——localhost 是 no-fill、廣告未填充也照種。門檻依此設為文章頁樣本 75、其餘三頁維持 100。CI 跑的是 `astro preview`，不套用 `public/_headers`，因此 CSP 放寬的代價不在此量測範圍內（見 R10）。
 
 ### R10: CSP 放行以實測為準
 - **Level**: MUST
@@ -153,17 +154,13 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 - **Rationale**: 兩側位是固定定位、一載入就在視窗內，IntersectionObserver 等於沒延後；文末位在行動版位置很深，而 Lighthouse 量測不捲動頁面，用 IntersectionObserver 會讓腳本在 CI 裡永遠不載入——分數好看但違反 #R8
 - **Date**: 2026-08-04
 
-## Pending Changes
+## 待正式站驗證的項目
 
-> Source: docs/plans/2026-08-04-adsense-placement.md
-> Date: 2026-08-04
+以下五項在合併前做不完——AdSense 只在通過審核的正式網域投放，本機與 Pages preview 一律是 no-fill。
+驗收條件與判讀方式寫在 `docs/plans/2026-08-04-adsense-placement.md` 的「上線後才做得完的收尾」。
 
-### MODIFIED R3: 桌機兩側固定版位
-- **Level**: MUST
-- **Description**: 見上方主區塊（已就地更新，S3／S4 一併同步）
-- **Reason**: 原措辭要求「DOM 完全不輸出」，靜態建置時不知道視窗寬度而做不到；純由 JS 建立節點做得到，但換來 scoped style 失效與收合鈕 a11y 屬性無法靜態驗證。改以「不可見且不送請求」表述，守住原本要守的行為
-
-### 待正式站實測補完
-- CSP 最小放行集（R10）：目前 `public/_headers` 的 enforcing 那條是起始集合，另掛了一份不含 `'unsafe-inline'` 的 Report-Only 副本試收緊。本機與 Pages preview 都是 no-fill，兩者的判讀只有正式站做得到
-- Best Practices 實際分數（R9）：本機文章頁量到 77（兩次量測一致），CI 門檻依此設為文章頁樣本 75、其餘三頁維持 100——廣告只掛文章頁，首頁／文章列表／關於我沒有第三方 cookie 的來源，不該連帶失去原本的防線。第一輪 CI 跑完後文章頁若穩定高於門檻，應收緊
-- EEA/UK 的 CMP 政策（D7）：執行前已查證一次（見 plan 的人工前置第 3 項），政策每年在變，日後有歐洲流量時要重查
+1. CSP 最小放行集（R10）：`public/_headers` 的 enforcing 那條是起始集合，另掛了不含 `'unsafe-inline'` 的 Report-Only 副本試收緊。判讀要先排除 Bot Fight 的 per-request inline script 這個必然觸發的雜訊來源
+2. Best Practices 收緊（R9）：第一輪 CI 跑完後，文章頁若穩定高於 75 就該把門檻收回來
+3. 文末版位實際高度（R6）：`min-height: 280px` 是估計值，只保證地板不保證天花板
+4. COOP 對廣告點擊的影響：`Cross-Origin-Opener-Policy: same-origin` 會切斷新開分頁與本站 window 的連結，而廣告點擊一律開新分頁，這個組合沒有人評估過
+5. EEA/UK 的 CMP 政策（D7）：已於 2026-08-04 查證一次，此政策每年在變，日後有歐洲流量時要重查
