@@ -1,0 +1,40 @@
+---
+import { ADSENSE_CLIENT, AD_SLOTS } from '../utils/ads';
+---
+
+<aside class="ad-end" aria-label="廣告">
+  <span class="ad-end-label">廣告</span>
+  <ins
+    class="adsbygoogle"
+    style="display:block"
+    data-ad-client={ADSENSE_CLIENT}
+    data-ad-slot={AD_SLOTS.articleEnd}
+    data-ad-format="auto"
+    data-full-width-responsive="true"
+  ></ins>
+</aside>
+
+<style>
+  /* min-height 是 CLS 防線（spec R6）：這個版位在文檔流裡，下方緊接著標籤區與
+     上下篇導覽。廣告填充前後容器高度必須一致，否則廣告一到就把下面全部往下推。
+     280px 取自回應式版位在 720~864px 寬容器下的常見高度。
+     contain: layout 讓廣告 iframe 的尺寸變化不外溢成整頁重排。 */
+  .ad-end {
+    display: block;
+    min-height: 280px;
+    margin-top: 48px;
+    contain: layout;
+  }
+
+  /* 廣告必須與內容可區分——這既是 AdSense 政策要求，也是不想讓讀者把它讀成
+     文章的一部分。刻意用最低調的樣式：站上其他小標（.aside-widget-title）
+     是同一組字級與字色。 */
+  .ad-end-label {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+    margin-bottom: 8px;
+  }
+</style>
