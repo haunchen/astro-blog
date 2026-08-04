@@ -24,6 +24,10 @@ const SITE_ORIGIN = `https://${SITE_HOST}`;
 
 // AdSense 的賣家授權宣告（docs/specs/monetization.md R1）。ads.txt 用 pub- 前綴，
 // 元素屬性 data-ad-client 用 ca-pub- 前綴，是同一個帳號的兩種寫法，不能互換。
+//
+// 與 src/utils/ads.ts 的 ADSENSE_CLIENT 同源（同一個 publisher ID，只是前綴不同）。
+// .mjs 無法 import .ts 的常數（此腳本跑在 dist/ 建置後、獨立於 Astro 的型別系統之外），
+// 所以兩邊各存一份，改一邊要記得改兩邊。
 const ADS_TXT_PUBLISHER_ID = 'pub-5544842849576289';
 // 元素屬性上的寫法（data-ad-client）。用它當「這一頁有沒有廣告」的判準，
 // 比對打包後的 JS 檔名穩定得多——檔名帶內容雜湊，每次改動都會變。

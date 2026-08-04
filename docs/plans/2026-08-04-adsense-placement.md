@@ -960,6 +960,13 @@ ci(lighthouse): Best Practices 門檻依 AdSense 實測校正
 
 以下三項在合併前做不完，因為 AdSense 只在通過審核的正式網域投放廣告，本機與 Pages preview 一律是 no-fill：
 
-1. **CSP 收斂**（spec R10）：正式站開文章頁看 console，把 `public/_headers` 裡沒用到的來源刪掉、漏掉的補上。同時判讀 Task 6 掛上的 Report-Only 副本——那份不含 `'unsafe-inline'`，掛一段時間都沒有違規訊息，就代表 enforcing 的那條可以把 `'unsafe-inline'` 拿掉，XSS 防護那一面收得回來；持續冒違規則相反，那個讓步是永久的，把結論寫回 `_headers` 註解。
+1. **CSP 收斂**（spec R10）：`Content-Security-Policy-Report-Only` 沒有掛 `report-uri`／`report-to`（接回報端點是另一個功能，這次不做），判讀完全靠人工開 DevTools 抽查，沒有自動化證據——而 AdSense 是否用到內聯腳本會隨投放素材與訪客變化，單次抽查支撐不了「可以收回 `'unsafe-inline'`」這種結論。抽查要滿足以下驗收條件，缺一項都不算完成：
+   - 至少抽查 **3 次**，彼此間隔 **至少 1 週**（廣告素材輪替、投放策略會隨時間變化，單次抽查不能代表整段掛著 Report-Only 的期間）
+   - 每次抽查至少涵蓋 **2 種廣告素材類型**（例如純文字廣告 1 篇 + 圖片／多媒體回應式廣告 1 篇），文末版位與兩側版位（≥1600px 視窗）都要各看過至少一次
+   - 每次都用無痕視窗開新 session（避免同一組素材因快取或個人化重複命中，觀察不到變化）
+   - 判讀時先排除已知雜訊來源：Bot Fight 模式的 per-request inline script 在不含 `'unsafe-inline'` 的這份 Report-Only 底下必然每次請求都觸發違規，這與 AdSense 是否用內聯腳本無關（見 `_headers` 註解），只看剩下的違規是否含 `pagead2.googlesyndication.com`／`tpc.googlesyndication.com` 等 AdSense 相關來源，或暫時關掉 Bot Fight 模式再觀察
+   - 3 次抽查排除已知雜訊後全數零 AdSense 相關違規，才能把 enforcing 那條的 `'unsafe-inline'` 拿掉；任一次冒出 AdSense 相關來源的違規，就代表這個讓步收不回來，是永久的取捨，把結論寫回 `_headers` 註解
+   同時把 `public/_headers` 裡沒用到的具名來源刪掉、漏掉的補上。
 2. **ads.txt 認證**：部署後回 AdSense 後台按「檢查更新」，確認「找不到 ads.txt」的警告消失。Google 說明需要幾天才會反映。
 3. **正式站桌機分數**：CI 的行動版 emulation 量不到兩側版位（斷點 1600px vs 375px），它們的效能代價只能用 PageSpeed Insights 的桌機模式打正式站量。
+4. **文末版位實際高度**（spec R6）：`AdEnd.astro` 的 `min-height: 280px` 是估計值，只保證地板不保證天花板——回應式單元若解析出更高的高度，`contain: layout` 擋不住它推擠下方的標籤區與上下篇導覽，而 R6 是 MUST「CLS 貢獻為 0」。本機與 Pages preview 是 no-fill 驗不到，上線後要實測填充後的實際高度，確認 CLS 是否仍為 0、`min-height` 是否需要調整。

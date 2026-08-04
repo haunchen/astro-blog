@@ -173,23 +173,27 @@ CI 對應：
 
 ## CSP
 
-`public/_headers` 的 `Content-Security-Policy` 已把 `script-src` 收緊到 `'self'`
-（不含 `unsafe-inline`）。實務影響：
+`public/_headers` 的 `Content-Security-Policy` 曾把 `script-src` 收緊到 `'self'`
+（不含 `unsafe-inline`），但 2026-08-04 起為了 Google AdSense 又加回了
+`'unsafe-inline'`（見 `docs/specs/monetization.md` D5）——**「內聯 script 會被
+CSP 擋掉」這道防線目前不存在**，寫 `<script is:inline>` 不會再被瀏覽器擋下來執行。
+以下規則因此改成靠 code review 自律頂著，而非靠 CSP 強制：
 
-- **不可以再寫 `<script is:inline>`**（或任何會被 Astro 判定為需要保留內聯的 script）——
-  會被瀏覽器依 CSP 擋掉，不會執行也不會出現 build 錯誤，只會在瀏覽器 console 出現
-  CSP 違規訊息，很容易漏掉。
+- **仍然不要寫 `<script is:inline>`**（或任何會被 Astro 判定為需要保留內聯的
+  script）——CSP 現在不會擋，但保持全站 script 外部化仍是對的做法：它讓日後收緊
+  CSP（或改由 middleware 逐路徑覆寫，見 D5 的「未來可收斂的方向」）能從「所有
+  script 本來就已外部化」出發，而不必先找出並外部化中途混進來的內聯 script。
 - 正常寫法：像 `src/components/Nav.astro` 那樣寫普通 `<script>`（不加 `is:inline`）。
   `astro.config.mjs` 設了 `vite.build.assetsInlineLimit: 0`，Astro 會把這類 hoisted
-  script 打包成外部檔案（同源，`script-src 'self'` 放行），而不是內聯進 HTML。
-  全站掃描結果是 0 個 inline script，才能把 CSP 鎖到最嚴。
+  script 打包成外部檔案（同源，`script-src` 一定放行），而不是內聯進 HTML。這說的
+  是本站程式碼本身乾不乾淨，不是 `script-src` 這條標頭現在實際生效的樣子。
 - JSON-LD（`<script type="application/ld+json">`，見 `JsonLd.astro`）雖然寫了
   `is:inline`，但**不受 `script-src` 管控**——瀏覽器不會把 `application/ld+json`
-  當可執行腳本解析，所以這裡的 `is:inline` 不是問題，不要誤以為要一併改掉。
+  當可執行腳本解析，所以這裡的 `is:inline` 一直都不是問題，不要誤以為要一併改掉。
 - `style-src` 仍保留 `'unsafe-inline'`：Astro View Transitions（`ClientRouter`）會
   逐頁產生內容不同的 `view-transition-name` 樣式並內聯輸出，無法外部化也無法預先
-  算 hash，這是留 `unsafe-inline` 的唯一原因；CSP 真正的防護關鍵面 `script-src`
-  已收緊，風險可接受。
+  算 hash，這是本站程式碼本身需要 `unsafe-inline` 的唯一原因——`script-src` 是否
+  也帶 `unsafe-inline` 是另一組取捨（見上），不要合併著讀。
 
 ## 刻意不做的事
 

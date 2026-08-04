@@ -129,6 +129,16 @@ jobs:
           // 廣告，是設計階段明確接受的取捨（docs/specs/monetization.md R9）。
           // 若這個數字再往下掉，才是真的壞了。
           //
+          // 實測來源：2026-08-04 於本機以 Lighthouse 13.4.1 對同一篇文章頁量測
+          // 兩次，皆為 77（兩次一致）。75 留了 2 分緩衝而非直接取 77，避免正常的
+          // 量測擺幅（見上方 Performance 90→85 那次事故）誤觸紅燈。
+          //
+          // 掉破門檻時別急著結論成廣告回歸：先看 report 的 errors-in-console 與
+          // image-* 兩類稽核項——本 job 抽的文章頁樣本取自 sitemap 第一篇「非列表
+          // 頁」（見上一個 step 的取樣邏輯），每次 PR 不保證同一篇，新增一篇圖片
+          // 沒處理好的文章也會讓這頁掉分，紅燈原因看起來卻像廣告回歸，其實與
+          // AdSense 無關。
+          //
           // 注意這裡量不到 CSP 的代價：public/_headers 為了 AdSense 在 script-src
           // 加了 'unsafe-inline'，但本 job 的 Lighthouse 跑在 astro preview 上，
           // 它不套用 _headers，CSP 標頭不在量測範圍內。那一項要用 PageSpeed

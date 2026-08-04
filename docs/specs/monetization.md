@@ -98,10 +98,11 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 - **Then**: 版面與有廣告時一致，無空白塌陷、無位移、無 console error
 - **Implements**: #R6
 
-### S7: 非文章頁不受影響
-- **Given**: 站台已部署廣告
+### S7: 非文章頁不受影響（限冷啟動／文件層級）
+- **Given**: 站台已部署廣告，讀者以開新分頁或直接輸入網址造訪（首次文件載入，不是從文章頁透過站內連結以 View Transitions 換頁過來的）
 - **When**: 開啟首頁或 `/about/`
-- **Then**: 頁面不載入任何廣告聯播網資源
+- **Then**: 該次文件載入不主動注入任何廣告聯播網資源
+- **Note**: 此情境只涵蓋冷啟動。讀者若先看文章頁、再透過站內連結（View Transitions）導覽到首頁或 `/about/`，`adsbygoogle.js` 已在同一份 document 內執行過並常駐——Astro 換頁移除 `<head>` 裡的 `<script>` 元素不會卸載已經執行的程式碼，`window.__adsenseLoaded` 也仍為 `true`。這種同文件換頁的情境不在本 Scenario 涵蓋範圍內，也不違反 #R2：R2 管的是「哪些頁面主動掛廣告元件」，不是「同一份 document 曾經載入過的第三方腳本是否還留在記憶體裡」
 - **Implements**: #R2
 
 ### S8: CI 稽核
@@ -134,7 +135,7 @@ frankchen.tw 的廣告變現：賣家授權宣告（ads.txt）、廣告版位的
 
 ### D5: 接受 `script-src` 放寬
 - **Decision**: 若實測證實 AdSense 非 `'unsafe-inline'` 不可，全站統一放寬並在 `_headers` 註解記錄
-- **Rationale**: nonce 需 per-request 產生，本站 HTML 是靜態資產、只能在 middleware 逐請求改寫，等於毀掉邊緣快取，且 AdSense 動態注入的 script 不會帶我們的 nonce；`'strict-dynamic'` 同樣需要 nonce 或 hash 當信任根。逐路徑分設寬嚴也不可行——文章頁 `/<slug>/` 在 `_headers` 萬用字元下與 `/about/` 無法區分，且 Cloudflare 對同名標頭是合併不是覆蓋，兩份 CSP 並存時取交集，廣告一樣被擋
+- **Rationale**: nonce 需 per-request 產生，本站 HTML 是靜態資產、只能在 middleware 逐請求改寫，等於毀掉邊緣快取，且 AdSense 動態注入的 script 不會帶我們的 nonce；`'strict-dynamic'` 同樣需要 nonce 或 hash 當信任根。逐路徑分設寬嚴在 `_headers` 內不可行——文章頁 `/<slug>/` 在其萬用字元下與 `/about/` 無法區分，且 Cloudflare 對同名標頭是合併不是覆蓋，兩份 CSP 並存時取交集，廣告一樣被擋。改由 `functions/_middleware.js`（已對每個頁面請求執行、已在做標頭層操作）逐路徑覆寫尚未評估，是未來可收斂的方向，不是已排除的選項
 - **Date**: 2026-08-04
 
 ### D6: publisher ID 以常數存放，不用 env var

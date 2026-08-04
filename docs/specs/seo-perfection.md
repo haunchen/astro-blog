@@ -268,6 +268,9 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
   `vite.build.assetsInlineLimit: 0` 讓這些 script 一律外部化，全站 104 頁 inline
   script 歸零，`script-src` 得以鎖到 `'self'`。**代價：此後不能再寫 `is:inline`
   的 `<script>`，會被 CSP 擋掉。**
+  > 此決策已於 2026-08-04 被 `docs/specs/monetization.md` D5 部分推翻：為了
+  > Google AdSense，`script-src` 又加回了 `'unsafe-inline'`，「內聯 script 會被
+  > CSP 擋掉」這句不再成立。本節維持原樣作為歷史紀錄，不回頭改寫。
 - **Decision（style-src 保留 'unsafe-inline'）**: View Transitions 逐頁產生內容不同的
   `view-transition-name` 樣式，無法外部化也無法預先算 hash。刻意不動
   `build.inlineStylesheets`——強制外部化並不會讓 style-src 變嚴，只會多出
