@@ -27,10 +27,20 @@ const EXPECTED_CSP_DIRECTIVES = [
   "default-src 'self'",
   // Cloudflare Web Analytics 的 beacon 與回報端點：邊緣注入的第三方資源，
   // 不在 repo 裡，只看原始碼會漏掉（2026-07-23 實測 CSP 違規才發現）。
-  "script-src 'self' https://static.cloudflareinsights.com",
-  "connect-src 'self' https://cloudflareinsights.com",
+  //
+  // AdSense 那一長串來源與 script-src 的 'unsafe-inline'：為什麼要讓步、付出了什麼、
+  // 未來怎麼收回，全寫在 public/_headers 的 CSP 註解區（docs/specs/monetization.md D5），
+  // 這裡不重述。但這支腳本的職責要分清楚：它比對的是「線上實際值 == _headers 的意圖」，
+  // 不是「CSP 夠不夠嚴」。所以 _headers 一放寬，這裡就必須跟著放寬——否則報出來的
+  // 不是 zone 層竄改，而是本檔自己的漂移（2026-08-07 的每日檢查就這樣紅了一次，
+  // 訊息還寫著「可能是 zone 層規則注入」，實際注入者是我們自己的 hotfix）。
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google",
+  "connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google",
+  // frame-src 是 AdSense 例外帶進來的新指令（廣告與同意橫幅都跑在 iframe 裡）。
+  // 沒有 'self'：本站自己不嵌任何同源 iframe。
+  "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  "img-src 'self' data: https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://ep1.adtrafficquality.google",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
