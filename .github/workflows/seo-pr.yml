@@ -9,9 +9,26 @@ jobs:
   seo-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # 官方 action 一律追大版本 tag（@v7 而非 @v7.0.1）：這與下方 Lighthouse／
+      # squirrelscan 的版本鎖定不衝突，兩者管的是不同東西——那兩支是「尺」，版本一飄
+      # 分數就不可比；這幾支只是把程式碼拉下來、裝好 Node、傳個檔案，沒有跨時間比較
+      # 的產出，跟著大版本吃安全修補才是對的。
+      #
+      # v4 → v7 的升級（2026-08-07）：起因是 runner 開始警告 v4 系列鎖在 Node 20、
+      # 已被強制改跑 Node 24。四個大版本的 breaking change 都逐一對照過本 repo，
+      # 全部不適用，記在這裡免得下次升版又查一輪：
+      #   - checkout v6 把 persist-credentials 從 git config 改存 $RUNNER_TEMP：
+      #     本檔與 seo-daily.yml 都沒有 checkout 之後再跑 git 的步驟。
+      #   - checkout v7 擋掉 pull_request_target／workflow_run 底下 checkout fork PR：
+      #     本檔的觸發器是 pull_request（見檔頭），拿的是 PR 的 merge commit，不是
+      #     那條規則管的路徑。要注意的是這條與觸發器綁定——哪天把上面改成
+      #     pull_request_target（例如為了讓 fork PR 拿得到 secrets），這條就會生效。
+      #   - setup-node v5／v6 會依 package.json 的 packageManager 欄位自動開快取：
+      #     本專案沒有那個欄位，而且下面已經明確寫 cache: 'npm'，不受自動偵測影響。
+      #   - upload-artifact v7 新增 archive 參數（見 seo-daily.yml）：可選，沒用到。
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'

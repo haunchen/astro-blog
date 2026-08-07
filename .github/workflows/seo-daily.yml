@@ -11,9 +11,13 @@ jobs:
   daily-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # 追大版本 tag 而非鎖定小版本，以及 v4 → v7 那次升級逐條對照過的 breaking
+      # change，都寫在 seo-pr.yml 同一位置，不在這裡重複。只補一點本檔獨有的：
+      # checkout v7 那條「擋 fork PR」的規則對本檔完全不適用——本檔的觸發器是
+      # schedule 與 workflow_dispatch，根本不存在 PR 這個概念。
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -110,9 +114,11 @@ jobs:
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # v7 新增的 archive: false（單一檔案不打包、直接上傳）刻意不用：這裡是兩個檔案，
+      # 而該參數只支援單檔，glob 對到多個就直接失敗。
       - name: 上傳報告 artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: squirrelscan-report-${{ github.run_id }}
           path: |
