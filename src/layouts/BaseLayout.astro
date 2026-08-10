@@ -119,6 +119,31 @@ const allJsonLd = [ORGANIZATION_JSONLD, WEBSITE_JSONLD, ...breadcrumbJsonLd, ...
     <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content={SITE.themeColor} />
     <meta name="color-scheme" content="dark" />
+    {/* GA4 的 config 指令。載入器不在這裡——Cloudflare 的 Google 代碼閘道會在邊緣把
+        <script async src="/ql0n/">（gtag.js 的第一方代理）注入到 <head> 最前面，但它注入的
+        bootstrap 只有 gtag('js') 與 gtag('set','developer_id')，沒有 config，所以容器會初始化
+        卻一筆事件都不送。2026-08-10 之前 GA4 就是這樣整整收不到資料（見 docs/specs/seo-perfection.md R5）。
+        這裡補的就是 Google 官方安裝碼裡缺掉的那一行。
+
+        刻意不用 is:inline：讓 Astro 把它打包成外部 module（assetsInlineLimit: 0），
+        維持「全站零 inline script」的紀律，也不會在收緊版的 Report-Only CSP 上多一則違規。
+        gtag 因此是 module 作用域而非全域，但我們只需要往 dataLayer 推指令，夠用；
+        真要全域 gtag 的話，閘道注入的 bootstrap 已經定義了一個。
+
+        SPA 式換頁（ClientRouter）不會重跑這支 script，換頁的 page_view 由 GA4 加強型評估的
+        「根據瀏覽器記錄事件變更」接手。
+
+        push 的必須是 arguments 物件本身，不能改寫成 push(['config', ...])。實測過：推陣列
+        gtag.js 完全不理，一筆 collect 都不會出去，而且沒有任何錯誤訊息。 */}
+    <script>
+      const w = window as unknown as { dataLayer?: IArguments[] };
+      const dataLayer = (w.dataLayer = w.dataLayer ?? []);
+      function gtag(..._args: unknown[]) {
+        dataLayer.push(arguments);
+      }
+      gtag('js', new Date());
+      gtag('config', 'G-J4PFZEBYW7');
+    </script>
     {
       /* 首屏字型 preload：避免 CSS → @font-face → woff2 的三層請求鏈拖慢 LCP。
          清單由 build-font-css.mjs 產生；檔名的內容雜湊也由該腳本加上（fontsource 原始檔名不含雜湊）。 */

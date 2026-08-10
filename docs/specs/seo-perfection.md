@@ -220,6 +220,18 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
     `script-src 'self'` 與 `connect-src 'self'` 都攔不到它，`window.google_tag_manager`
     確認 `G-J4PFZEBYW7` 正常運作。站主決定保留 GA4 的資料連續性，故本輪不動。
     這同時是「非目標：不引入任何第三方 JS」在正式站被邊緣注入破壞的第二個實例。
+
+    **2026-08-10 更正**：上一段「`G-J4PFZEBYW7` 正常運作」是錯的。當時只驗到
+    `window.google_tag_manager['G-J4PFZEBYW7']` 存在——那只代表容器初始化，不代表
+    有送出事件。GA4 後台回報 48 小時無資料後重驗，發現 Cloudflare 注入的片段只有
+    `gtag('js', …)` 與 `gtag('set', 'developer_id.dY2E1Nz', true)`，**沒有
+    `gtag('config', 'G-J4PFZEBYW7')`**，所以整站零筆 collect、不寫 `_ga` cookie。
+    在 console 手動補一次 config 就立刻打出 `/ql0n/ag/g/c` 並被 GA4 即時報表收到，
+    證明第一方傳輸路徑本身沒問題。過程中排除的兩個嫌疑：CSP 確實擋掉
+    `googletagmanager.com/gtag/js?…&gtg_health=1`，但把 localStorage 的
+    `_gcl_ls.gtg_load_status` 灌成 `status:2`（等同健康檢查通過而跳過該請求）重載後
+    行為不變，故非主因；GA4 資料串流網址填成 www 只是後台中繼資料，不影響收集。
+    教訓：驗第三方標記要看有沒有送出請求，不能只看全域物件存不存在。
   - **未處理：字型 96 KiB**。5 支 woff2 都在關鍵路徑但只 preload 2 支；
     `font-display: swap` 已全數就位所以不阻斷算繪，優先度最低。JetBrains Mono
     17 KiB 在首頁只服務日期與篇數那幾個字，是否換系統等寬字堆疊留待站主決定。
