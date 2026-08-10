@@ -34,8 +34,11 @@ const EXPECTED_CSP_DIRECTIVES = [
   // 不是「CSP 夠不夠嚴」。所以 _headers 一放寬，這裡就必須跟著放寬——否則報出來的
   // 不是 zone 層竄改，而是本檔自己的漂移（2026-08-07 的每日檢查就這樣紅了一次，
   // 訊息還寫著「可能是 zone 層規則注入」，實際注入者是我們自己的 hotfix）。
-  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google",
-  "connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google",
+  // GA4 帶進來的三個來源（www.googletagmanager.com / stats.g.doubleclick.net /
+  // analytics.google.com）都只服務次要請求——主要測量走閘道的第一方路徑，'self' 已涵蓋。
+  // 補的理由與刻意不補 ga-audiences 的取捨同樣寫在 public/_headers 的 CSP 註解區。
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://partner.googleadservices.com https://adservice.google.com https://www.googletagservices.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google https://www.googletagmanager.com",
+  "connect-src 'self' https://cloudflareinsights.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://fundingchoicesmessages.google.com https://ep1.adtrafficquality.google https://stats.g.doubleclick.net https://analytics.google.com",
   // frame-src 是 AdSense 例外帶進來的新指令（廣告與同意橫幅都跑在 iframe 裡）。
   // 沒有 'self'：本站自己不嵌任何同源 iframe。
   "frame-src https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://www.google.com https://fundingchoicesmessages.google.com https://ep2.adtrafficquality.google",

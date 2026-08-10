@@ -232,6 +232,14 @@ chain、redirect chain 則是「爬 localhost 但 canonical/sitemap 指向正式
     `_gcl_ls.gtg_load_status` 灌成 `status:2`（等同健康檢查通過而跳過該請求）重載後
     行為不變，故非主因；GA4 資料串流網址填成 www 只是後台中繼資料，不影響收集。
     教訓：驗第三方標記要看有沒有送出請求，不能只看全域物件存不存在。
+    修法是在 `BaseLayout.astro` 補一支外部 module（不用 `is:inline`，維持全站零 inline
+    script）發出 config；push 的必須是 `arguments` 物件，推陣列 gtag.js 完全不理且無錯誤
+    訊息。上線後驗證：乾淨隔離環境開文章頁，從無到有寫入 `_ga` 並打出一筆 collect。
+    核心測量通了之後才浮出四個被 CSP 擋下的次要請求，同日一併處理——`script-src` 補
+    `www.googletagmanager.com`（健康度回報）、`connect-src` 補 `stats.g.doubleclick.net`
+    與 `analytics.google.com`（Google 信號、人口統計與興趣報表）；`ga-audiences` 的再行銷
+    pixel 刻意不補，它換國別網域打，收乾淨要在 `img-src` 開 `https://*.google.*`，
+    本站跑 AdSense 不跑 Google Ads，代價遠大於收益。
   - **未處理：字型 96 KiB**。5 支 woff2 都在關鍵路徑但只 preload 2 支；
     `font-display: swap` 已全數就位所以不阻斷算繪，優先度最低。JetBrains Mono
     17 KiB 在首頁只服務日期與篇數那幾個字，是否換系統等寬字堆疊留待站主決定。
