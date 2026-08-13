@@ -56,6 +56,14 @@ function findTags(html, tagName) {
   return html.match(re) || [];
 }
 
+// 把要當成字面值嵌進 RegExp 的字串跳脫。用在頁面路徑上：標籤 slug 直接來自內容作者，
+// 只要有人寫出 `C++` 或 `n8n (自架)` 這種標籤，未跳脫的 `+`／`(` 就會讓 new RegExp
+// 丟 SyntaxError，整支 verify-seo 當場崩掉——而錯誤訊息完全看不出是哪個標籤造成的。
+// `.` 這類「不會崩但會比對過寬」的字元同樣要跳脫（現有的 `Node.js` 標籤就是）。
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 // HTML 註解裡的文字（例如原始碼註解說明「astro-seo 會輸出 <meta name="robots">」）
 // 會被上面的 regex 誤判成真的標籤，所以所有頁面內容一律先去除註解再掃描。
 function stripHtmlComments(html) {
@@ -789,6 +797,23 @@ check('頁面 markdown 變體有實質內容', (failures) => {
   }
 });
 
+// 頁面 md 由整份 #main-content 轉來，麵包屑住在裡面，不剝掉就會在每份產物的最前面留下
+// 一段「1. [首頁](…) /」的導覽清單——每份幾十個 token，而本功能的意義就是省 token。
+// 剝除靠的是 page-md.mjs 對 Breadcrumbs.astro class 名稱的比對，那個 class 一改名，
+// 麵包屑會靜默回到輸出裡（產物仍是一份合法 md，其他斷言全綠）。這條是那條耦合的守門人：
+// 所有頁面版面都是「麵包屑 → H1 → 內容」，剝乾淨的唯一形狀就是正文首行為 H1。
+check('頁面 markdown 變體的正文以 H1 起始（麵包屑已剝除）', (failures) => {
+  for (const [slug, text] of pageMdBySlug) {
+    const firstLine = matter(text).content.trim().split('\n')[0];
+    if (!/^# \S/.test(firstLine)) {
+      failures.push({
+        page: `/${slug}.md`,
+        reason: `正文首行應為 H1，實際為「${firstLine.slice(0, 40)}」`,
+      });
+    }
+  }
+});
+
 // R4 的 HTML 宣告管道。Astro.url.pathname 是否帶結尾斜線會影響 BaseLayout 的推導結果，
 // 推導失敗時宣告會靜默消失——頁面完全正常，只是少一條發現管道。
 check('每個 HTML 頁面都宣告自己的 markdown 變體', (failures) => {
@@ -799,7 +824,7 @@ check('每個 HTML 頁面都宣告自己的 markdown 變體', (failures) => {
     const expected =
       pathname === '/' ? '/index.md' : `${encodeURI(pathname.replace(/\/$/, ''))}.md`;
     const re = new RegExp(
-      `<link[^>]+type=["']text/markdown["'][^>]+href=["']${expected.replace(/\//g, '\\/')}["']`,
+      `<link[^>]+type=["']text/markdown["'][^>]+href=["']${escapeRegExp(expected)}["']`,
     );
     if (!re.test(html)) {
       failures.push({ page: pathname, reason: `缺少指向 ${expected} 的 text/markdown 宣告` });

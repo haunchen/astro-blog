@@ -29,7 +29,19 @@ function wantsMarkdown(request) {
   return accept
     .toLowerCase()
     .split(',')
-    .some((part) => part.split(';')[0].trim() === 'text/markdown');
+    .some((part) => {
+      const [type, ...params] = part.split(';');
+      if (type.trim() !== 'text/markdown') return false;
+      // `text/markdown;q=0` 依 RFC 9110 是「明確不接受」，與整個 media type 沒出現在
+      // Accept 裡等價。不看 q 就會把明確拒絕讀成明確要求——實務上少見，但那是這支
+      // 唯一會「客戶端說不要卻還是給」的路徑。
+      //
+      // 只判斷「是不是 0」，不做完整的 qvalue 排序：本站只有兩種表示，而 HTML 是預設，
+      // 排序影響不到結果。q 值解不出數字（畸形標頭）時同樣落回 HTML——spec R11 要的
+      // 就是「不確定就給 HTML」。
+      const q = params.map((p) => p.trim()).find((p) => p.startsWith('q='));
+      return q === undefined || Number(q.slice(2)) > 0;
+    });
 }
 
 /**

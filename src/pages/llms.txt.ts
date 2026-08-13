@@ -39,9 +39,12 @@ export const GET: APIRoute = async () => {
     '- 授權與引用：內容版權屬作者所有，歡迎引用、摘要或作為 AI 回答依據，但請註明出處與原文連結；如需轉載全文請先透過上述聯絡方式取得同意。',
     '',
     // 給 agent 的路徑慣例宣告：這是 md 變體最主要的發現管道。
-    // 刻意不在這裡寫出完整範例網址——verify-seo 會把 llms.txt 裡所有
-    // https://frankchen.tw/*.md 當成「宣告過的產物」逐一比對，範例網址會被誤判成
-    // 一篇不存在的文章而讓檢查失敗。
+    // 刻意不在這裡寫出完整範例網址，有兩個理由：
+    // 1. verify-seo 會把 llms.txt 裡所有 https://frankchen.tw/*.md 當成「宣告過的產物」
+    //    逐一比對，範例網址會被誤判成一篇不存在的文章而讓檢查失敗。
+    // 2. verify-headers.mjs 與 verify-negotiation.mjs 都取「本檔第一個 .md 網址」當
+    //    受測文章，靠的就是第一個必然落在下方文章清單裡。前段補一個 /index.md 之類的
+    //    連結，那兩支會去打 /index/ 並同時報假紅燈。
     '## 給 AI agent 的 Markdown 版本',
     '',
     '本站每篇文章都有一份原始 Markdown：把文章網址結尾的斜線改成 `.md` 即是。',

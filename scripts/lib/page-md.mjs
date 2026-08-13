@@ -101,6 +101,18 @@ function makeTurndown() {
   // 圖示 svg 的 <title>、View Transitions 的內聯樣式、Nav 的腳本若被轉成文字，
   // 會變成 agent 要付費閱讀的雜訊——而本功能的全部意義就是省 token。
   td.remove(['script', 'style', 'noscript', 'svg']);
+  // 麵包屑（Breadcrumbs.astro）住在 #main-content 裡，會跟著被抽出來，轉成每份 md
+  // 開頭固定幾行「1. [首頁](…) /」的有序清單。那份導覽對 agent 是純耗損：層級資訊
+  // frontmatter 的 canonical 已經帶了，而它每份要花掉幾十個 token。
+  //
+  // 用 DOM filter 而不是對輸出字串砍前幾行：後者要猜「幾行才是麵包屑」，麵包屑一改深度
+  // 就會多砍或少砍到正文。這裡與 Breadcrumbs.astro 的 class 名稱耦合，改名時麵包屑會
+  // 靜默回到輸出裡——verify-seo 的「頁面 md 正文以 H1 起始」是這條耦合的守門人。
+  td.remove(
+    (node) =>
+      node.nodeName === 'NAV' &&
+      (node.getAttribute('class') ?? '').split(/\s+/).includes('breadcrumbs'),
+  );
   // turndown 內建的 listItem 規則把前綴寫死成「marker + 三個空白」（原始碼：
   // `options.bulletListMarker + '   '`），完全不受 bulletListMarker 以外的選項調整，
   // 產出的清單會是 `-   項目` 而非慣用的 `- 項目`。覆寫成單一空白，其餘（巢狀縮排、
@@ -130,11 +142,19 @@ function makeTurndown() {
  * md 可能被 agent 搬離本站脈絡後閱讀，`/about/` 在那裡解不開。只處理以 `/` 開頭的目標，
  * 外部連結（https://…）與錨點（#…）原樣保留。
  *
+ * 目標與 title 分開捕捉：turndown 在 `<a>` 帶 title 時輸出 `[文字](/about/ "標題")`，
+ * 而目標的字元類必須排除空白（否則會一路吃到 title 的引號裡），兩者合寫就會讓帶 title 的
+ * 連結整條不匹配、靜默留下站內相對路徑。現行版面沒有 title 連結，所以這是「哪天有人補了
+ * title 屬性才會發作」的假設——測試把兩種形狀都釘住。
+ *
  * @param {string} md
  * @param {string} origin
  */
 function absolutizeLinks(md, origin) {
-  return md.replace(/\]\((\/[^)\s]*)\)/g, (_, target) => `](${origin}${target})`);
+  return md.replace(
+    /\]\((\/[^)\s]*)(\s+"[^"]*")?\)/g,
+    (_, target, title = '') => `](${origin}${target}${title})`,
+  );
 }
 
 /**

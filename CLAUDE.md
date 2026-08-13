@@ -116,8 +116,9 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 `scripts/lib/*` (one-off WordPress WXR importer, the part under test), `scripts/lib/md-export.mjs`
 (pure transforms behind `/[...slug].md`, also under test), `scripts/lib/page-md.mjs` + `md-path.mjs`
 (page-markdown-variant conversion + path mapping — `page-md.mjs` converts a built page's HTML into
-its markdown variant and only runs at build time; `md-path.mjs` is also imported by Pages Functions
-at request time, so it must stay zero-dependency), `build-manifest`, `verify-*`.
+its markdown variant and only runs at build time; `md-path.mjs` has three consumers — the build
+integration, `functions/_middleware.js` at request time, and `BaseLayout.astro` — so it must stay
+zero-dependency), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for

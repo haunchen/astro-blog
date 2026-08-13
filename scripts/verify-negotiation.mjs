@@ -44,6 +44,11 @@ function varyIncludesAccept(res) {
  * 為什麼不寫死某個 slug：文章可能改名或下架，寫死遲早 404，屆時看起來像協商壞了，
  * 其實是檢查本身過期。從 llms.txt 取則永遠指向線上站當下真的有宣告的那批文章
  * （做法比照 scripts/verify-headers.mjs 的 resolveMarkdownPath()）。
+ *
+ * 取「第一個」.md 網址是有前提的：llms.txt 的前段刻意不寫出完整的 .md 範例網址
+ * （見 src/pages/llms.txt.ts 該段註解），所以第一個必然落在文章清單裡。日後若在前段
+ * 補一個 /index.md 之類的連結，這裡會推出 /index/，本腳本與 verify-headers.mjs 會
+ * 同時報「協商壞了」，而站台其實好好的。改 llms.txt 前段時要一併看這兩支。
  */
 async function resolveArticlePath() {
   let text;
@@ -63,6 +68,39 @@ async function resolveArticlePath() {
     return { error: `llms.txt 宣告的 .md 網址無法解析：${match[0]}` };
   }
   return { mdPath, htmlPath: mdPath.replace(/\.md$/, '/') };
+}
+
+/**
+ * 從線上 sitemap 取一個路徑深度 ≥ 2 的頁面（例如 /category/n8n/）當受測對象。
+ *
+ * 為什麼要深層頁面：協商由 functions/_middleware.js 全站處理，而 public/_routes.json 的
+ * 排除規則是前綴比對——排錯一條就會讓某整批深層路徑跳過 Worker，只驗 / 與 /about/ 完全
+ * 看不出來。
+ *
+ * 為什麼不寫死 /category/n8n/：category enum 是會變的（改名或下架就 404），屆時看起來像
+ * 協商壞了，其實是檢查本身過期。做法與理由都比照 verify-headers.mjs 的 resolveNestedPagePath()。
+ */
+async function resolveNestedPagePath() {
+  let xml;
+  try {
+    const res = await fetch(`${ORIGIN}/sitemap.xml`, { redirect: 'follow' });
+    if (!res.ok) return { error: `sitemap.xml 請求回應 ${res.status}` };
+    xml = await res.text();
+  } catch (err) {
+    return { error: `sitemap.xml 請求失敗：${err.message}` };
+  }
+  for (const match of xml.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    let pathname;
+    try {
+      pathname = new URL(match[1].trim()).pathname;
+    } catch {
+      continue;
+    }
+    if (pathname.endsWith('/') && pathname.split('/').filter(Boolean).length >= 2) {
+      return { path: pathname };
+    }
+  }
+  return { error: 'sitemap.xml 沒有任何深度 ≥ 2 的頁面網址' };
 }
 
 /** 協商成功的完整契約，套用在每一種頁面形狀上。 */
@@ -93,10 +131,6 @@ function checkNegotiated(label, path) {
 const CHECKS = [
   { name: '首頁協商回 markdown', run: checkNegotiated('/', '/') },
   { name: '靜態頁協商回 markdown', run: checkNegotiated('/about/', '/about/') },
-  {
-    name: '深層頁面協商回 markdown（驗全站範圍）',
-    run: checkNegotiated('/category/n8n/', '/category/n8n/'),
-  },
   {
     name: '不帶 Accept 時仍回 HTML（HTML 是預設）',
     run: async () => {
@@ -166,7 +200,10 @@ const CHECKS = [
     },
   },
   {
-    // 有則帶（SKILL.md 的措辭是 if available），所以只在協商成功時要求它是正整數。
+    // spec MODIFIED R5 的措辭是「有能力計算時帶」，這裡刻意比 spec 嚴，要求一定要有：
+    // 本站的 functions/_middleware.js 對每個協商回應都無條件算 estimateTokens()，
+    // 「沒帶」在本站只可能是那段程式碼壞了或標頭被中間層吃掉，兩種都該紅燈。
+    // 這條嚴格性綁的是本站實作而非 spec——哪天中介層改成有條件計算，要先鬆這條。
     name: 'x-markdown-tokens 為正整數',
     run: async () => {
       const { res, error } = await get('/', MD_ACCEPT);
@@ -179,6 +216,18 @@ const CHECKS = [
 ];
 
 const checks = [...CHECKS];
+
+const nestedPage = await resolveNestedPagePath();
+if (nestedPage.path) {
+  checks.push({
+    name: `深層頁面協商回 markdown（${nestedPage.path}）`,
+    run: checkNegotiated(nestedPage.path, nestedPage.path),
+  });
+} else {
+  // 靜默跳過等於這條斷言不存在——解析失敗要明確算一項 FAIL，而不是少印一行。
+  checks.push({ name: '可從 sitemap 取得深層頁面路徑（供全站範圍檢查使用）', run: async () => nestedPage.error });
+}
+
 const article = await resolveArticlePath();
 if (article.htmlPath) {
   checks.push(

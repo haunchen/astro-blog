@@ -10,6 +10,11 @@ import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
 import { pagePathToMdPath } from './scripts/lib/md-path.mjs';
 import { buildPageMarkdown } from './scripts/lib/page-md.mjs';
 
+// 正規主機。defineConfig 的 site 與 pageMarkdownVariants 用的必須是同一個值——後者寫進
+// 每份頁面 md 的絕對連結，兩處各寫一份字面值就會在改站台網域時漏掉其中一邊，而漏掉的那邊
+// 不會讓建置失敗，只會讓產物裡的連結指向舊網域。
+const SITE_URL = 'https://frankchen.tw';
+
 // sitemap serialize callback 只拿得到 URL，先從文章 frontmatter 建 pathname → lastmod 對照。
 // astro.config 內無法使用 astro:content，直接以 gray-matter 讀 frontmatter；
 // id 規則與 content loader 一致（去 base、去 /index.md 或 .md 後綴）。
@@ -94,7 +99,7 @@ function pageMarkdownVariants(site) {
 }
 
 export default defineConfig({
-  site: 'https://frankchen.tw',
+  site: SITE_URL,
   integrations: [
     sitemap({
       // 個別標籤彙整頁不進 sitemap：內容與文章頁重複、單頁文章數少，
@@ -110,7 +115,7 @@ export default defineConfig({
       },
     }),
     sitemapAsSingleFile(),
-    pageMarkdownVariants('https://frankchen.tw'),
+    pageMarkdownVariants(SITE_URL),
   ],
   vite: {
     plugins: [tailwindcss()],
