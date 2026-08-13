@@ -79,6 +79,9 @@ let indexData = answersOfType(indexHttps.json, RR_TYPES.HTTPS);
 let indexStatus = indexHttps.json.Status;
 let usedType = 'HTTPS';
 let dnssecValidated = indexHttps.json.AD === true;
+// 診斷欄位一律跟著「真正供出這批記錄的那次查詢」走。退查成功時 Status／AD 都會改寫，
+// 解析器名稱若仍留在 HTTPS 那次，出事時會把人指向沒有供出資料的那家 resolver。
+let usedResolver = indexHttps.resolver;
 
 if (indexData.length === 0) {
   const indexSvcb = await doh(indexName, 'SVCB');
@@ -88,9 +91,10 @@ if (indexData.length === 0) {
     indexStatus = indexSvcb.json.Status;
     usedType = 'SVCB';
     dnssecValidated = indexSvcb.json.AD === true;
+    usedResolver = indexSvcb.resolver;
   }
 }
-console.log(`${indexName} → ${usedType} 記錄 ${indexData.length} 筆（解析器：${indexHttps.resolver}）`);
+console.log(`${indexName} → ${usedType} 記錄 ${indexData.length} 筆（解析器：${usedResolver}）`);
 
 // 2. _a2a / _mcp：這兩個名稱必須不存在（spec R9 的負向需求）。
 //
@@ -146,18 +150,31 @@ const serviceRecord = indexData
       record.mode === 'service' && normalizeTargetName(record.target, ownerName) === expectedTarget,
   );
 
+//    探測要打記錄自己宣告的 `port`，不是固定 443。兩者目前相同，但埠一旦改掉而探測仍打
+//    443，驗到的是另一個服務——這項會 [PASS]，同時蓋掉「DNS 宣告的入口沒在服務」這件事。
+//    埠號畸形時寧可讓這項失敗，也不悄悄回落 443：回落等於再次驗錯對象。
 let entrypoint = null;
 if (serviceRecord) {
   const targetHost = normalizeTargetName(serviceRecord.target, ownerName).replace(/\.$/, '');
-  try {
-    const res = await fetch(`https://${targetHost}/`, { method: 'HEAD', redirect: 'follow' });
-    entrypoint = {
-      ok: res.ok,
-      status: res.status,
-      hasLinkHeader: Boolean(res.headers.get('link')),
-    };
-  } catch (err) {
-    entrypoint = { ok: false, error: err.message };
+  const declaredPort = serviceRecord.params.get('port');
+  const port = declaredPort === undefined || declaredPort === '' ? '443' : declaredPort;
+
+  if (!/^\d+$/.test(port) || Number(port) < 1 || Number(port) > 65535) {
+    entrypoint = { ok: false, error: `記錄宣告的 port 不是合法埠號（${declaredPort}），無從探測` };
+  } else {
+    // https 的預設埠就是 443，帶上去只會讓輸出變吵，省略。
+    const authority = port === '443' ? targetHost : `${targetHost}:${port}`;
+    console.log(`入口探測：https://${authority}/`);
+    try {
+      const res = await fetch(`https://${authority}/`, { method: 'HEAD', redirect: 'follow' });
+      entrypoint = {
+        ok: res.ok,
+        status: res.status,
+        hasLinkHeader: Boolean(res.headers.get('link')),
+      };
+    } catch (err) {
+      entrypoint = { ok: false, error: `https://${authority}/ ${err.message}` };
+    }
   }
 }
 
