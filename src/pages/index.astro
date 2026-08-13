@@ -3,14 +3,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import TagBadge from '../components/TagBadge.astro';
 import CategoryGrid from '../components/CategoryGrid.astro';
-import { getCollection } from 'astro:content';
 import { getImage } from 'astro:assets';
 // 首頁的標題、描述、關於我文案與專案清單都在 HOME（site-meta.ts）——/index.md 讀同一份。
 import { SITE, HOME } from '../utils/site-meta';
 import { CARD_IMAGE_WIDTHS, FEATURED_IMAGE_SIZES, toPreloadImage } from '../utils/images';
+import { getPublishedPostsByDateDesc } from '../utils/posts';
 
-const posts = await getCollection('posts', ({ data }) => !data.draft);
-const latestPosts = posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const latestPosts = await getPublishedPostsByDateDesc();
 
 const featured = latestPosts[0];
 // 首屏 featured 卡的封面就是 LCP 元素。用 getImage() 取得與 ArticleCard 內

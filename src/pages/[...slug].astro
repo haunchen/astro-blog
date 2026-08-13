@@ -1,5 +1,5 @@
 ---
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { Image, getImage } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
@@ -10,9 +10,10 @@ import AdEnd from '../components/AdEnd.astro';
 import AdLoader from '../components/AdLoader.astro';
 import { SITE, CATEGORY_LABEL, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
+import { getPublishedPosts, getPublishedPostsByDateDesc } from '../utils/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({
     params: { slug: post.id },
     props: { post },
@@ -31,8 +32,7 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 400));
 const formattedDate = post.data.date.toISOString().slice(0, 10);
 
 // Prev / Next navigation
-const allPosts = (await getCollection('posts', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const allPosts = await getPublishedPostsByDateDesc();
 
 const currentIndex = allPosts.findIndex((p) => p.id === post.id);
 const prevPost = currentIndex < allPosts.length - 1 ? allPosts[currentIndex + 1] : null;

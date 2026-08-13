@@ -144,20 +144,29 @@ const pages = htmlFiles.map((relFile) => ({
 }));
 
 // ---------------------------------------------------------------------------
-// 判定「文章頁」：與 astro.config.mjs 的 POST_LASTMOD 用同一套 id 推導規則，
-// 確保這裡認定的文章集合跟 sitemap lastmod 邏輯一致，不會各自走鐘。
+// 文章來源：id 推導與草稿狀態
+//
+// id 推導規則與 astro.config.mjs 的 POST_LASTMOD 同一套，確保這裡認定的文章集合跟
+// sitemap lastmod 邏輯一致，不會各自走鐘。全檔只推導這一次——底下的 articlePathnames
+// 與 articleSlugs 都由這份結果衍生，slug 規則要改（例如支援巢狀目錄）只改這裡。
+//
+// 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
 // ---------------------------------------------------------------------------
 
-const articlePathnames = new Set(
-  globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
-    const id = file
-      .replace(/\\/g, '/')
-      .replace(/^src\/content\/posts\//, '')
-      .replace(/\/index\.md$/, '')
-      .replace(/\.md$/, '');
-    return `/${id}/`;
-  }),
-);
+const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
+  const id = file
+    .replace(/\\/g, '/')
+    .replace(/^src\/content\/posts\//, '')
+    .replace(/\/index\.md$/, '')
+    .replace(/\.md$/, '');
+  const { data } = matter(readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
+  return { id, draft: data.draft === true };
+});
+
+// 刻意不濾掉草稿：這個集合的用途是「把 dist 的頁面分類成文章／非文章」，而草稿本來就
+// 不會出現在 dist，濾不濾的實際結果相同。不濾的話，萬一哪天草稿真的外流到 dist，
+// 它會被當文章驗（少了廣告版位就報 FAIL），比被當成非文章頁報「不應出現廣告」易讀。
+const articlePathnames = new Set(sourcePosts.map(({ id }) => `/${id}/`));
 
 // ---------------------------------------------------------------------------
 // Markdown 變體（agent-markdown spec）：產物與來源的草稿狀態
@@ -183,17 +192,6 @@ const allMdInDist = new Map(
       readFileSync(path.join(DIST, relFile), 'utf8'),
     ]),
 );
-
-// 草稿判定要讀來源 frontmatter：dist 裡看不出「這篇是刻意不產 md，還是漏產了」。
-const sourcePosts = globSync('src/content/posts/**/*.md', { cwd: PROJECT_ROOT }).map((file) => {
-  const id = file
-    .replace(/\\/g, '/')
-    .replace(/^src\/content\/posts\//, '')
-    .replace(/\/index\.md$/, '')
-    .replace(/\.md$/, '');
-  const { data } = matter(readFileSync(path.join(PROJECT_ROOT, file), 'utf8'));
-  return { id, draft: data.draft === true };
-});
 
 const articleSlugs = new Set(sourcePosts.filter((p) => !p.draft).map((p) => p.id));
 
@@ -606,6 +604,40 @@ check('.md 變體引用的建置資產都真的存在', (failures) => {
       if (!existsSync(path.join(DIST, match[1]))) {
         failures.push({ page: `/${slug}.md`, reason: `引用的資產不存在：${match[1]}` });
       }
+    }
+  }
+});
+
+// 上面那條只掃正文，frontmatter 的 image 完全在它的視野外——而那是 md 唯一對外宣告的
+// 縮圖（文章是 /og/<slug>.png，頁面與首頁取自該頁的 og:image），與正文的圖各自獨立產生。
+// 沒有這條時「md 產出了、對應的圖沒產出」是全綠的：欄位齊全檢查只看欄位在不在，
+// 不看指到的東西存不存在。文章的耦合（有 md 就必有 OG 圖，兩個端點用同一份已發佈文章
+// 清單與 post.id）目前成立，但成立與驗過是兩回事。
+check('.md 變體 frontmatter 的 image 指向存在的檔案', (failures) => {
+  const homeMd = allMdInDist.get(HOME_MD_SLUG);
+  const entries = [
+    ...mdBySlug,
+    ...pageMdBySlug,
+    ...(homeMd === undefined ? [] : [[HOME_MD_SLUG, homeMd]]),
+  ];
+  for (const [slug, text] of entries) {
+    let image;
+    try {
+      image = matter(text).data.image;
+    } catch {
+      continue; // 解析失敗由各自的 frontmatter 檢查負責回報
+    }
+    if (typeof image !== 'string' || image === '') continue; // 缺欄位同上
+    if (!image.startsWith(`${SITE_ORIGIN}/`)) {
+      failures.push({
+        page: `/${slug}.md`,
+        reason: `image 應為 ${SITE_ORIGIN} 的絕對網址，實際為 ${image}`,
+      });
+      continue;
+    }
+    const rel = decodeURIComponent(new URL(image).pathname).replace(/^\//, '');
+    if (!existsSync(path.join(DIST, rel))) {
+      failures.push({ page: `/${slug}.md`, reason: `image 指向不存在的檔案：/${rel}` });
     }
   }
 });

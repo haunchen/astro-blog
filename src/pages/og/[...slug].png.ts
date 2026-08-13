@@ -1,15 +1,15 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
 import satori from 'satori';
 import sharp from 'sharp';
 import fs from 'node:fs/promises';
 import { CATEGORY_LABEL, SITE } from '../../utils/site-meta';
+import { getPublishedPosts } from '../../utils/posts';
 
 const notoSansTC = await fs.readFile('src/assets/og-fonts/noto-sans-tc-subset.woff');
 const inter = await fs.readFile('src/assets/og-fonts/inter-bold.woff');
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 };
 

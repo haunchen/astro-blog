@@ -1,9 +1,10 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
 import type { CollectionEntry } from 'astro:content';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { loadRenderers } from 'astro:container';
 import { SITE } from '../utils/site-meta';
+import { getPublishedPosts } from '../utils/posts';
 import {
   buildImageUrlMap,
   rewriteImagePaths,
@@ -17,7 +18,7 @@ import {
  * 這正是「原生 md」相對於通用 HTML→MD 轉換器的品質優勢。
  */
 export const getStaticPaths: GetStaticPaths = async () => {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 };
 

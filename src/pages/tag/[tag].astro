@@ -2,16 +2,17 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { type CollectionEntry } from 'astro:content';
 import {
   categoryLabel,
   collectionPageJsonLd,
   listPageDescription,
   pageTitle,
 } from '../../utils/site-meta';
+import { getPublishedPosts } from '../../utils/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   const tagSet = new Set<string>();
   for (const p of posts) for (const t of p.data.tags) tagSet.add(t);
   return [...tagSet].map((tag) => ({
