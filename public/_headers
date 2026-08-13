@@ -8,8 +8,12 @@
   # 就把「造訪過哪些外部網站」的線索透過 DNS 查詢洩漏出去。
   X-DNS-Prefetch-Control: off
   # 讓本站頁面在開新分頁 window.open 別人網站時，不會把 window 物件留給對方
-  # （防 tabnabbing），同時保留跨來源 popup 的正常運作（同源 Isolation 需求較嚴格的
-  # same-origin-allow-popups 沒有必要，本站無跨源需求）。
+  # （防 tabnabbing）：跨來源的新分頁拿不到 window.opener，也就無法反過來改寫本頁的
+  # 位置。same-origin 是這個標頭最嚴的一級；放寬版的 same-origin-allow-popups 才是
+  # 「自己開的 popup 保住 opener 關係」那個，用在 OAuth 那類要靠 popup 回傳結果的
+  # 流程——本站沒有這種流程，所以直接取嚴格的那級。
+  # 註：這段原本把兩者的鬆緊寫反，還說 same-origin「保留跨來源 popup 的正常運作」，
+  # 兩處都是反的（issue #49）。結論（選 same-origin）從頭到尾沒問題，錯的只有理由。
   Cross-Origin-Opener-Policy: same-origin
   # CSP：全站為 Astro 靜態輸出，逐一核對 dist/ 實際產物後才定案，避免寫得比實際更嚴而壞站：
   #   - script-src 'self'：astro.config.mjs 已設 vite.build.assetsInlineLimit: 0，
@@ -27,8 +31,8 @@
   #   - img-src 加 data:：paper texture 雜訊疊層用 CSS data:image/svg+xml 產生，非第三方。
   #   - AdSense 例外（docs/specs/monetization.md R10、D5）：這是本檔目前最大的一處
   #     讓步，要知道換到了什麼、付出了什麼。
-  #     付出的是 script-src 的 'unsafe-inline'——上面 script-src 那則說的「全站掃描 0 個
-  #     內聯 script」只是本站程式碼本身的狀態，不代表這條標頭仍鎖到最嚴：它已經因為這裡
+  #     付出的是 script-src 的 'unsafe-inline'——上面 script-src 那則說的「全站掃描結果為
+  #     0 個內聯 script」只是本站程式碼本身的狀態，不代表這條標頭仍鎖到最嚴：它已經因為這裡
   #     的讓步被打開，XSS 防護最關鍵的一面不再受 script-src 把關。兩條想保住它的路都
   #     走不通：nonce 要 per-request 產生，本站 HTML 是靜態資產，得在 middleware 用
   #     HTMLRewriter 逐請求改寫才行，等於毀掉邊緣快取，而且 AdSense 動態注入的 script
