@@ -13,6 +13,19 @@ export const AD_SLOTS = {
   articleEnd: '4958822751',
 } as const;
 
+// 兩側固定版位的側別定義：AdSide.astro 用它渲染版位，AdLoader.astro 的 client script
+// 用它逐側查 DOM、組收合狀態的 sessionStorage key、改寫按鈕的可及名稱。
+//
+// 放在這裡是因為兩邊都要用到同一份「有哪幾側、每側叫什麼」：各寫一份時，改文案或
+// 增減側別會有一邊漏掉，而漏掉的那邊不會壞，只會靜默地對不上（例如按鈕的可及名稱
+// 還講著另一側）。label 是 aside 的 aria-label，也是收合鈕可及名稱的字根。
+export const SIDE_ADS = [
+  { key: 'left', slot: AD_SLOTS.sideLeft, label: '左側廣告' },
+  { key: 'right', slot: AD_SLOTS.sideRight, label: '右側廣告' },
+] as const;
+
+export type SideKey = (typeof SIDE_ADS)[number]['key'];
+
 // 兩側固定版位的顯示門檻（px）。
 //
 // 算式：文章頁容器是 --width-max 1200px，兩側各需 160px 廣告 + 20px 間距，

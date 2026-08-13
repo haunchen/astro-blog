@@ -9,12 +9,22 @@
 ---
 
 <script>
-  import { ADSENSE_CLIENT, SIDE_AD_MIN_WIDTH } from '../utils/ads';
+  import { ADSENSE_CLIENT, SIDE_AD_MIN_WIDTH, SIDE_ADS } from '../utils/ads';
+  import type { SideKey } from '../utils/ads';
 
   const SCRIPT_SRC = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`;
-  const COLLAPSE_KEY = 'ads-side-collapsed';
-  const SIDE_KEYS = ['left', 'right'] as const;
-  type SideKey = (typeof SIDE_KEYS)[number];
+
+  /**
+   * 收合狀態逐側各存一把 key。
+   *
+   * 原本兩側共用一把 'ads-side-collapsed'，兩顆按鈕寫同一份狀態，收一邊兩邊都收
+   * （issue #49）。行為是自洽的，但 UI 給了兩個控制項卻只有一份狀態，等於按鈕
+   * 在說謊。舊的那把鍵直接棄用不做搬遷：狀態存在 sessionStorage，最久只影響
+   * 當前分頁這一輪瀏覽，搬遷程式碼會比它救到的東西活得更久。
+   */
+  function collapseKey(side: SideKey): string {
+    return `ads-side-collapsed-${side}`;
+  }
 
   // window 上的兩個欄位都不在標準型別裡：adsbygoogle 是 Google 的腳本自己建的佇列，
   // __adsenseLoaded 是我們自己的旗標。用一次性斷言取代 declare global，避免把型別
@@ -43,9 +53,9 @@
     return sideMql.matches;
   }
 
-  function isCollapsed(): boolean {
+  function isCollapsed(side: SideKey): boolean {
     try {
-      return sessionStorage.getItem(COLLAPSE_KEY) === '1';
+      return sessionStorage.getItem(collapseKey(side)) === '1';
     } catch {
       // 部分隱私模式下光是讀 sessionStorage 就會丟 SecurityError。
       // 讀不到就當作沒收合過，不值得為此讓整段初始化中斷。
@@ -53,14 +63,16 @@
     }
   }
 
-  function applyCollapsed(collapsed: boolean): void {
-    for (const side of document.querySelectorAll<HTMLElement>('.ad-side')) {
-      side.classList.toggle('ad-side--collapsed', collapsed);
-      const toggle = side.querySelector<HTMLButtonElement>('.ad-side-toggle');
-      if (!toggle) continue;
-      toggle.setAttribute('aria-expanded', String(!collapsed));
-      toggle.setAttribute('aria-label', collapsed ? '展開廣告' : '收合廣告');
-    }
+  /** 只動指定那一側：兩側的收合狀態彼此獨立，套用時也不能互相波及。 */
+  function applyCollapsed(side: SideKey, collapsed: boolean): void {
+    const el = document.querySelector<HTMLElement>(`.ad-side--${side}`);
+    if (!el) return;
+    el.classList.toggle('ad-side--collapsed', collapsed);
+    const toggle = el.querySelector<HTMLButtonElement>('.ad-side-toggle');
+    if (!toggle) return;
+    const label = SIDE_ADS.find((s) => s.key === side)?.label ?? '廣告';
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.setAttribute('aria-label', `${collapsed ? '展開' : '收合'}${label}`);
   }
 
   function loadScript(): void {
@@ -116,9 +128,10 @@
    * <ins> 數量，一樣會對錯位置。
    */
   function fillSlots(): void {
-    const showSides = sideAdsVisible() && !isCollapsed();
-    for (const key of SIDE_KEYS) {
-      syncSideSlot(key, showSides);
+    const sidesVisible = sideAdsVisible();
+    for (const { key } of SIDE_ADS) {
+      // 斷點是兩側共同的條件，收合狀態逐側各自判：只收左邊時，右邊照樣要送請求。
+      syncSideSlot(key, sidesVisible && !isCollapsed(key));
     }
 
     const slots = document.querySelectorAll<HTMLElement>(
@@ -143,22 +156,26 @@
 
     // 每次換頁（含 View Transitions）都是全新的 DOM，先清掉上一頁可能殘留的
     // 已移出節點參照——那些節點已經不屬於這份文件，留著只是白佔記憶體。
-    detachedIns.left = null;
-    detachedIns.right = null;
-
-    applyCollapsed(isCollapsed());
+    for (const { key } of SIDE_ADS) {
+      detachedIns[key] = null;
+      applyCollapsed(key, isCollapsed(key));
+    }
 
     for (const toggle of document.querySelectorAll<HTMLButtonElement>('.ad-side-toggle')) {
       // View Transitions 每次換頁都會重跑這支初始化，而換頁後的 DOM 是全新的節點。
       // 這個標記防的是同一個節點被重複綁定（例如哪天 ClientRouter 被拿掉、
       // 初始化改回直接呼叫）——重複綁定會讓一次點擊觸發兩次，收合完立刻又展開。
       if (toggle.dataset.bound) continue;
+      // data-side 由 AdSide.astro 渲染。取不到就不綁：與其讓按鈕點了改到另一側
+      // 的狀態，不如讓它沒有反應——前者會讓兩側再度耦合，正是這次要解掉的事。
+      const side = toggle.dataset.side as SideKey | undefined;
+      if (!side) continue;
       toggle.dataset.bound = '1';
       toggle.addEventListener('click', () => {
         const collapsed = toggle.getAttribute('aria-expanded') === 'true';
-        applyCollapsed(collapsed);
+        applyCollapsed(side, collapsed);
         try {
-          sessionStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0');
+          sessionStorage.setItem(collapseKey(side), collapsed ? '1' : '0');
         } catch {
           // 寫不進去就只在這一頁生效，不值得為此擋掉收合這個動作本身。
         }

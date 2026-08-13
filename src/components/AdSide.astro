@@ -1,14 +1,9 @@
 ---
-import { ADSENSE_CLIENT, AD_SLOTS } from '../utils/ads';
-
-const SIDES = [
-  { key: 'left', slot: AD_SLOTS.sideLeft, label: '左側廣告' },
-  { key: 'right', slot: AD_SLOTS.sideRight, label: '右側廣告' },
-] as const;
+import { ADSENSE_CLIENT, SIDE_ADS } from '../utils/ads';
 ---
 
 {
-  SIDES.map(({ key, slot, label }) => (
+  SIDE_ADS.map(({ key, slot, label }) => (
     <aside class={`ad-side ad-side--${key}`} aria-label={label}>
       <div class="ad-side-body" id={`ad-side-body-${key}`}>
         <ins
@@ -18,16 +13,24 @@ const SIDES = [
           data-ad-slot={slot}
         />
       </div>
-      {/* aria-expanded 由 AdLoader 的 client script 依收合狀態改寫。這裡給的是
-          展開狀態的初始值——沒有可及名稱的按鈕會直接扣破 Accessibility 門檻
-          （95），seo-perfection spec 記載過同一個坑：40 頁的 caret 按鈕可及
-          名稱不符，當時是 error 等級。 */}
+      {/* aria-expanded 與 aria-label 由 AdLoader 的 client script 依收合狀態改寫。
+          這裡給的是展開狀態的初始值——沒有可及名稱的按鈕會直接扣破 Accessibility
+          門檻（95），seo-perfection spec 記載過同一個坑：40 頁的 caret 按鈕可及
+          名稱不符，當時是 error 等級。
+
+          可及名稱帶側別（「收合左側廣告」而非「收合廣告」）：兩顆按鈕各自只管自己
+          那一側，名稱一樣會讓螢幕閱讀器使用者分不出點哪顆會收哪邊。
+
+          data-side 是給 client script 認側別用的。不從 aria-controls 反推：那是
+          給輔助技術的關聯宣告，拿來當程式的資料來源會讓「改無障礙屬性」變成
+          「改邏輯」。 */}
       <button
         type="button"
         class="ad-side-toggle"
+        data-side={key}
         aria-controls={`ad-side-body-${key}`}
         aria-expanded="true"
-        aria-label="收合廣告"
+        aria-label={`收合${label}`}
       />
     </aside>
   ))
