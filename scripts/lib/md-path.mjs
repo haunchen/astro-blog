@@ -1,9 +1,13 @@
 /**
  * 頁面網址與其 markdown 變體之間的路徑映射。
  *
- * 這支刻意零依賴、純字串運算：Pages Functions 的中介層（functions/_middleware.js）與建置後
- * 處理（scripts/lib/page-md.mjs）都要用同一套規則，而前者會被 bundle 進 Cloudflare Worker，
- * 牽連 turndown 或 node:fs 那類 Node 專用相依會讓 bundle 直接失敗。
+ * 三方共用同一套規則：Pages Functions 的中介層（functions/_middleware.js）、建置後處理
+ * （astro.config.mjs 的 pageMarkdownVariants 整合）、以及版面的 md 宣告（src/layouts/
+ * BaseLayout.astro 的 <link rel="alternate" type="text/markdown">）。
+ *
+ * 這支因此刻意零依賴、純字串運算：中介層那份會被 bundle 進 Cloudflare Worker，牽連
+ * turndown 或 node:fs 那類 Node 專用相依會讓 bundle 直接失敗；BaseLayout 那份則會進
+ * Astro 的伺服端渲染管線。約束來自消費者，少列一個就會低估它。
  *
  * 兩邊各寫一份映射是這個功能最容易靜默走鐘的地方：中介層算出 `/tag/x.md` 而建置產出的是
  * `/tag/x/index.md`，協商會安靜地退回 HTML，所有正向斷言照樣通過。

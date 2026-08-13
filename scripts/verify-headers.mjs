@@ -319,6 +319,11 @@ async function resolveFontPath() {
  * 為什麼不寫死某篇文章的 slug：文章可能改名或下架，寫死的路徑總有一天會 404，
  * 屆時看起來像標頭壞了，其實是檢查本身過期。從 llms.txt 取則永遠指向線上站
  * 當下真的有宣告的那批 md——順帶也驗證了「宣告管道確實存在」。
+ *
+ * 取「第一個」.md 網址是有前提的：llms.txt 的前段刻意不寫出完整的 .md 範例網址
+ * （見 src/pages/llms.txt.ts 該段註解），所以第一個必然落在文章清單裡。日後若在前段
+ * 補一個 /index.md 之類的連結，本腳本與 scripts/verify-negotiation.mjs 會同時去打
+ * /index/ 並報假紅燈。改 llms.txt 前段時要一併看這兩支。
  */
 async function resolveMarkdownPath() {
   let text;

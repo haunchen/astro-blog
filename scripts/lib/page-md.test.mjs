@@ -55,11 +55,44 @@ test('buildPageMarkdown：標題階層與清單轉成 markdown', () => {
   assert.match(md, /^- 項目一$/m);
 });
 
+// turndown 內建的 listItem 規則把前綴寫死成「marker + 三個空白」（有序清單是「數字 + . + 兩個
+// 空白」），page-md.mjs 覆寫成單一空白。這條把改寫後的兩種前綴都釘住：改回內建規則、或覆寫
+// 時只顧到無序清單，產物排版都會變而沒有任何斷言會紅。
+test('buildPageMarkdown：清單前綴為單一空白，有序清單接續編號', () => {
+  const body = '<ul><li>無序</li></ul><ol><li>第一</li><li>第二</li></ol><ol start="3"><li>第三</li></ol>';
+  const md = buildPageMarkdown(page({ body }), ORIGIN);
+  assert.match(md, /^- 無序$/m);
+  assert.match(md, /^1\. 第一$/m);
+  assert.match(md, /^2\. 第二$/m);
+  assert.match(md, /^3\. 第三$/m);
+});
+
+// 麵包屑住在 #main-content 裡，不剝掉的話每份頁面 md 開頭都會多一段導覽有序清單——
+// 而本功能的意義就是省 token。與 Breadcrumbs.astro 的 class 名稱耦合，這條是守門人。
+test('buildPageMarkdown：麵包屑導覽不進輸出', () => {
+  const body =
+    '<nav class="breadcrumbs" aria-label="麵包屑"><ol>' +
+    '<li><a href="/">首頁</a><span aria-hidden="true">/</span></li>' +
+    '<li aria-current="page">關於我</li></ol></nav><h1>Frank Chen</h1><p>內文</p>';
+  const md = buildPageMarkdown(page({ body }), ORIGIN);
+  assert.ok(!md.includes('1. [首頁]'));
+  // 正文須直接由 H1 起始：verify-seo 對產物有同一條斷言。
+  assert.match(md, /^---\n[\s\S]*?\n---\n\n# Frank Chen$/m);
+});
+
 // md 可能被 agent 搬離本站脈絡後閱讀，站內相對連結在那裡解不開。
 test('buildPageMarkdown：站內連結絕對化', () => {
   const body = '<p><a href="/category/n8n/">n8n 分類</a></p>';
   const md = buildPageMarkdown(page({ body }), ORIGIN);
   assert.match(md, /\[n8n 分類\]\(https:\/\/frankchen\.tw\/category\/n8n\/\)/);
+});
+
+// 目標的字元類必須排除空白，所以帶 title 的連結（turndown 對 <a title> 的輸出形狀）
+// 若沒有單獨處理就會整條不匹配，靜默留下站內相對路徑。現行版面無此用法，這條釘的是假設。
+test('buildPageMarkdown：帶 title 的站內連結一樣絕對化且保留 title', () => {
+  const body = '<p><a href="/about/" title="作者簡介">關於我</a></p>';
+  const md = buildPageMarkdown(page({ body }), ORIGIN);
+  assert.match(md, /\[關於我\]\(https:\/\/frankchen\.tw\/about\/ "作者簡介"\)/);
 });
 
 test('buildPageMarkdown：外部連結不被加上本站前綴', () => {
