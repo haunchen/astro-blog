@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { SITE, HOME, CATEGORIES } from '../utils/site-meta';
+import { getPublishedPostsByDateDesc } from '../utils/posts';
 import { toYamlFrontmatter } from '../../scripts/lib/md-export.mjs';
 
 /**
@@ -21,9 +21,7 @@ function formatDate(d: Date): string {
 }
 
 export const GET: APIRoute = async () => {
-  const posts = (await getCollection('posts', ({ data }) => !data.draft)).sort(
-    (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
-  );
+  const posts = await getPublishedPostsByDateDesc();
 
   const countByCategory = new Map<string, number>();
   for (const post of posts) {

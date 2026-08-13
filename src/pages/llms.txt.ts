@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { getCollection } from 'astro:content';
 import { SITE, CATEGORIES } from '../utils/site-meta';
+import { getPublishedPostsByDateDesc } from '../utils/posts';
 
 // llms.txt 慣例只吃日期，不需要時分秒；用 UTC 日期即可，文章發佈日精度本來就只到天。
 function formatDate(d: Date): string {
@@ -8,8 +8,7 @@ function formatDate(d: Date): string {
 }
 
 export const GET: APIRoute = async () => {
-  const posts = (await getCollection('posts', ({ data }) => !data.draft))
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+  const posts = await getPublishedPostsByDateDesc();
 
   // 依 CATEGORIES（site-meta.ts 單一來源）分組，讓 LLM 能照主題找到相關文章群，
   // 而不是丟一份無結構的長清單；用 CATEGORIES 的順序輸出，與站內導覽分類順序一致。

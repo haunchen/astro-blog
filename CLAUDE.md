@@ -18,7 +18,7 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 106 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 111 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping)
 ```
@@ -56,6 +56,12 @@ Astro v5 blog with Tailwind CSS v4, TypeScript strict mode, deployed to Cloudfla
 Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 `title` ≤ 60 chars, `description` ≤ 160 chars, `category` enum (n8n, flutter, devops, raspberry-pi, tools),
 `cover` is a required `image()`. Optional: `updated`, `tags`, `draft`.
+
+Never call `getCollection('posts', …)` directly — go through `getPublishedPosts()` /
+`getPublishedPostsByDateDesc()` in `src/utils/posts.ts`. The `!data.draft` predicate used to be
+copy-pasted at 15 call sites (pages, listings, RSS, llms.txt, OG images, md variants) with nothing
+to catch a new endpoint that forgot it; only the md endpoints have a draft-leak assertion in
+`verify-seo`. One rule, one place.
 
 **Routing:**
 - `/` — Homepage (hero, latest articles, categories, about)

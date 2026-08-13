@@ -1,15 +1,14 @@
 import type { APIContext } from 'astro';
 import rss from '@astrojs/rss';
-import { getCollection, render } from 'astro:content';
+import { render } from 'astro:content';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { loadRenderers } from 'astro:container';
 import sanitizeHtml from 'sanitize-html';
 import { SITE } from '../utils/site-meta';
+import { getPublishedPostsByDateDesc } from '../utils/posts';
 
 export async function GET(context: APIContext) {
-  const posts = (await getCollection('posts', ({ data }) => !data.draft))
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-    .slice(0, 20);
+  const posts = (await getPublishedPostsByDateDesc()).slice(0, 20);
 
   // 純 markdown 內容不需 framework renderer
   const renderers = await loadRenderers([]);

@@ -3,8 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleCard from '../components/ArticleCard.astro';
 import ResourceCard from '../components/ResourceCard.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import { getCollection } from 'astro:content';
 import { pageTitle } from '../utils/site-meta';
+import { getPublishedPosts } from '../utils/posts';
 import {
   LEARNING_RESOURCES,
   ADVANCED_APPS,
@@ -13,7 +13,7 @@ import {
   OFFICIAL_LINKS,
 } from '../data/n8n-resources';
 
-const posts = await getCollection('posts', ({ data }) => !data.draft);
+const posts = await getPublishedPosts();
 const byDateDesc = (a: typeof posts[number], b: typeof posts[number]) =>
   b.data.date.valueOf() - a.data.date.valueOf();
 

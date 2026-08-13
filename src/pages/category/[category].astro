@@ -2,7 +2,7 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import ArticleTimeline from '../../components/ArticleTimeline.astro';
 import Breadcrumbs from '../../components/Breadcrumbs.astro';
-import { getCollection, type CollectionEntry } from 'astro:content';
+import { type CollectionEntry } from 'astro:content';
 import {
   CATEGORIES,
   categoryLabel,
@@ -10,9 +10,10 @@ import {
   listPageDescription,
   pageTitle,
 } from '../../utils/site-meta';
+import { getPublishedPosts } from '../../utils/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft);
+  const posts = await getPublishedPosts();
   return CATEGORIES
     .map(({ slug }) => {
       const categoryPosts = posts.filter((p) => p.data.category === slug);

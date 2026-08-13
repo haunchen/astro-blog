@@ -2,10 +2,10 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ArticleTimeline from '../components/ArticleTimeline.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
-import { getCollection } from 'astro:content';
 import { collectionPageJsonLd, pageTitle } from '../utils/site-meta';
+import { getPublishedPosts } from '../utils/posts';
 
-const posts = await getCollection('posts', ({ data }) => !data.draft);
+const posts = await getPublishedPosts();
 
 // 頁名單一來源：<title>、可見麵包屑末階與 BreadcrumbList 末階必須是同一字串
 const pageName = '所有文章｜n8n 自動化、架站部署與 Flutter 開發';
