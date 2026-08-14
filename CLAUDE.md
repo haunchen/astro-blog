@@ -18,9 +18,9 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 111 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 115 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
-                    # md-path.mjs path mapping)
+                    # md-path.mjs path mapping + og-image.mjs OG rendering/hashing)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -71,7 +71,10 @@ to catch a new endpoint that forgot it; only the md endpoints have a draft-leak 
 - `/category/` + `/category/[category]/` — Category index and per-category listing
 - `/tag/` + `/tag/[tag]/` — Tag index and per-tag listing
 - `/404` — Custom 404 with e-ink glitch animation
-- `/og/[...slug].png` — OG images generated at build time (satori + sharp)
+- `/og/[...slug].png` — OG images generated at build time (satori + sharp). Filenames carry a
+  content hash of the PNG bytes (`/og/<slug>.<hash>.png`) so they can take the same one-year
+  immutable cache as `/_astro/*`; the URL comes from `getOgImage()` in `src/utils/og.ts`, which
+  every consumer (og:image, BlogPosting JSON-LD, `.md` frontmatter) and the endpoint itself share
 - `/[...slug].md` — Markdown variant of every published post for AI agents (whitelisted frontmatter,
   absolute image URLs, `X-Robots-Tag: noindex`). See `docs/specs/agent-markdown.md`
 - `/index.md` — Markdown variant of the homepage. Different contract from the post variants
@@ -124,7 +127,9 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 (page-markdown-variant conversion + path mapping — `page-md.mjs` converts a built page's HTML into
 its markdown variant and only runs at build time; `md-path.mjs` has three consumers — the build
 integration, `functions/_middleware.js` at request time, and `BaseLayout.astro` — so it must stay
-zero-dependency), `build-manifest`, `verify-*`.
+zero-dependency), `scripts/lib/og-image.mjs` (pure satori+sharp OG rendering and content hashing, under test;
+wired up by `src/utils/og.ts`, which memoizes per post so page render and the OG endpoint never
+render the same image twice), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for

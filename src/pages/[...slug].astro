@@ -11,6 +11,7 @@ import AdLoader from '../components/AdLoader.astro';
 import { SITE, CATEGORY_LABEL, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
 import { getPublishedPosts, getPublishedPostsByDateDesc } from '../utils/posts';
+import { getOgImage } from '../utils/og';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -47,6 +48,9 @@ const categoryLabel = CATEGORY_LABEL[post.data.category] ?? post.data.category;
 
 const canonicalURL = new URL(`/${post.id}/`, SITE.url).href;
 
+// OG 圖網址帶內容雜湊，只能由 getOgImage 給——JSON-LD 與 og:image 共用同一個值。
+const ogImage = await getOgImage(post);
+
 // 文章封面是首屏最大的圖，等於 LCP 元素；widths/sizes 需與下方 <Image> 一字不差，
 // 不一致會 preload 到另一個候選圖而白下載一份，故兩邊都取自 utils/images。
 const coverImage = post.data.cover
@@ -64,7 +68,7 @@ const blogPosting = {
   description: post.data.description,
   datePublished: post.data.date.toISOString(),
   dateModified: (post.data.updated ?? post.data.date).toISOString(),
-  image: `${SITE.url}/og/${post.id}.png`,
+  image: `${SITE.url}${ogImage.path}`,
   author: {
     '@type': 'Person',
     name: SITE.author,
@@ -90,7 +94,7 @@ const crumbs = [
 <BaseLayout
   title={pageTitle(post.data.title)}
   description={post.data.description}
-  ogImage={`/og/${post.id}.png`}
+  ogImage={ogImage.path}
   preloadImage={coverImage && toPreloadImage(coverImage, ARTICLE_COVER_SIZES)}
   article={{
     publishedTime: post.data.date,

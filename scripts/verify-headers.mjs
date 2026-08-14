@@ -420,10 +420,9 @@ async function resolveLogoPath() {
  * 為什麼從文章頁抓而不寫死某個 slug：文章會改名或下架，寫死總有一天 404，屆時看起來
  * 像標頭壞了，其實是檢查本身過期（理由同 resolveMarkdownPath）。
  *
- * OG 圖目前仍是固定檔名 /og/<slug>.png，快取正確性因此完全靠 `_headers` 的一週 TTL
- * 撐著——而 2026-07-23 踩過的正是 zone Cache Rule 把它覆寫成一年，改標題後社群卡片
- * 整年不更新。雜湊化還沒定案（issue #35 的 og 部分），在那之前這條斷言就是唯一的
- * 退化偵測管道。
+ * OG 圖自 2026-08-14 起為 /og/<slug>.<hash>.png（issue #55），雜湊取自 PNG 輸出位元組。
+ * 因此下面的斷言不只驗 TTL，也驗網址形狀——形狀退化回固定檔名時，一年 immutable 會
+ * 讓 2026-07-23 那次的災情（改標題後社群卡片整年不更新）變得更嚴重而非更輕。
  */
 async function resolveOgImagePath(articlePath) {
   let html;
@@ -557,16 +556,34 @@ if (markdownPath.path) {
     },
   );
 
-  // OG 圖的一週 TTL。從同一篇文章的 og:image 取路徑——不寫死 slug 的理由見
-  // resolveOgImagePath，而要釘住實值的理由見上面那組靜態圖示的註解。
+  // OG 圖的一年 immutable，外加「網址真的帶雜湊」這道反向斷言。從同一篇文章的 og:image
+  // 取路徑——不寫死 slug 的理由見 resolveOgImagePath，而要釘住實值的理由見上面那組
+  // 靜態圖示的註解。
+  //
+  // 兩條缺一不可：只驗 TTL 的話，程式碼哪天退化回固定檔名，一年 immutable 反而變成
+  // 比原本一週更嚴重的災難（改標題後社群卡片在回訪者瀏覽器裡凍一整年），而斷言照樣綠燈。
   const ogImagePath = await resolveOgImagePath(markdownPath.path.replace(/\.md$/, '/'));
   if (ogImagePath.path) {
-    checks.push({
-      path: ogImagePath.path,
-      header: 'cache-control',
-      name: `OG 圖的瀏覽器 TTL 為 604800 秒（${ogImagePath.path}）`,
-      verify: (v) => (v === 'public, max-age=604800' ? null : `實際為 ${v ?? '（無）'}`),
-    });
+    checks.push(
+      {
+        path: ogImagePath.path,
+        header: 'content-type',
+        name: `OG 圖網址帶內容雜湊且可取得（${ogImagePath.path}）`,
+        verify: (v) =>
+          !/^\/og\/.+\.[0-9a-f]{8}\.png$/.test(ogImagePath.path)
+            ? '網址未帶 8 碼內容雜湊，快取正確性又退回只能靠 TTL 撐著'
+            : v?.startsWith('image/png')
+              ? null
+              : `Content-Type 實際為 ${v ?? '（無）'}`,
+      },
+      {
+        path: ogImagePath.path,
+        header: 'cache-control',
+        name: `OG 圖吃到一年 immutable（${ogImagePath.path}）`,
+        verify: (v) =>
+          v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+      },
+    );
   } else {
     checks.push({
       path: markdownPath.path.replace(/\.md$/, '/'),

@@ -167,9 +167,12 @@
   ! Cache-Control
   Cache-Control: public, max-age=31536000, immutable
 
+# OG 圖：檔名帶 PNG 輸出位元組的內容雜湊（/og/<slug>.<hash>.png），內容一變檔名就變，
+# 因此與 /_astro/* 同級吃一年 immutable。這樣快取正確性不再依賴 zone 的 Cache Rule
+# ——2026-07-23 那次把瀏覽器 TTL 覆寫成一年的事件再發生一次也不會有人拿到舊圖。
 /og/*
   ! Cache-Control
-  Cache-Control: public, max-age=604800
+  Cache-Control: public, max-age=31536000, immutable
 
 /n8n-resources/*
   ! Cache-Control
@@ -207,9 +210,11 @@
 # 會直接抓 /favicon.ico、/apple-touch-icon.png 這類慣例路徑而不看 HTML 的 <link>，
 # 加雜湊會讓那些消費端抓不到。這兩個檔內容也極少變動，86400 就夠。
 #
-# /og/*.png 仍是固定檔名（見上面 /og/* 那條）。那批圖由 satori 在 build 期產生，
-# 雜湊化的做法還沒定案（讀輸出位元組那條路走不通，頁面與 endpoint 在同一次 build 內
-# 渲染且無順序保證），追蹤在 issue #55。
+# /og/*.png 已於 2026-08-14 改為內容雜湊檔名（issue #55）。「頁面與 endpoint 在同一次
+# build 內渲染且無順序保證」這個卡點的解法不是排順序，而是把渲染抽成共用模組的 memoized
+# 函式：誰先要到網址誰觸發渲染，順序因此不重要（見 docs/specs/pre-launch-infra.md D10）。
+# 舊的固定檔名網址不保留 301——它只保護得了切換當下那一批，之後每次改標題照樣產生
+# 涵蓋不到的舊網址（D11）。
 
 # robots.txt 與 llms.txt 原本設 86400。這兩個是「固定網址但內容會變」的檔案，
 # 一天的 TTL 代表改完之後最久要等 24 小時才會全面生效——實測踩過：改掉 robots.txt

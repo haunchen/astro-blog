@@ -332,6 +332,36 @@ check('每頁恰有一個非空 og:title / og:description / og:image / og:url', 
   }
 });
 
+// OG 圖網址帶內容雜湊（pre-launch-infra.md R4、R12），三個消費端（這裡的 og:image、
+// BlogPosting JSON-LD 的 image、.md 變體 frontmatter 的 image）必須算出同一個網址。
+// md 那側已由「.md 變體 frontmatter 的 image 指向存在的檔案」涵蓋，這條補上 HTML 側。
+//
+// 格式與存在性兩件事都要驗：只驗存在的話，退化回固定檔名 /og/<slug>.png 時檔案照樣
+// 存在（端點會產出它），快取正確性卻已經默默倒退回本 issue 修掉的狀態。
+const OG_HASHED_RE = /^\/og\/(.+)\.[0-9a-f]{8}\.png$/;
+
+check('文章頁的 og:image 為帶內容雜湊的檔名且檔案存在', (failures) => {
+  for (const { pathname, html } of pages) {
+    if (!articlePathnames.has(pathname)) continue;
+    const value = requireSingleTag(failures, pathname, findMetaByAttr(html, 'property', 'og:image'), 'og:image');
+    if (value === null) continue;
+    let imagePath;
+    try {
+      imagePath = decodeURIComponent(new URL(value, `${SITE_ORIGIN}/`).pathname);
+    } catch {
+      failures.push({ page: pathname, reason: `og:image 不是合法 URL：${value}` });
+      continue;
+    }
+    if (!OG_HASHED_RE.test(imagePath)) {
+      failures.push({ page: pathname, reason: `og:image 應為 /og/<slug>.<8 碼雜湊>.png，實際為 ${imagePath}` });
+      continue;
+    }
+    if (!existsSync(path.join(DIST, imagePath.replace(/^\//, '')))) {
+      failures.push({ page: pathname, reason: `og:image 指向不存在的檔案：${imagePath}` });
+    }
+  }
+});
+
 check('每頁恰有一個非空 twitter:card', (failures) => {
   for (const { pathname, html } of pages) {
     requireSingleTag(failures, pathname, findMetaByAttr(html, 'name', 'twitter:card'), 'twitter:card');
@@ -387,6 +417,19 @@ check('文章頁需有 BlogPosting 與 BreadcrumbList JSON-LD', (failures) => {
       }
       if (!blogPosting.publisher?.logo) {
         failures.push({ page: page.pathname, reason: 'BlogPosting 缺少 publisher.logo' });
+      }
+      // R12：OG 圖網址只能有一個來源，BlogPosting.image 與 og:image 必須完全相同。
+      // 不驗這條的話，[...slug].astro 的 JSON-LD image 若被人手寫回退成固定檔名
+      // `${SITE.url}/og/${post.id}.png`，這裡照樣全綠、只有線上的 JSON-LD 圖 404。
+      const ogImageTag = findMetaByAttr(page.html, 'property', 'og:image')[0];
+      const ogImageValue = ogImageTag ? (getAttr(ogImageTag, 'content') ?? '').trim() : undefined;
+      if (!blogPosting.image) {
+        failures.push({ page: page.pathname, reason: 'BlogPosting 缺少 image' });
+      } else if (ogImageValue && blogPosting.image !== ogImageValue) {
+        failures.push({
+          page: page.pathname,
+          reason: `BlogPosting.image（${blogPosting.image}）與 og:image（${ogImageValue}）不一致`,
+        });
       }
     }
   }
@@ -609,7 +652,7 @@ check('.md 變體引用的建置資產都真的存在', (failures) => {
 });
 
 // 上面那條只掃正文，frontmatter 的 image 完全在它的視野外——而那是 md 唯一對外宣告的
-// 縮圖（文章是 /og/<slug>.png，頁面與首頁取自該頁的 og:image），與正文的圖各自獨立產生。
+// 縮圖（文章是 /og/<slug>.<hash>.png，頁面與首頁取自該頁的 og:image），與正文的圖各自獨立產生。
 // 沒有這條時「md 產出了、對應的圖沒產出」是全綠的：欄位齊全檢查只看欄位在不在，
 // 不看指到的東西存不存在。文章的耦合（有 md 就必有 OG 圖，兩個端點用同一份已發佈文章
 // 清單與 post.id）目前成立，但成立與驗過是兩回事。
