@@ -21,7 +21,7 @@ SEO 相關設定只有兩個地方，改動前一律先看這兩個檔案，不�
 |------|------|------|
 | `title` | 是 | 一律包 `pageTitle('頁名')`，不要自己拼字串，否則品牌後綴規則會不一致 |
 | `description` | 是（實務上） | `verify:seo` 會擋空值與長度不在 120–160 的可索引頁 |
-| `ogImage` | 否 | 不傳則 fallback `/cover.webp`（`BaseLayout` 內處理，不要在頁面裡重複判斷） |
+| `ogImage` | 否 | 不傳則 fallback `OG_FALLBACK.src`（站台 cover 圖，`BaseLayout` 內處理，不要在頁面裡重複判斷）。要明寫時傳 `OG_FALLBACK.src`，不要寫路徑字面值——cover 走 astro:assets，網址帶內容雜湊、換圖就會變（site-pages.md #D19） |
 | `article` | 文章頁專用 | 傳入才會輸出 `og:type=article` 與 `article:published_time` 等 |
 | `jsonLd` | 否 | 該頁專屬的 JSON-LD 節點陣列；`Organization`/`WebSite` 已由 BaseLayout 自動附加，不要重複塞 |
 | `breadcrumbs` | 列表頁／內頁建議傳 | 只負責輸出 `BreadcrumbList` JSON-LD，**不會自己畫出麵包屑**——可見的那條要在頁面裡自己放 `<Breadcrumbs>`（見下方）；**不含當前頁**，當前頁名取自 `title` 去掉品牌後綴 |

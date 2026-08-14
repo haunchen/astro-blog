@@ -3,7 +3,9 @@ import { Image } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import TagBadge from '../components/TagBadge.astro';
-import { SITE, pageTitle } from '../utils/site-meta';
+// OG_FALLBACK：spec site-pages.md R2／S2 指名本頁的 og:image 是 cover 圖。BaseLayout 的
+// fallback 現在剛好也是它，但那是巧合不是契約——留著明寫，fallback 哪天換掉才不會靜默違規。
+import { OG_FALLBACK, SITE, pageTitle } from '../utils/site-meta';
 import avatar from '../assets/about/frank-avatar.png';
 import n8nShot from '../assets/about/n8n-app-screenshot.png';
 import blogShot from '../assets/about/blog-screenshot.png';
@@ -184,7 +186,7 @@ const personJsonLd = {
 <BaseLayout
   title={pageTitle(pageName)}
   description="Frank Chen（法蘭克），落腳台南的系統整合工程師，擁有超過 3 年軟體開發經驗。跨領域整合軟體、韌體、硬體與 App，曾領導 5 人團隊完成兩代智慧醫療模擬器的開發與商業化。這裡完整整理我的工作經歷、專案經驗、作品集與各種聯絡方式。"
-  ogImage="/cover.webp"
+  ogImage={OG_FALLBACK.src}
   jsonLd={[personJsonLd]}
   breadcrumbs={crumbs}
 >

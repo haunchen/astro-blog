@@ -898,6 +898,29 @@ check('廣告版位只出現在文章頁', (failures) => {
   }
 });
 
+// _redirects 裡指向 /_astro/ 的目標必須真的被 emit 出來。
+//
+// 這條守的是 issue #35 留下的一個刻意取捨：cover.webp 與 logo.webp 搬進 src/assets/ 之後
+// 網址帶內容雜湊，而 public/_redirects 為了不讓舊網址 404，把雜湊檔名寫死在 301 的目標裡。
+// 換圖時那兩行必須跟著改——沒有這條檢查的話，忘了改的下場是 301 到一個不存在的檔案，
+// build 全綠、頁面全正常，只有拿著舊網址來的社群爬蟲會撞到 404，而那正是當初加 301 要避免的。
+check('_redirects 指向 /_astro/ 的目標都存在於建置產物', (failures) => {
+  const redirectsPath = path.join(DIST, '_redirects');
+  if (!existsSync(redirectsPath)) {
+    failures.push({ page: '/_redirects', reason: '檔案不存在' });
+    return;
+  }
+  for (const line of readFileSync(redirectsPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const target = trimmed.split(/\s+/)[1];
+    if (!target?.startsWith('/_astro/')) continue;
+    if (!existsSync(path.join(DIST, target.replace(/^\//, '')))) {
+      failures.push({ page: '/_redirects', reason: `301 目標不存在：${target}（來源 ${trimmed.split(/\s+/)[0]}）` });
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // 輸出報告
 // ---------------------------------------------------------------------------

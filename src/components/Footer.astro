@@ -1,5 +1,6 @@
 ---
 import { SITE, FOOTER_COLS } from '../utils/site-meta';
+import logoImage from '../assets/logo.webp';
 import SocialIcons from './SocialIcons.astro';
 
 const startYear = 2025;
@@ -12,7 +13,7 @@ const yearLabel = currentYear > startYear ? `${startYear}–${currentYear}` : `$
     <div class="footer-main">
       <div class="footer-brand">
         <img
-          src="/logo.webp"
+          src={logoImage.src}
           alt=""
           class="footer-avatar"
           width="64"

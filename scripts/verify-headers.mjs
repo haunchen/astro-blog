@@ -374,6 +374,77 @@ async function resolveNestedPagePath() {
   return { error: 'sitemap.xml 沒有任何深度 ≥ 2 的頁面網址' };
 }
 
+/**
+ * 從首頁 header 的頭像 <img> 取 logo 的實際網址。
+ *
+ * 這條同時驗兩件事，而且順序有意義：先驗 logo 真的落在 /_astro/（issue #35 把它從
+ * public/ 搬進 src/assets/ 走 astro:assets，退回固定檔名就是這次修正被還原了），
+ * 再驗那個路徑吃得到一年 immutable。少了前半，後半會在 logo 退回 /logo.webp 時
+ * 靜默改去驗別的東西；少了後半，搬家等於白做。
+ *
+ * 為什麼不寫死雜湊檔名：內容一變檔名就變，寫死必定 404（理由同 resolveFontPath）。
+ */
+async function resolveLogoPath() {
+  let html;
+  try {
+    const res = await fetch(`${ORIGIN}/`, { redirect: 'follow' });
+    if (!res.ok) return { error: `首頁請求回應 ${res.status}` };
+    html = await res.text();
+  } catch (err) {
+    return { error: `首頁請求失敗：${err.message}` };
+  }
+  for (const tag of html.match(/<img\b[^>]*>/gi) ?? []) {
+    if (!/\bclass\s*=\s*["'][^"']*\bheader-avatar\b/i.test(tag)) continue;
+    const href = tag.match(/\bsrc\s*=\s*"([^"]*)"|\bsrc\s*=\s*'([^']*)'/i);
+    const value = href?.[1] ?? href?.[2];
+    if (!value) continue;
+    let pathname;
+    try {
+      pathname = new URL(value, `${ORIGIN}/`).pathname;
+    } catch {
+      continue;
+    }
+    if (!pathname.startsWith('/_astro/')) {
+      return {
+        error: `logo 應為 /_astro/ 下的雜湊檔名（issue #35），實際為 ${pathname}`,
+      };
+    }
+    return { path: pathname };
+  }
+  return { error: '首頁 header 沒有 class="header-avatar" 的 <img>' };
+}
+
+/**
+ * 從一篇文章的 og:image 取 OG 圖網址。
+ *
+ * 為什麼從文章頁抓而不寫死某個 slug：文章會改名或下架，寫死總有一天 404，屆時看起來
+ * 像標頭壞了，其實是檢查本身過期（理由同 resolveMarkdownPath）。
+ *
+ * OG 圖目前仍是固定檔名 /og/<slug>.png，快取正確性因此完全靠 `_headers` 的一週 TTL
+ * 撐著——而 2026-07-23 踩過的正是 zone Cache Rule 把它覆寫成一年，改標題後社群卡片
+ * 整年不更新。雜湊化還沒定案（issue #35 的 og 部分），在那之前這條斷言就是唯一的
+ * 退化偵測管道。
+ */
+async function resolveOgImagePath(articlePath) {
+  let html;
+  try {
+    const res = await fetch(`${ORIGIN}${articlePath}`, { redirect: 'follow' });
+    if (!res.ok) return { error: `文章頁請求回應 ${res.status}` };
+    html = await res.text();
+  } catch (err) {
+    return { error: `文章頁請求失敗：${err.message}` };
+  }
+  const meta = html.match(
+    /<meta\b[^>]*\bproperty\s*=\s*["']og:image["'][^>]*\bcontent\s*=\s*["']([^"']+)["']/i,
+  );
+  if (!meta) return { error: `${articlePath} 沒有 og:image` };
+  try {
+    return { path: new URL(meta[1], `${ORIGIN}/`).pathname };
+  } catch {
+    return { error: `og:image 網址無法解析：${meta[1]}` };
+  }
+}
+
 let failed = 0;
 console.log(`檢查來源：${ORIGIN}\n`);
 
@@ -400,6 +471,40 @@ if (fontPath.path) {
   );
 } else {
   checks.push({ path: '/', name: '首頁可取得字型 preload 路徑', staticProblem: fontPath.error });
+}
+
+// 靜態圖示的 Cache-Control 實值。原本這裡只驗「只有一組 max-age」，值是多少沒人管——
+// 而 2026-07-23 出事的正是「值」：zone 的 Cache Rule 把瀏覽器 TTL 一律覆寫成一年，
+// _headers 寫的 86400／604800 全被蓋掉，格式完全合法、只有一組 max-age，任何既有檢查
+// 都照樣綠燈。站主當時是靠人工比對 pages.dev 與正式站才診斷出來的（issue #35）。
+// 那個修正是 dashboard 設定、不在版控，隨時可能被改回去或在重建 zone 時重演，
+// 所以這幾條逐一釘住實值——退化就在隔天的日檢紅燈，不必再靠人工發現。
+//
+// favicon 與 apple-touch-icon 刻意維持固定檔名不加雜湊（理由見 public/_headers），
+// 也就是說它們的快取正確性永遠只能靠 TTL 撐著，比其他資源更需要這條斷言。
+checks.push(
+  ...[
+    ['/favicon.png', 'favicon', 86400],
+    ['/apple-touch-icon.png', 'apple-touch-icon', 86400],
+  ].map(([path, label, seconds]) => ({
+    path,
+    header: 'cache-control',
+    name: `${label} 的瀏覽器 TTL 為 ${seconds} 秒`,
+    verify: (v) => (v === `public, max-age=${seconds}` ? null : `實際為 ${v ?? '（無）'}`),
+  })),
+);
+
+const logoPath = await resolveLogoPath();
+if (logoPath.path) {
+  checks.push({
+    path: logoPath.path,
+    header: 'cache-control',
+    name: `雜湊檔名的站台圖片吃到一年 immutable（${logoPath.path}）`,
+    verify: (v) =>
+      v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+  });
+} else {
+  checks.push({ path: '/', name: '首頁可取得 logo 路徑', staticProblem: logoPath.error });
 }
 
 const nestedPath = await resolveNestedPagePath();
@@ -451,6 +556,24 @@ if (markdownPath.path) {
       verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
     },
   );
+
+  // OG 圖的一週 TTL。從同一篇文章的 og:image 取路徑——不寫死 slug 的理由見
+  // resolveOgImagePath，而要釘住實值的理由見上面那組靜態圖示的註解。
+  const ogImagePath = await resolveOgImagePath(markdownPath.path.replace(/\.md$/, '/'));
+  if (ogImagePath.path) {
+    checks.push({
+      path: ogImagePath.path,
+      header: 'cache-control',
+      name: `OG 圖的瀏覽器 TTL 為 604800 秒（${ogImagePath.path}）`,
+      verify: (v) => (v === 'public, max-age=604800' ? null : `實際為 ${v ?? '（無）'}`),
+    });
+  } else {
+    checks.push({
+      path: markdownPath.path.replace(/\.md$/, '/'),
+      name: '可從文章頁取得 OG 圖路徑',
+      staticProblem: ogImagePath.error,
+    });
+  }
 } else {
   checks.push({
     path: '/llms.txt',

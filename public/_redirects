@@ -38,3 +38,13 @@
 # 讀者的筆記與 n8n 工作流可能還存著舊網址，斷掉會讓教學直接失敗，因此保留 301。
 # 目標刻意維持 JPEG——Instagram Graph API 的 image_url 只接受 JPEG，換成 WebP 會被 API 拒絕。
 /wp-content/uploads/2025/07/n8nAutoPostTest_dev.jpeg  /samples/n8n-auto-post-test.jpg  301
+
+# cover.webp / logo.webp 在 issue #35 搬進 src/assets/ 走 astro:assets，網址改成帶內容
+# 雜湊的 /_astro/<name>.<hash>.webp。舊網址不能就這樣 404：cover.webp 當了很久的
+# og:image，社群平台與外部轉貼手上都還存著它，重抓拿到 404 就是分享預覽整張破圖。
+#
+# 目標寫死雜湊檔名是刻意的，代價也很明確——換圖時這兩行必須跟著改。
+# 為此 scripts/verify-seo.mjs 有一條「_redirects 指向 /_astro/ 的目標都要真的存在」，
+# 忘了改會在 PR 的 verify:seo 當場紅燈，不會靜默變成 404。
+/cover.webp    /_astro/cover.BWTGuh95.webp             301
+/logo.webp     /_astro/logo.Bn6CCIKv.webp              301

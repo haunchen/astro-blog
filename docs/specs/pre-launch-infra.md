@@ -41,7 +41,7 @@ last_modified: 2026-07-29
 
 ### R8: 安全標頭與快取策略
 - **Level**: MUST
-- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`；`/_astro/*` 一年 immutable、`/og/*` 一週、`/n8n-resources/*` 一週、`/rss.xml` 一小時、靜態根檔案（favicon / apple-touch-icon / logo / cover / robots.txt / llms.txt）一天。`.md` 路徑另回應 `Content-Type: text/markdown; charset=utf-8`、與 HTML 一致的短快取（`public, max-age=600, must-revalidate`）與 `X-Robots-Tag: noindex`；任何需自訂 `Cache-Control` 的新規則須先 `! Cache-Control` 清除 `/*` 的值再設定，避免 Cloudflare Pages 的標頭合併產生兩組 max-age。不含 `X-XSS-Protection`（已廢棄）與對不到建置輸出的 `/images/*` 規則。
+- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`；`/_astro/*` 一年 immutable（cover 與 logo 自 2026-08-14 起走 astro:assets 落在此處，見 site-pages.md #D19）、`/og/*` 一週、`/n8n-resources/*` 一週、`/rss.xml` 與 `/robots.txt`、`/llms.txt` 一小時、靜態根檔案（favicon / apple-touch-icon）一天。`.md` 路徑另回應 `Content-Type: text/markdown; charset=utf-8`、與 HTML 一致的短快取（`public, max-age=600, must-revalidate`）與 `X-Robots-Tag: noindex`；任何需自訂 `Cache-Control` 的新規則須先 `! Cache-Control` 清除 `/*` 的值再設定，避免 Cloudflare Pages 的標頭合併產生兩組 max-age。不含 `X-XSS-Protection`（已廢棄）與對不到建置輸出的 `/images/*` 規則。
 
 ### R9: CF Pages 部署
 - **Level**: MUST

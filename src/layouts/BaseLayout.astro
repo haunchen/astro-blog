@@ -2,7 +2,7 @@
 import { SEO } from 'astro-seo';
 import { ClientRouter } from 'astro:transitions';
 import JsonLd from '../components/JsonLd.astro';
-import { SITE, ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
+import { SITE, OG_FALLBACK, ORGANIZATION_JSONLD, WEBSITE_JSONLD } from '../utils/site-meta';
 import { pagePathToMdPath } from '../../scripts/lib/md-path.mjs';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
@@ -62,17 +62,20 @@ const {
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 // og:image 不可為空：頁面未指定時 fallback 站台 cover 圖
-const ogImagePath = ogImage ?? '/cover.webp';
+const ogImagePath = ogImage ?? OG_FALLBACK.src;
 const ogImageURL = new URL(ogImagePath, Astro.site).href;
 
 // og:image 的 type/width/height 必須對應「實際那張圖」，不能寫死。
-// 文章頁用 /og/*.png（satori 產生，固定 1200×630）；其餘頁面 fallback 到
-// public/cover.webp（4096×2304 的 webp）。原本三個值一律寫死成 1200/630/png，
-// 對約 69 個非文章頁輸出的是不實的中繼資料——欄位齊全但值是錯的，
-// 社群平台依這些值配版會得到錯誤結果。
+// 文章頁用 /og/*.png（satori 產生，固定 1200×630）；其餘頁面 fallback 到 cover 圖。
+// 原本三個值一律寫死成 1200/630/png，對約 69 個非文章頁輸出的是不實的中繼資料——
+// 欄位齊全但值是錯的，社群平台依這些值配版會得到錯誤結果。
+//
+// cover 那一側的尺寸與格式現在來自 OG_FALLBACK（讀 astro:assets 的 ImageMetadata），
+// 換圖就自動跟著換。判斷仍以 .png 結尾分流：站上只有 satori 那批是 png，
+// cover 走 astro:assets 後檔名帶雜湊但副檔名不變，這條分流照樣成立。
 const OG_IMAGE_META = ogImagePath.endsWith('.png')
   ? { type: 'image/png', width: '1200', height: '630' }
-  : { type: 'image/webp', width: '4096', height: '2304' };
+  : { type: OG_FALLBACK.type, width: OG_FALLBACK.width, height: OG_FALLBACK.height };
 
 // BreadcrumbList：最後一階為當前頁，依 schema.org 慣例省略 item（自身即為 item）
 const breadcrumbJsonLd = breadcrumbs?.length
