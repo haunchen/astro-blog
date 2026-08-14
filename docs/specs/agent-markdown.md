@@ -2,7 +2,7 @@
 domain: agent-markdown
 status: active
 created: 2026-07-29
-last_modified: 2026-08-03
+last_modified: 2026-08-15
 ---
 
 # Agent Markdown
@@ -264,11 +264,13 @@ last_modified: 2026-08-03
 - **Date**: 2026-07-29
 
 ### D4: `image` 用 OG 圖而非文章封面
-- **Decision**: frontmatter 的 `image` 指向 `/og/<slug>.png`
+- **Decision**: frontmatter 的 `image` 指向 `/og/<slug>.<hash>.png`（雜湊取自該圖 PNG
+  輸出位元組，見 `pre-launch-infra.md` 的 R4/R12、D10）
 - **Rationale**: CF 規格的 frontmatter `image` 本就從 `<meta property="og:image">` 抽，
   用 OG 圖才是對齊；封面圖在文章頁走 `<Image>` 的四尺寸 srcset，要在端點複製那套解析
-  得多接一層 image service 呼叫，OG 圖則是固定路徑、零成本
-- **Date**: 2026-07-29
+  得多接一層 image service 呼叫。原本「OG 圖則是固定路徑、零成本」的理由自 2026-08-15
+  起不成立——網址依賴 `getOgImage()` 的一次 memoized 渲染才算得出來，不再是字串組裝
+- **Date**: 2026-07-29（網址形狀與成本敘述於 2026-08-15 更新）
 
 ### D5: md 變體加 `X-Robots-Tag: noindex`
 - **Decision**: `_headers` 對 `.md` 路徑加 `noindex`，md 亦不進 sitemap
@@ -437,17 +439,3 @@ last_modified: 2026-08-03
   而 HTML 是預設，排序結果影響不到最終選擇，實作一套完整的 q 值比較只是多一段沒有斷言
   守著的邏輯。畸形 q 值（解不出數字）一律落回 HTML，方向與 R11 的「不確定就給 HTML」一致
 - **Date**: 2026-08-13
-
-## Pending Changes
-
-<!-- issue #55 / feat/og-image-content-hash（2026-08-14）。實作合併後由 finish spec sync 收進正文 -->
-
-### MODIFIED D4: `image` 用 OG 圖而非文章封面
-- **Decision**: frontmatter 的 `image` 網址形狀改為 `/og/<slug>.<hash>.png`（雜湊取自
-  該圖 PNG 輸出位元組，見 `pre-launch-infra.md` 的 R4/R12、D10）；原本寫死的
-  `/og/<slug>.png` 不再成立
-- **Rationale**: 「OG 圖則是固定路徑、零成本」已被推翻——網址現在依賴 `getOgImage()`
-  的一次 memoized 渲染才算得出來，不是字串組裝就能得到的零成本路徑。取 OG 圖而非
-  文章封面的原始理由不變：CF 規格的 frontmatter `image` 本就從 `og:image` 抽，
-  封面圖要在端點複製 `<Image>` 的四尺寸 srcset 解析得多接一層 image service 呼叫
-- **Date**: 2026-08-15

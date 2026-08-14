@@ -2,7 +2,7 @@
 domain: pre-launch-infra
 status: active
 created: 2026-05-16
-last_modified: 2026-08-14
+last_modified: 2026-08-15
 ---
 
 # Pre-launch Infrastructure
@@ -25,7 +25,7 @@ last_modified: 2026-08-14
 
 ### R4: 動態 OG 圖
 - **Level**: MUST
-- **Description**: 每篇非草稿文章在 `/og/{slug}.png` 提供 1200x630 PNG OG 圖，含分類 badge、中文標題、站名 footer。中文字型由 build-time subset 提供，僅包含實際標題用字。
+- **Description**: 每篇非草稿文章提供 1200x630 PNG OG 圖，含分類 badge、中文標題、站名 footer；中文字型由 build-time subset 提供，僅包含實際標題用字。網址為帶內容雜湊的 `/og/{slug}.{hash}.png`（雜湊取自該圖 PNG 輸出位元組），不是固定的 `/og/{slug}.png`；舊的固定檔名網址不保留相容路徑。
 
 ### R5: RSS Feed
 - **Level**: MUST
@@ -41,7 +41,7 @@ last_modified: 2026-08-14
 
 ### R8: 安全標頭與快取策略
 - **Level**: MUST
-- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`；`/_astro/*` 一年 immutable（cover 與 logo 自 2026-08-14 起走 astro:assets 落在此處，見 site-pages.md #D19）、`/og/*` 一週、`/n8n-resources/*` 一週、`/rss.xml` 與 `/robots.txt`、`/llms.txt` 一小時、靜態根檔案（favicon / apple-touch-icon）一天。`.md` 路徑另回應 `Content-Type: text/markdown; charset=utf-8`、與 HTML 一致的短快取（`public, max-age=600, must-revalidate`）與 `X-Robots-Tag: noindex`；任何需自訂 `Cache-Control` 的新規則須先 `! Cache-Control` 清除 `/*` 的值再設定，避免 Cloudflare Pages 的標頭合併產生兩組 max-age。不含 `X-XSS-Protection`（已廢棄）與對不到建置輸出的 `/images/*` 規則。
+- **Description**: 所有路徑回應含 `X-Frame-Options: DENY`、`X-Content-Type-Options: nosniff`、`Referrer-Policy: strict-origin-when-cross-origin`、`Permissions-Policy: camera=(), microphone=(), geolocation=()`；`/_astro/*` 一年 immutable（cover 與 logo 自 2026-08-14 起走 astro:assets 落在此處，見 site-pages.md #D19）、`/og/*` 一年 immutable（網址帶內容雜湊，見 #D10）、`/n8n-resources/*` 一週、`/rss.xml` 與 `/robots.txt`、`/llms.txt` 一小時、靜態根檔案（favicon / apple-touch-icon）一天。`.md` 路徑另回應 `Content-Type: text/markdown; charset=utf-8`、與 HTML 一致的短快取（`public, max-age=600, must-revalidate`）與 `X-Robots-Tag: noindex`；任何需自訂 `Cache-Control` 的新規則須先 `! Cache-Control` 清除 `/*` 的值再設定，避免 Cloudflare Pages 的標頭合併產生兩組 max-age。不含 `X-XSS-Protection`（已廢棄）與對不到建置輸出的 `/images/*` 規則。
 
 ### R9: CF Pages 部署
 - **Level**: MUST
@@ -54,6 +54,10 @@ last_modified: 2026-08-14
 ### R11: sitemap 文章 lastmod
 - **Level**: SHOULD
 - **Description**: sitemap 中每個文章 URL 帶 `<lastmod>`（值為文章 `updated ?? date`）；非文章頁不帶 lastmod。
+
+### R12: OG 圖網址的單一來源與可解析性
+- **Level**: MUST
+- **Description**: OG 圖的網址只能有一個產生來源；三個消費端（`og:image` meta、BlogPosting JSON-LD 的 `image`、文章 `.md` 變體 frontmatter 的 `image`）對同一篇文章必須得到完全相同的網址，且該網址在建置產物中對應到實際存在的檔案。網址退化回不帶雜湊的固定檔名時必須被驗證腳本擋下。
 
 ## Scenarios
 
@@ -117,6 +121,18 @@ last_modified: 2026-08-14
 - **Then**: 該篇 `content` 內 img `src` 為 `https://frankchen.tw/_astro/<hash>.webp`，且對應檔案實際存在於建置輸出
 - **Implements**: #R5
 
+### S11: 內容未變時重複建置
+- **Given**: 文章內容、分類與 OG 圖範本皆未變動
+- **When**: 連續執行兩次 `npm run build`
+- **Then**: 每篇文章的 OG 圖檔名完全相同
+- **Implements**: #R4
+
+### S12: 新增一篇文章
+- **Given**: 站上已有 N 篇已發佈文章
+- **When**: 新增第 N+1 篇文章（其標題引入新的中文字元，使 subset 字型檔內容改變）後重新建置
+- **Then**: 既有 N 篇文章的 OG 圖檔名不變
+- **Implements**: #R4
+
 ## Design Decisions
 
 ### D1: All-in-one PR、最後一次部署
@@ -164,44 +180,17 @@ last_modified: 2026-08-14
 - **Rationale**: markdown-it 不認得 content collection 的相對圖片，不會觸發 image pipeline，導致 RSS 內文圖 URL 指向不存在的 `/<slug>/images/...`（404）。Container API 渲染真正的 `<Content/>`，內文圖經 image pipeline 解析為 `/_astro/<hash>.webp`，再前綴 `SITE.url` 即為可正確抓取的絕對 URL。純 markdown 無需 framework renderer（`loadRenderers([])`）
 - **Date**: 2026-06-06
 
-## Pending Changes
-
-<!-- issue #55 / feat/og-image-content-hash（2026-08-14）。實作合併後由 finish spec sync 收進正文 -->
-
-### MODIFIED R4: 動態 OG 圖
-- **Level**: MUST
-- **Description**: 每篇非草稿文章提供 1200x630 PNG OG 圖，含分類 badge、中文標題、站名 footer；中文字型由 build-time subset 提供，僅包含實際標題用字。網址改為帶內容雜湊的 `/og/{slug}.{hash}.png`（雜湊取自該圖 PNG 輸出位元組），不再是固定的 `/og/{slug}.png`；舊的固定檔名網址不保留相容路徑。
-
-### MODIFIED R8: 安全標頭與快取策略
-- **Description**: `/og/*` 的快取自一週改為一年 immutable（`public, max-age=31536000, immutable`），與 `/_astro/*` 同級。其餘條目不變。
-
-### ADDED R12: OG 圖網址的單一來源與可解析性
-- **Level**: MUST
-- **Description**: OG 圖的網址只能有一個產生來源；三個消費端（`og:image` meta、BlogPosting JSON-LD 的 `image`、文章 `.md` 變體 frontmatter 的 `image`）對同一篇文章必須得到完全相同的網址，且該網址在建置產物中對應到實際存在的檔案。網址退化回不帶雜湊的固定檔名時必須被驗證腳本擋下。
-
-### ADDED S11: 內容未變時重複建置
-- **Given**: 文章內容、分類與 OG 圖範本皆未變動
-- **When**: 連續執行兩次 `npm run build`
-- **Then**: 每篇文章的 OG 圖檔名完全相同
-- **Implements**: #R4
-
-### ADDED S12: 新增一篇文章
-- **Given**: 站上已有 N 篇已發佈文章
-- **When**: 新增第 N+1 篇文章（其標題引入新的中文字元，使 subset 字型檔內容改變）後重新建置
-- **Then**: 既有 N 篇文章的 OG 圖檔名不變
-- **Implements**: #R4
-
-### ADDED D10: OG 圖以共用模組的 memoized 渲染取得輸出位元組雜湊
+### D10: OG 圖以共用模組的 memoized 渲染取得輸出位元組雜湊
 - **Decision**: 渲染與雜湊抽成 `scripts/lib/og-image.mjs`（純函式），`src/utils/og.ts` 以 `Map<id, Promise>` memoize 並供三個消費端與 OG endpoint 共用；endpoint 的 `getStaticPaths` 由該函式算出帶雜湊的路徑，`GET` 回傳快取的位元組
 - **Rationale**: 消費端在頁面渲染時就要網址，PNG 位元組卻要到 endpoint 渲染完才存在，而兩者在同一次 build 內無順序保證。改成「誰先要到誰觸發渲染、結果快取在模組層」後順序不再重要。相對於 `astro:build:done` 事後改名（要回寫 HTML 與 `.md` 兩種產物、且與同樣掛在該 hook 的 `pageMarkdownVariants` 產生先後順序約束），這條路不需要回寫任何產物；相對於以輸入算雜湊，不需要人手動 bump 範本版本號。正確性不依賴模組單例：2026-08-14 實測 satori + sharp 對同一輸入的 PNG 位元組完全相同，單例失效只會多渲染幾次（每張約 8 ms），不會產生不一致的網址
 - **Date**: 2026-08-14
 
-### ADDED D11: 不為舊的固定檔名 OG 網址保留 301
+### D11: 不為舊的固定檔名 OG 網址保留 301
 - **Decision**: 切換後 `/og/{slug}.png` 直接 404，不加 `_redirects` 條目、不雙份輸出
 - **Rationale**: OG 圖網址的唯一來源是頁面的 `og:image` meta，社群爬蟲重抓即取得新網址（cover/logo 是站台級識別圖、可能被外部直接引用，故 #35 為它們留了 301，情況不同）。且 301 只保護切換當下那一批固定檔名網址——之後每次標題變更同樣會讓舊雜湊網址消失，而 301 涵蓋不了，等於為一次性過渡永久背一層機械
 - **Date**: 2026-08-14
 
-### ADDED D12: 字型位元組不進入雜湊輸入
+### D12: 字型位元組不進入雜湊輸入
 - **Decision**: OG 圖雜湊一律取自 PNG 輸出位元組，不以「標題＋分類＋範本版本＋字型」等輸入組合計算
 - **Rationale**: 2026-08-14 實測，把 subset 字型從 56,764 bytes 縮到 4,772 bytes（只留該標題用字）後，同一標題的 PNG sha256 與 SVG 完全相同——輸出只取決於實際用到的字形輪廓，與字型檔位元組無關。因此把字型算進輸入會過度失效（每發一篇帶新字的文章就翻新全部檔名，違反 #S12），不算進去則遇到字型家族／版本更換時漏掉；輸出位元組雜湊兩種情況都正確
 - **Date**: 2026-08-14
