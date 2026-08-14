@@ -292,4 +292,5 @@ last_modified: 2026-07-02
 - **Rationale**: 固定檔名＋會變的內容，快取正確性只能靠 TTL 撐著，而 TTL 是 Cloudflare zone 可以覆寫的東西——2026-07-23 實際發生過：Cache Rule 把瀏覽器 TTL 一律改成一年，`_headers` 寫的 86400 全被蓋掉，而瀏覽器快取是 Purge Cache 清不到的。站主雖已在 dashboard 修正，但那個修正不在版控、隨時可能再被改掉。改成內容雜湊後，快取正確性不再依賴任何 dashboard 設定。順帶解掉 `og:image:width`/`height` 寫死 4096/2304 的漂移風險（改讀圖檔本身）。favicon 與 apple-touch-icon 例外，是因為瀏覽器與部分爬蟲會直接抓這些慣例路徑而不看 HTML 的 `<link>`，加雜湊會讓它們抓不到，而這兩個檔內容也極少變動
 - **Trade-off**: `_redirects` 的 301 目標寫死雜湊檔名，換圖時必須跟著改。以 `verify-seo` 的「`_redirects` 指向 `/_astro/` 的目標都存在於建置產物」擋住忘記改的情況——忘了就在 PR 當場紅燈，不會靜默變成 404
 - **Not in scope**: `/og/*.png` 仍是固定檔名。那批圖由 satori 在 build 期產生，頁面與 endpoint 在同一次 build 內渲染且無順序保證，拿不到輸出位元組再回填網址，做法尚未定案（另案追蹤：issue #55）。在定案前，`verify-headers` 釘住它的一週 TTL 實值作為退化偵測
+  - **Resolved**: 已由 issue #55 解除——`/og/*.png` 改為帶內容雜湊的 `/og/<slug>.<hash>.png`，一週 TTL 也隨之改為與 `/_astro/*` 同級的一年 immutable。詳見 `pre-launch-infra.md` 的 D10（2026-08-15）
 - **Date**: 2026-08-14

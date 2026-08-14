@@ -418,6 +418,19 @@ check('文章頁需有 BlogPosting 與 BreadcrumbList JSON-LD', (failures) => {
       if (!blogPosting.publisher?.logo) {
         failures.push({ page: page.pathname, reason: 'BlogPosting 缺少 publisher.logo' });
       }
+      // R12：OG 圖網址只能有一個來源，BlogPosting.image 與 og:image 必須完全相同。
+      // 不驗這條的話，[...slug].astro 的 JSON-LD image 若被人手寫回退成固定檔名
+      // `${SITE.url}/og/${post.id}.png`，這裡照樣全綠、只有線上的 JSON-LD 圖 404。
+      const ogImageTag = findMetaByAttr(page.html, 'property', 'og:image')[0];
+      const ogImageValue = ogImageTag ? (getAttr(ogImageTag, 'content') ?? '').trim() : undefined;
+      if (!blogPosting.image) {
+        failures.push({ page: page.pathname, reason: 'BlogPosting 缺少 image' });
+      } else if (ogImageValue && blogPosting.image !== ogImageValue) {
+        failures.push({
+          page: page.pathname,
+          reason: `BlogPosting.image（${blogPosting.image}）與 og:image（${ogImageValue}）不一致`,
+        });
+      }
     }
   }
 });
