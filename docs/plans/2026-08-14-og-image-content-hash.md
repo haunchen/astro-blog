@@ -28,7 +28,7 @@ Design: `docs/plans/2026-08-14-og-image-content-hash-design.md`
 
 ### Task 1: OG 圖的渲染與雜湊純模組
 
-Implements: `pre-launch-infra.md` #R4, #D12
+Implements: `pre-launch-infra.md` #R4, #S12, #D12
 
 Files:
 - Create: `scripts/lib/og-image.mjs`
@@ -40,7 +40,6 @@ Interfaces:
   - `renderOgImage({ title: string, category: string, siteName: string, fonts: Array<{name, data, weight, style}> }) => Promise<{ bytes: Buffer, hash: string }>`（`hash` 為 PNG 位元組 sha256 的前 8 碼小寫十六進位）
   - `ogRouteSlug(id: string, hash: string) => string`（`<id>.<hash>`）
   - `ogImagePath(id: string, hash: string) => string`（`/og/<id>.<hash>.png`）
-  - `OG_WIDTH = 1200`、`OG_HEIGHT = 630`
 
 Step 1: 寫失敗的測試
 
@@ -121,9 +120,10 @@ import satori from 'satori';
 import sharp from 'sharp';
 import { createHash } from 'node:crypto';
 
-/** satori 畫布尺寸。OG 規格的標準比例，同時是 og:image:width/height 宣告的值。 */
-export const OG_WIDTH = 1200;
-export const OG_HEIGHT = 630;
+// satori 畫布尺寸。與 BaseLayout 宣告的 og:image:width/height 是同一組值，但不對外匯出
+// ——BaseLayout 自己推導那兩個屬性，沒有消費端會 import 這裡的常數。
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
 
 /** 檔名裡的雜湊長度，與 build-font-css.mjs 的字型雜湊一致。 */
 const HASH_LENGTH = 8;
@@ -261,7 +261,9 @@ Run: `git add scripts/lib/og-image.mjs scripts/lib/og-image.test.mjs && git comm
 
 ### Task 2: 接上端點與三個消費端
 
-Implements: `pre-launch-infra.md` #R4, #R12, #D10, #S11, #S12
+Implements: `pre-launch-infra.md` #R4, #R12, #D10, #S11
+
+（#S12「新增文章不改變既有 OG 檔名」由 Task 1 的單元測試鎖定其成立前提——字型檔位元組變動不影響輸出——本 task 不另做端到端的新增文章重建驗證。）
 
 Files:
 - Create: `src/utils/og.ts`
@@ -271,19 +273,14 @@ Files:
 - Modify: `scripts/verify-seo.mjs`（新增一條 check）
 
 Interfaces:
-- Consumes: Task 1 的 `renderOgImage`、`ogRouteSlug`、`ogImagePath`、`OG_WIDTH`、`OG_HEIGHT`（`scripts/lib/og-image.mjs`）
+- Consumes: Task 1 的 `renderOgImage`、`ogRouteSlug`、`ogImagePath`（`scripts/lib/og-image.mjs`）
 - Produces: `getOgImage(post: Post) => Promise<{ path: string, hash: string, bytes: Buffer }>`（`src/utils/og.ts`）
 
 Step 1: 建立接線層 `src/utils/og.ts`
 
 ```ts
 import { readFile } from 'node:fs/promises';
-import {
-  OG_HEIGHT,
-  OG_WIDTH,
-  ogImagePath,
-  renderOgImage,
-} from '../../scripts/lib/og-image.mjs';
+import { ogImagePath, renderOgImage } from '../../scripts/lib/og-image.mjs';
 import { CATEGORY_LABEL, SITE } from './site-meta';
 import type { Post } from './posts';
 
@@ -338,9 +335,10 @@ export function getOgImage(post: Post): Promise<OgImage> {
   cache.set(post.id, pending);
   return pending;
 }
-
-export { OG_WIDTH, OG_HEIGHT };
 ```
+
+畫布尺寸常數留在 `og-image.mjs` 內部、不經由這裡外流：`BaseLayout.astro` 自己推導
+`og:image:width/height`，沒有消費端會 import 它們（同 plan 檔頭不回傳 width/height/type 的理由）。
 
 Step 2: 端點整檔取代 `src/pages/og/[...slug].png.ts`
 
@@ -615,7 +613,7 @@ Step 4: 改 `scripts/verify-headers.mjs` 的 `resolveOgImagePath` 函式註解
 
 Step 5: 改 `CLAUDE.md` 三處
 
-5a. 測試數量與涵蓋範圍（第 21 行起）：
+5a. Commands 段裡 `npm test` 那個 code block 的測試數量與涵蓋範圍註解：
 
 ```
 npm test           # 115 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
@@ -642,8 +640,12 @@ render the same image twice),
 
 Step 6: 確認沒有殘留的舊網址寫法
 
-Run: `grep -rn "og/\${post.id}.png\|/og/\" *+\|max-age=604800" src scripts public/_headers CLAUDE.md`
-Expected: `/og/` 相關結果為 0；`max-age=604800` 只剩 `/n8n-resources/*` 與 `/samples/*` 兩條規則（各 1 行）
+Run:
+```bash
+grep -rn '/og/${post.id}' src scripts CLAUDE.md
+grep -n 'max-age=604800' public/_headers
+```
+Expected: 第一條無輸出（三個消費端都已改走 `getOgImage`）；第二條只剩 `/n8n-resources/*` 與 `/samples/*` 兩行
 
 Step 7: 全套本機驗證
 
