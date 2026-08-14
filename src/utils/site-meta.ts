@@ -1,3 +1,10 @@
+import coverImage from '../assets/cover.webp';
+import logoImage from '../assets/logo.webp';
+
+// 正規主機。SITE.url 與下面幾個要組絕對網址的地方共用同一份字面值——物件實字內
+// 無法自我參照，分開寫兩份就會在改網域時漏掉其中一邊。
+const SITE_URL = 'https://frankchen.tw';
+
 export const SITE = {
   // 網站名：header/footer 顯示、<title> 後綴、og:site_name、JSON-LD（所有「網站」場合）
   name: '下班後的工程師筆記',
@@ -7,8 +14,12 @@ export const SITE = {
   // header/footer 副標
   subtitle: '白天上班，下班寫 Side Project。',
   description: '從只會寫程式，到跨領域學習電路、製程、架站。在這裡分享實戰經驗、踩坑紀錄與自動化模板。',
-  url: 'https://frankchen.tw',
-  logo: 'https://frankchen.tw/logo.webp',
+  url: SITE_URL,
+  // logo 與 cover 都放 src/assets/ 走 astro:assets，輸出成 /_astro/<name>.<hash>.<ext>：
+  // 檔名帶內容雜湊，內容一變網址就變，快取正確性不再依賴 Cloudflare dashboard 的
+  // Cache Rule 設定（見 docs/specs/site-pages.md D19）。這裡要的是絕對網址（JSON-LD
+  // 的 logo 欄位不吃相對路徑），故以 SITE_URL 接上 import 給的雜湊路徑。
+  logo: `${SITE_URL}${logoImage.src}`,
   email: 'frank@frankchen.tw',
   // <meta name="theme-color">：對齊 global.css 的 --color-bg-primary，行動裝置網址列同色
   themeColor: '#0f172a',
@@ -31,6 +42,20 @@ export const SITE = {
     // Organization.sameAs——讓搜尋引擎把 X 帳號歸到同一個實體。
     'https://x.com/frankchen_tw',
   ],
+} as const;
+
+/**
+ * og:image 的站台預設值——頁面沒有自己的縮圖時用它。
+ *
+ * width／height／type 直接取自圖檔本身而非寫死：BaseLayout 原本把這三個值寫成
+ * 1200/630/png，對約 69 個非文章頁輸出的是不實的中繼資料。改讀 import 的
+ * ImageMetadata 之後，換圖就自動跟著換，不會再有第二次漂移的機會。
+ */
+export const OG_FALLBACK = {
+  src: coverImage.src,
+  width: String(coverImage.width),
+  height: String(coverImage.height),
+  type: `image/${coverImage.format}`,
 } as const;
 
 export const CATEGORY_LABEL: Record<string, string> = {
@@ -200,7 +225,7 @@ export const HOME = {
   title: `${SITE.name}｜n8n 自動化、架站部署與 Flutter 開發實戰筆記`,
   description:
     '下班後的工程師筆記：白天上班，下班寫 Side Project。從只會寫程式，到跨領域學習電路、製程與架站，這裡分享 n8n 自動化流程、WordPress 與 Cloudflare 架站部署、Flutter App 開發與樹莓派實作的實戰經驗、踩坑紀錄，以及可直接套用的自動化模板。',
-  ogImage: '/cover.webp',
+  ogImage: OG_FALLBACK.src,
   about: {
     bio: '系統整合工程師，擁有超過 3 年的軟體開發經驗。曾領導 5 人團隊完成兩代智慧醫療模擬器的完整開發與商業化，涵蓋軟體、韌體、硬體、App 及後端系統。',
     role: '系統整合課長 @ 原妙醫學科技',

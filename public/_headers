@@ -196,13 +196,20 @@
   ! Cache-Control
   Cache-Control: public, max-age=86400
 
-/logo.webp
-  ! Cache-Control
-  Cache-Control: public, max-age=86400
-
-/cover.webp
-  ! Cache-Control
-  Cache-Control: public, max-age=86400
+# logo 與 cover 已不在這裡：兩個檔案搬進 src/assets/ 走 astro:assets，輸出成
+# /_astro/<name>.<hash>.<ext>，吃上面 /_astro/* 那條一年 immutable。這樣做的理由不是
+# 快取更久，是快取正確性不再依賴任何 dashboard 設定——2026-07-23 踩過一次：zone 的
+# Cache Rule 把瀏覽器 TTL 覆寫成一年，這兩個固定檔名的圖就此在回訪者的瀏覽器裡凍住
+# 一年，而瀏覽器快取是 Cloudflare 的 Purge Cache 清不到的（issue #35）。內容一變檔名
+# 就變之後，同樣的 zone 設定再發生一次也不會有人拿到舊圖。
+#
+# favicon.png 與 apple-touch-icon.png（上面兩條）刻意不加雜湊：瀏覽器預設行為與部分爬蟲
+# 會直接抓 /favicon.ico、/apple-touch-icon.png 這類慣例路徑而不看 HTML 的 <link>，
+# 加雜湊會讓那些消費端抓不到。這兩個檔內容也極少變動，86400 就夠。
+#
+# /og/*.png 仍是固定檔名（見上面 /og/* 那條）。那批圖由 satori 在 build 期產生，
+# 雜湊化的做法還沒定案（讀輸出位元組那條路走不通，頁面與 endpoint 在同一次 build 內
+# 渲染且無順序保證），追蹤在 issue #55。
 
 # robots.txt 與 llms.txt 原本設 86400。這兩個是「固定網址但內容會變」的檔案，
 # 一天的 TTL 代表改完之後最久要等 24 小時才會全面生效——實測踩過：改掉 robots.txt
