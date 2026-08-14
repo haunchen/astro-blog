@@ -332,6 +332,36 @@ check('每頁恰有一個非空 og:title / og:description / og:image / og:url', 
   }
 });
 
+// OG 圖網址帶內容雜湊（pre-launch-infra.md R4、R12），三個消費端（這裡的 og:image、
+// BlogPosting JSON-LD 的 image、.md 變體 frontmatter 的 image）必須算出同一個網址。
+// md 那側已由「.md 變體 frontmatter 的 image 指向存在的檔案」涵蓋，這條補上 HTML 側。
+//
+// 格式與存在性兩件事都要驗：只驗存在的話，退化回固定檔名 /og/<slug>.png 時檔案照樣
+// 存在（端點會產出它），快取正確性卻已經默默倒退回本 issue 修掉的狀態。
+const OG_HASHED_RE = /^\/og\/(.+)\.[0-9a-f]{8}\.png$/;
+
+check('文章頁的 og:image 為帶內容雜湊的檔名且檔案存在', (failures) => {
+  for (const { pathname, html } of pages) {
+    if (!articlePathnames.has(pathname)) continue;
+    const value = requireSingleTag(failures, pathname, findMetaByAttr(html, 'property', 'og:image'), 'og:image');
+    if (value === null) continue;
+    let imagePath;
+    try {
+      imagePath = decodeURIComponent(new URL(value, `${SITE_ORIGIN}/`).pathname);
+    } catch {
+      failures.push({ page: pathname, reason: `og:image 不是合法 URL：${value}` });
+      continue;
+    }
+    if (!OG_HASHED_RE.test(imagePath)) {
+      failures.push({ page: pathname, reason: `og:image 應為 /og/<slug>.<8 碼雜湊>.png，實際為 ${imagePath}` });
+      continue;
+    }
+    if (!existsSync(path.join(DIST, imagePath.replace(/^\//, '')))) {
+      failures.push({ page: pathname, reason: `og:image 指向不存在的檔案：${imagePath}` });
+    }
+  }
+});
+
 check('每頁恰有一個非空 twitter:card', (failures) => {
   for (const { pathname, html } of pages) {
     requireSingleTag(failures, pathname, findMetaByAttr(html, 'name', 'twitter:card'), 'twitter:card');

@@ -5,6 +5,7 @@ import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { loadRenderers } from 'astro:container';
 import { SITE } from '../utils/site-meta';
 import { getPublishedPosts } from '../utils/posts';
+import { getOgImage } from '../utils/og';
 import {
   buildImageUrlMap,
   rewriteImagePaths,
@@ -50,7 +51,7 @@ export const GET: APIRoute = async ({ props }) => {
     category: post.data.category,
     tags: post.data.tags,
     canonical: `${SITE.url}/${post.id}/`,
-    image: `${SITE.url}/og/${post.id}.png`,
+    image: `${SITE.url}${(await getOgImage(post)).path}`,
   });
 
   return new Response(`${frontmatter}\n\n${body}\n`, {
