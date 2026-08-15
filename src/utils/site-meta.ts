@@ -58,7 +58,10 @@ export const OG_FALLBACK = {
   type: `image/${coverImage.format}`,
 } as const;
 
-export const CATEGORY_LABEL: Record<string, string> = {
+// 短標籤：OG 圖、文章頁 badge、文章時間軸 badge 用。刻意不匯出——三個消費端一律走
+// 下方的 categoryBadgeLabel()，`?? slug` 的 fallback 才只有一份（category 是 Zod enum，
+// 那個分支實務上取不到，但取不到的分支散在三處仍然是三處要一起改）。
+const CATEGORY_BADGE_LABEL: Record<string, string> = {
   'n8n': 'n8n',
   'flutter': 'Flutter',
   'devops': 'DevOps',
@@ -66,9 +69,19 @@ export const CATEGORY_LABEL: Record<string, string> = {
   'tools': '工具',
 };
 
+/**
+ * 短標籤（'DevOps'、'Raspberry Pi'）。
+ *
+ * 與下方的 categoryLabel()（口語名稱，'架站部署'、'樹莓派'）是兩套不同的顯示名稱，
+ * 刻意分開、勿合併：這一套的字元集有預建 subset 字型撐著（scripts/subset-fonts.mjs 的
+ * CATEGORY_LABELS），合併會讓 OG 圖缺字。
+ */
+export function categoryBadgeLabel(slug: string): string {
+  return CATEGORY_BADGE_LABEL[slug] ?? slug;
+}
+
 // 導覽/列表/分類頁用的口語顯示名稱與顯示順序（單一來源）。
-// 注意：CATEGORY_LABEL（上方）保留給 OG 圖與文章頁 badge，使用預建 subset 字型，
-// 兩者刻意分開，勿合併，避免 OG subset 缺字。
+// 注意：短標籤（上方 categoryBadgeLabel）是另一套，理由見該函式註解。
 export const CATEGORIES = [
   { slug: 'n8n', label: 'n8n 自動化' },
   { slug: 'devops', label: '架站部署' },

@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import TagBadge from './TagBadge.astro';
-import { CATEGORY_LABEL } from '../utils/site-meta';
+import { categoryBadgeLabel } from '../utils/site-meta';
 
 interface Props {
   posts: CollectionEntry<'posts'>[];
@@ -36,7 +36,7 @@ const mmdd = (d: Date) =>
             <a class="timeline-link" href={`/${post.id}/`}>{post.data.title}</a>
             <span class="timeline-badge">
               <TagBadge
-                text={CATEGORY_LABEL[post.data.category] ?? post.data.category}
+                text={categoryBadgeLabel(post.data.category)}
                 href={`/category/${post.data.category}/`}
                 size="sm"
               />

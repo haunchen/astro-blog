@@ -388,18 +388,17 @@ check('每頁至少一個 JSON-LD，且皆可 JSON.parse', (failures) => {
       pageJsonLd.set(page.pathname, []);
       continue;
     }
+    // 解析失敗的區塊記進 failures（本檢查已因此紅燈）後略過，解析成功的照樣註冊——
+    // 下游檢查因此仍能對得起來的那幾塊報出各自的問題，一次紅燈看到全部而非擠牙膏。
     const parsed = [];
-    let hasError = false;
     for (const block of blocks) {
       try {
         parsed.push(JSON.parse(block));
       } catch (err) {
-        hasError = true;
         failures.push({ page: page.pathname, reason: `JSON-LD 解析失敗：${err.message}` });
       }
     }
-    if (!hasError) pageJsonLd.set(page.pathname, parsed);
-    else pageJsonLd.set(page.pathname, parsed);
+    pageJsonLd.set(page.pathname, parsed);
   }
 });
 
