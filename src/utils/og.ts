@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { ogImagePath, renderOgImage } from '../../scripts/lib/og-image.mjs';
-import { CATEGORY_LABEL, SITE } from './site-meta';
+import { categoryBadgeLabel, SITE } from './site-meta';
 import type { Post } from './posts';
 
 export interface OgImage {
@@ -27,10 +28,23 @@ const cache = new Map<string, Promise<OgImage>>();
 
 let fontsPromise: Promise<Parameters<typeof renderOgImage>[0]['fonts']> | undefined;
 
+/**
+ * 字型目錄的絕對路徑，由 astro.config.mjs 的 vite.define 在編譯期注入（理由見該處註解）。
+ *
+ * 原本是 `readFile('src/assets/og-fonts/…')`——相對於 process cwd。只有 OG 端點在用時，
+ * 「執行時 cwd 一定是 repo root」這個隱含前提從沒被檢驗過；呼叫端擴大成文章頁、.md 端點、
+ * OG 端點三處之後，任何非 repo root 的執行情境都會多兩個爆點，而且錯誤訊息只是 ENOENT，
+ * 看不出真正的原因是 cwd。
+ *
+ * 為什麼不是 `new URL('../assets/…', import.meta.url)`：本模組在 build 時會被 bundle 進
+ * dist/chunks/，那裡的 import.meta.url 指向 dist 而非原始碼位置，實測直接 ENOENT。
+ *
+ * 型別宣告在 src/env.d.ts——不能寫在這裡，理由見該檔註解。
+ */
 function getFonts() {
   return (fontsPromise ??= Promise.all([
-    readFile('src/assets/og-fonts/noto-sans-tc-subset.woff'),
-    readFile('src/assets/og-fonts/inter-bold.woff'),
+    readFile(join(__OG_FONT_DIR__, 'noto-sans-tc-subset.woff')),
+    readFile(join(__OG_FONT_DIR__, 'inter-bold.woff')),
   ]).then(([notoSansTC, inter]) => [
     { name: 'Noto Sans TC', data: notoSansTC, weight: 700, style: 'normal' },
     { name: 'Inter', data: inter, weight: 700, style: 'normal' },
@@ -44,7 +58,7 @@ export function getOgImage(post: Post): Promise<OgImage> {
   const pending = (async () => {
     const { bytes, hash } = await renderOgImage({
       title: post.data.title,
-      category: CATEGORY_LABEL[post.data.category] ?? post.data.category,
+      category: categoryBadgeLabel(post.data.category),
       siteName: SITE.name,
       fonts: await getFonts(),
     });

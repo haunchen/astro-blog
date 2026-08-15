@@ -1,10 +1,10 @@
 import type { APIRoute, GetStaticPaths } from 'astro';
-import type { CollectionEntry } from 'astro:content';
 import { render } from 'astro:content';
 import { experimental_AstroContainer as AstroContainer } from 'astro/container';
 import { loadRenderers } from 'astro:container';
 import { SITE } from '../utils/site-meta';
 import { getPublishedPosts } from '../utils/posts';
+import type { Post } from '../utils/posts';
 import { getOgImage } from '../utils/og';
 import {
   buildImageUrlMap,
@@ -30,7 +30,7 @@ function getContainer(): Promise<AstroContainer> {
 }
 
 export const GET: APIRoute = async ({ props }) => {
-  const { post } = props as { post: CollectionEntry<'posts'> };
+  const { post } = props as { post: Post };
 
   // 渲染真正的 <Content/>：內文圖經 image pipeline 解析為 /_astro/<雜湊>.webp，
   // 這是唯一拿得到「實際會被部署的那個圖片網址」的途徑（見 md-export.mjs 檔頭）。

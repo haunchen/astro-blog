@@ -116,6 +116,13 @@ Per-tag pages are excluded from the sitemap by a `filter` (low index value, dupl
 - `vite.build.cssCodeSplit: false` merges all CSS into one file — trades ~1.7 KB for 4 fewer round trips
   on the homepage. Revisit only if total CSS grows well beyond its current ~15 KB gzipped.
 - A Shiki transformer rewrites tokyo-night's comment color `#51597D` → `#7A82AB` for WCAG AA contrast.
+- `vite.define.__OG_FONT_DIR__` injects the absolute path of `src/assets/og-fonts/` at compile time,
+  because `src/utils/og.ts` has no other reliable anchor: a cwd-relative path assumes the process
+  always starts at the repo root, and `import.meta.url` resolves against `dist/chunks/` once the
+  module is bundled (verified — it fails with ENOENT). `astro.config.mjs` is not bundled, so its
+  `import.meta.url` is the one stable anchor. The ambient `declare const` must live in `src/env.d.ts`,
+  never in a `.ts` file — `define` is a textual substitution and would rewrite the declaration itself
+  into a syntax error that surfaces only as a dev-server dependency-scan failure.
 - `functions/_middleware.js` runs on every page request. `public/_routes.json` excludes
   `/_astro/`, `/fonts/`, `/og/`, `/samples/` so static assets skip the Worker. Do not add
   extension-style excludes (`/*.png`) — Cloudflare only documents greedy-prefix wildcards, and

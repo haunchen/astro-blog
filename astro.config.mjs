@@ -119,6 +119,18 @@ export default defineConfig({
   ],
   vite: {
     plugins: [tailwindcss()],
+
+    // OG 圖字型的檔案系統路徑，編譯期就釘死。
+    //
+    // src/utils/og.ts 讀這兩個 .woff，但它沒有可靠的路徑錨點可用：cwd 相對路徑（原本的
+    // 寫法）預設「一定從 repo root 起跑」，而 build 時 og.ts 會被 bundle 進 dist/chunks/，
+    // 那裡的 import.meta.url 指向 dist、不是原始碼位置（實測 ENOENT）。本檔不經 bundle，
+    // 它的 import.meta.url 是唯一兩者都不依賴的錨點，所以由這裡注入。
+    define: {
+      __OG_FONT_DIR__: JSON.stringify(
+        fileURLToPath(new URL('src/assets/og-fonts/', import.meta.url)),
+      ),
+    },
     build: {
       // 禁止 Astro 把小型 hoisted script 內聯進 HTML。全站因此 0 個 inline script，
       // CSP 的 script-src 才能收緊成 'self'（見 public/_headers）。實測把這個值改成

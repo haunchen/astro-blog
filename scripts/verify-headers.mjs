@@ -61,6 +61,24 @@ const EXPECTED_LINKS_SITE_WIDE = [
 ];
 const EXPECTED_LINKS_HOME = [...EXPECTED_LINKS_SITE_WIDE, ['/index.md', 'alternate']];
 
+/** `_headers` 給雜湊檔名資產的一年 immutable 實值（/_astro/*、/fonts/*、/og/* 三條共用）。 */
+const ONE_YEAR_IMMUTABLE = 'public, max-age=31536000, immutable';
+
+/**
+ * 一年 immutable 的 verify 函式，字型／logo／OG 圖三處共用。
+ *
+ * 釘的是實值而非「有 immutable 且 max-age 位數夠多」。舊寫法 `/max-age=\d{7,}/` 會讓
+ * `max-age=1000000`（約 11.6 天）照樣綠燈——而這幾條資產的快取正確性正是建立在
+ * 「一年」這個數量級上，差一個數量級等於守門失效。同一支腳本的靜態圖示（favicon）
+ * 早就是釘實值的，這裡沒有理由更鬆。
+ *
+ * 代價是 zone 層若把值正規化成語意相同的另一種寫法會誤報——但那正是本腳本要抓的
+ * 「線上實際值 != _headers 的意圖」，寧可報出來人工確認。
+ */
+function verifyOneYearImmutable(v) {
+  return v === ONE_YEAR_IMMUTABLE ? null : `實際為 ${v ?? '（無）'}`;
+}
+
 /**
  * 產生一個比對 Link 標頭的 verify 函式。
  *
@@ -455,8 +473,7 @@ if (fontPath.path) {
       path: fontPath.path,
       header: 'cache-control',
       name: `字型長期 immutable 快取（${fontPath.path}）`,
-      verify: (v) =>
-        v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+      verify: verifyOneYearImmutable,
     },
     // 反向斷言：Link 標頭只該掛在 HTML 頁面上。`_headers` 的 `/*/` 若因為 Cloudflare 的
     // 比對語意與文件不同而吻合過頭，站台功能完全正常、外部檢測照樣通過，只是每位讀者的
@@ -499,8 +516,7 @@ if (logoPath.path) {
     path: logoPath.path,
     header: 'cache-control',
     name: `雜湊檔名的站台圖片吃到一年 immutable（${logoPath.path}）`,
-    verify: (v) =>
-      v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+    verify: verifyOneYearImmutable,
   });
 } else {
   checks.push({ path: '/', name: '首頁可取得 logo 路徑', staticProblem: logoPath.error });
@@ -580,8 +596,7 @@ if (markdownPath.path) {
         path: ogImagePath.path,
         header: 'cache-control',
         name: `OG 圖吃到一年 immutable（${ogImagePath.path}）`,
-        verify: (v) =>
-          v?.includes('immutable') && /max-age=\d{7,}/.test(v) ? null : `實際為 ${v ?? '（無）'}`,
+        verify: verifyOneYearImmutable,
       },
     );
   } else {

@@ -8,7 +8,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import AdSide from '../components/AdSide.astro';
 import AdEnd from '../components/AdEnd.astro';
 import AdLoader from '../components/AdLoader.astro';
-import { SITE, CATEGORY_LABEL, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
+import { SITE, categoryBadgeLabel, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
 import { getPublishedPosts, getPublishedPostsByDateDesc } from '../utils/posts';
 import { getOgImage } from '../utils/og';
@@ -44,7 +44,7 @@ const relatedPosts = allPosts
   .filter((p) => p.data.category === post.data.category && p.id !== post.id)
   .slice(0, 3);
 
-const categoryLabel = CATEGORY_LABEL[post.data.category] ?? post.data.category;
+const categoryLabel = categoryBadgeLabel(post.data.category);
 
 const canonicalURL = new URL(`/${post.id}/`, SITE.url).href;
 
