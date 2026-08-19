@@ -5,7 +5,9 @@ import fs from 'node:fs/promises';
 
 const SITE_NAME = '下班後的工程師筆記';
 const TAGLINE = '白天上班，下班寫 Side Project。';
-const CATEGORY_LABELS = 'n8nFlutterDevOpsRaspberry Pi工具';
+// 短標籤（site-meta.ts 的 CATEGORY_BADGE_LABEL）逐字串接：OG 圖用的是這組字元，
+// 新增分類時漏了這裡，那幾個字在 OG 圖上會變成 tofu。
+const CATEGORY_LABELS = 'n8nFlutterDevOpsRaspberry Pi工具硬體';
 const STATIC_TEXT = `${SITE_NAME}${TAGLINE}${CATEGORY_LABELS}frankchen.tw`;
 
 const files = await glob('src/content/posts/**/*.md');

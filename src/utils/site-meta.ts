@@ -67,6 +67,7 @@ const CATEGORY_BADGE_LABEL: Record<string, string> = {
   'devops': 'DevOps',
   'raspberry-pi': 'Raspberry Pi',
   'tools': '工具',
+  'hardware': '硬體',
 };
 
 /**
@@ -88,6 +89,7 @@ export const CATEGORIES = [
   { slug: 'flutter', label: 'Flutter' },
   { slug: 'tools', label: '工具' },
   { slug: 'raspberry-pi', label: '樹莓派' },
+  { slug: 'hardware', label: '硬體維護' },
 ] as const;
 
 const CATEGORY_DISPLAY: Record<string, string> = Object.fromEntries(
