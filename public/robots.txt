@@ -76,8 +76,18 @@ Allow: /
 # 教訓：本檔案是「請求」，Cloudflare 那層是「強制」，兩者是各自獨立的清單且
 # 不會互相同步——zone 的設定也不在版控裡。改動任一邊時請一併檢查另一邊，
 # 驗證方式是直接帶該 UA 打正式站看回應碼，不要只讀這個檔案就下結論。
-# 兩份清單目前刻意不同：本檔案退出的是「訓練」（GPTBot/ClaudeBot 等），
-# Cloudflare 那邊擋的是另外 11 個冷門爬蟲，兩者的交集只有 CCBot 與 Bytespider。
+# 兩份清單刻意不同，且不對稱——2026-08-19 帶 23 個 UA 實打正式站量到的現況：
+#
+#   Cloudflare 實際 403 的只有三個：Bytespider、CCBot、Amazonbot
+#   本檔案 Disallow 的十個裡，另外七個（GPTBot、ClaudeBot、Google-Extended、
+#   meta-externalagent、Applebot-Extended、cohere-training-data-crawler、
+#   DeepSeekBot）在 zone 層是放行的，實測皆 200
+#
+# 這個不對稱是刻意保留的，不是待辦：robots.txt 對守規矩的爬蟲（OpenAI、Anthropic、
+# Google 這些）就夠了，而不守規矩的假冒者擋不掉——2026-08-13 曾加一條
+# 「檢索型 UA 且 not cf.client.bot → Managed Challenge」想擋冒充，上線十分鐘就實測
+# 證偽（cf.client.bot 對真的 Claude-User 判 false，把真 agent 一起擋死）並停用。
+# 結論是「真假 AI 爬蟲在本站無可用的判別依據」，因此不再往 zone 層補訓練型封鎖。
 User-agent: GPTBot
 Disallow: /
 
@@ -103,6 +113,17 @@ User-agent: cohere-training-data-crawler
 Disallow: /
 
 User-agent: DeepSeekBot
+Disallow: /
+
+# Amazonbot 的動機與上面幾支不同，不是「站主選擇退出訓練」而是「與 zone 層對齊」。
+# Cloudflare 自 2026-08-13 起對它回 403，而本檔案原本完全沒提到它，於是它落進最下面的
+# `User-agent: *` → Allow，變成「robots.txt 說歡迎、實際來了吃 403」——守規矩的爬蟲
+# 白跑一趟，這正是 robots.txt 該避免的事。2026-08-19 補上 Disallow 讓兩邊說同一件事。
+#
+# 注意它與 Amzn-SearchBot（上方 Allow）是兩個不同 token：後者是 Amazon 的搜尋索引用途，
+# 維持放行；Amazonbot 則被 Cloudflare 歸在封鎖那側。要改回放行的話，zone 與這裡要一起改，
+# 只改一邊就會回到現在修掉的這種矛盾。
+User-agent: Amazonbot
 Disallow: /
 
 User-agent: *
