@@ -1,5 +1,6 @@
 import coverImage from '../assets/cover.webp';
 import logoImage from '../assets/logo.webp';
+import { tagSlug } from '../../scripts/lib/tag-slug.mjs';
 
 // 正規主機。SITE.url 與下面幾個要組絕對網址的地方共用同一份字面值——物件實字內
 // 無法自我參照，分開寫兩份就會在改網域時漏掉其中一邊。
@@ -303,7 +304,7 @@ export const HEADER_NAV = [
 export const FOOTER_COLS = [
   [
     { href: '/category/n8n/', label: 'n8n 自動化' },
-    { href: `/tag/${encodeURIComponent('模板')}/`, label: 'n8n 模板' },
+    { href: `/tag/${encodeURIComponent(tagSlug('模板'))}/`, label: 'n8n 模板' },
     { href: '/category/devops/', label: 'WordPress 架站' },
     { href: '/category/flutter/', label: 'App 應用開發' },
   ],

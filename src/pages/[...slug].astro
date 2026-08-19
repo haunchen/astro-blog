@@ -12,6 +12,7 @@ import { SITE, categoryBadgeLabel, PUBLISHER_JSONLD, pageTitle } from '../utils/
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
 import { getPublishedPosts, getPublishedPostsByDateDesc } from '../utils/posts';
 import { getOgImage } from '../utils/og';
+import { tagSlug } from '../../scripts/lib/tag-slug.mjs';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
@@ -160,7 +161,7 @@ const crumbs = [
             <ul class="article-tags-list">
               {post.data.tags.map((tag) => (
                 <li>
-                  <TagBadge text={tag} href={`/tag/${encodeURIComponent(tag)}/`} size="sm" />
+                  <TagBadge text={tag} href={`/tag/${encodeURIComponent(tagSlug(tag))}/`} size="sm" />
                 </li>
               ))}
             </ul>
