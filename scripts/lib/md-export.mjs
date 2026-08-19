@@ -26,7 +26,12 @@ const RELATIVE_IMAGE_RE = /\.\/images\/([^\s)"']+)/g;
  * 字串一律走 JSON.stringify：站上標題大量使用全形冒號與引號，裸寫進 YAML 會在
  * 冒號處解析失敗；JSON 的雙引號字串恰好是合法的 YAML 雙引號純量，逃逸規則相容。
  *
- * @param {Record<string, string | string[] | Date | undefined>} fields
+ * 布林同樣走 JSON.stringify，輸出的是不帶引號的 `true`/`false`——YAML 的布林純量。
+ * 這條是 vault-post.mjs 的 `draft` 欄位在用的（第二個消費端），有測試鎖住：
+ * 若哪天為了別的需求把字串分支改成「一律加引號」，`draft: "false"` 在 YAML 裡是字串真值，
+ * 草稿會整批上站而且沒有任何一支現有的驗證腳本會抓到。
+ *
+ * @param {Record<string, string | string[] | Date | boolean | undefined>} fields
  * @returns {string}
  */
 export function toYamlFrontmatter(fields) {

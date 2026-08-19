@@ -21,10 +21,13 @@
 
 ## 自訂網域
 
+> **已完成（2026-07-22）**：cutover 已執行，正式站即 `https://frankchen.tw`（apex）。
+> 以下為當時的判斷紀錄，保留脈絡用。
+
 frankchen.tw 自訂網域**先不切**。理由：
 - 現有 frankchen.tw 在 WordPress / Zeabur 服務 31 篇舊文章
 - 直接切過去等於老文章瞬間 404
-- 等 `scripts/sync-from-vault.mjs` 跑完 35 篇 WordPress 文章 + 寫好 `public/_redirects` 後再 cutover
+- 等 `scripts/migrate-wp.mjs` 跑完 35 篇 WordPress 文章 + 寫好 `public/_redirects` 後再 cutover
 
 ## 部署後驗證
 
@@ -89,8 +92,14 @@ OG 圖預覽驗證：
 
 ## 後續
 
+> **已完成（2026-07-22）**：四項全數執行完畢，Zeabur／WordPress 已退役。保留為當時的檢查清單。
+>
+> 注意 `sync-from-vault.mjs` 不是做這件事的腳本——WordPress 那 35 篇是 `migrate-wp.mjs`（WXR 匯入）
+> 搬的。`sync-from-vault.mjs` 是 vault→blog 的發布管線，2026-08-19 才實作，見
+> `docs/plans/2026-08-19-sync-from-vault-design.md`。
+
 frankchen.tw cutover 屬另一個 milestone，需要：
-1. `sync-from-vault.mjs` 把 35 篇 WordPress 文章搬進 Astro
+1. `migrate-wp.mjs` 把 35 篇 WordPress 文章搬進 Astro
 2. `public/_redirects` 含舊 slug 對新 slug 的 301
 3. WordPress 端關閉或設好 301
 4. CF Pages 加入自訂網域、DNS 切換

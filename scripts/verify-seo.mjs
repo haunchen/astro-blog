@@ -963,6 +963,31 @@ check('_redirects 指向 /_astro/ 的目標都存在於建置產物', (failures)
   }
 });
 
+// 同一個取捨的第二個實例：標籤網址 slugify（2026-08-19）為了不讓 2026-07-22 起用過的
+// 那批網址 404，把 37 條「舊標籤網址 → 新標籤網址」寫進 _redirects。
+//
+// 標籤是作者在 frontmatter 裡隨手加的，刪掉最後一篇帶某標籤的文章、或只是改個寫法，
+// 那個標籤頁就沒了，而指向它的 301 會安靜地變成「301 到 404」——比直接 404 更糟，
+// 因為搜尋引擎會把權重轉過去才發現目標不存在。
+check('_redirects 指向 /tag/ 的目標都存在於建置產物', (failures) => {
+  const redirectsPath = path.join(DIST, '_redirects');
+  if (!existsSync(redirectsPath)) {
+    failures.push({ page: '/_redirects', reason: '檔案不存在' });
+    return;
+  }
+  for (const line of readFileSync(redirectsPath, 'utf8').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const [source, target] = trimmed.split(/\s+/);
+    if (!target?.startsWith('/tag/')) continue;
+    // 標籤含中文時網址是 percent-encoded，而 dist 裡的目錄名是原文，比對前要解碼。
+    const dir = decodeURIComponent(target).replace(/^\//, '').replace(/\/$/, '');
+    if (!existsSync(path.join(DIST, dir, 'index.html'))) {
+      failures.push({ page: '/_redirects', reason: `301 目標不存在：${target}（來源 ${source}）` });
+    }
+  }
+});
+
 // ---------------------------------------------------------------------------
 // 輸出報告
 // ---------------------------------------------------------------------------

@@ -48,3 +48,59 @@
 # 忘了改會在 PR 的 verify:seo 當場紅燈，不會靜默變成 404。
 /cover.webp    /_astro/cover.BWTGuh95.webp             301
 /logo.webp     /_astro/logo.Bn6CCIKv.webp              301
+
+# 標籤網址 slugify（2026-08-19）。[tag] 路由原本直接拿標籤原文當路徑，產出 /tag/AI/、
+# /tag/Node.js/、/tag/Google%20Cloud/ 這種網址；現在一律走 scripts/lib/tag-slug.mjs 的
+# 規則（小寫、點號撇號移除、其餘符號轉連字號），對齊 WordPress 的 sanitize_title。
+#
+# 這一段導的是「2026-07-22 到 2026-08-19 之間的 astro 站網址」，不是 WP 舊網址——
+# WP 那 38 個本來就是 slugify 後的形式，改完會自己命中，不需要也不該再寫一條。
+# 實測過 CF Pages 的路徑比對區分大小寫（/tag/AI/ 200、/tag/ai/ 404），所以這些
+# 大小寫差異的規則不會導向自己。
+#
+# 中文標籤不在此列：WP 存的是 percent-encoded 形式，與現在輸出的原文是同一個網址，
+# 兩種 hex 大小寫實測皆 200，本來就通。只有「模板」因為 WP 人工指定英文 slug 而例外。
+#
+# verify-seo 有一條斷言擋著這段的目標必須存在於建置產物——標籤被刪或改名時
+# 會在 PR 當場紅燈，不會靜默變成「301 到 404」。
+/tag/%E6%A8%A1%E6%9D%BF/              /tag/template/                        301
+/tag/AI/                              /tag/ai/                              301
+/tag/API/                             /tag/api/                             301
+/tag/Automation/                      /tag/automation/                      301
+/tag/Cache/                           /tag/cache/                           301
+/tag/Canva/                           /tag/canva/                           301
+/tag/Certbot/                         /tag/certbot/                         301
+/tag/Cloudflare/                      /tag/cloudflare/                      301
+/tag/Credential/                      /tag/credential/                      301
+/tag/DataTable/                       /tag/datatable/                       301
+/tag/Docker/                          /tag/docker/                          301
+/tag/Firebase/                        /tag/firebase/                        301
+/tag/Flutter/                         /tag/flutter/                         301
+/tag/Gemini/                          /tag/gemini/                          301
+/tag/Google%20Cloud/                  /tag/google-cloud/                    301
+/tag/GooglePlay/                      /tag/googleplay/                      301
+/tag/Instagram/                       /tag/instagram/                       301
+/tag/Let's%20Encrypt/                 /tag/lets-encrypt/                    301
+/tag/LineBot/                         /tag/linebot/                         301
+/tag/NFC%E9%96%80%E7%A6%81%E5%8D%A1/  /tag/nfc%E9%96%80%E7%A6%81%E5%8D%A1/  301
+/tag/NFS3/                            /tag/nfs3/                            301
+/tag/NFS4/                            /tag/nfs4/                            301
+/tag/Nginx/                           /tag/nginx/                           301
+/tag/Node.js/                         /tag/nodejs/                          301
+/tag/Notion/                          /tag/notion/                          301
+/tag/RaspberryPi/                     /tag/raspberrypi/                     301
+/tag/Samsung/                         /tag/samsung/                         301
+/tag/Secure/                          /tag/secure/                          301
+/tag/SEO/                             /tag/seo/                             301
+/tag/SSL/                             /tag/ssl/                             301
+/tag/Telegram/                        /tag/telegram/                        301
+/tag/Ubuntu/                          /tag/ubuntu/                          301
+/tag/v0.dev/                          /tag/v0-dev/                          301
+/tag/Vercel/                          /tag/vercel/                          301
+/tag/Wallet/                          /tag/wallet/                          301
+/tag/WordPress/                       /tag/wordpress/                       301
+/tag/Zeabur/                          /tag/zeabur/                          301
+
+# WP 的英文標籤 template 當年被中文「模板」佔走 slug 而變成 template-2，repo 沒有
+# 對應標籤故無法自然復活。導到語意相同的「模板」頁（其 slug 即 template）。
+/tag/template-2/  /tag/template/  301

@@ -24,6 +24,13 @@ test('toYamlFrontmatter：Date 輸出為純日期，陣列輸出為 flow sequenc
   assert.equal(yaml, '---\ndate: 2026-01-04\ntags: ["n8n", "Telegram"]\n---');
 });
 
+test('toYamlFrontmatter：布林輸出不帶引號的 YAML 布林純量', () => {
+  // vault-post.mjs 的 draft 欄位靠這條：`draft: "false"` 在 YAML 裡是字串、真值為 true，
+  // 一旦寫成帶引號的形式，草稿會整批上站而現有驗證腳本都抓不到。
+  assert.equal(toYamlFrontmatter({ draft: false }), '---\ndraft: false\n---');
+  assert.equal(toYamlFrontmatter({ draft: true }), '---\ndraft: true\n---');
+});
+
 test('toYamlFrontmatter：undefined 欄位整行略過，空陣列仍輸出', () => {
   const yaml = toYamlFrontmatter({ title: 'a', updated: undefined, tags: [] });
   assert.equal(yaml, '---\ntitle: "a"\ntags: []\n---');

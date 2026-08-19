@@ -10,13 +10,17 @@ import {
   pageTitle,
 } from '../../utils/site-meta';
 import { getPublishedPosts } from '../../utils/posts';
+import { tagSlug, assertNoTagSlugCollisions } from '../../../scripts/lib/tag-slug.mjs';
 
 export async function getStaticPaths() {
   const posts = await getPublishedPosts();
   const tagSet = new Set<string>();
   for (const p of posts) for (const t of p.data.tags) tagSet.add(t);
+  // 撞名時直接讓 build 失敗：兩個標籤共用一個 slug 的表現是其中一頁靜默消失，
+  // 沒有任何驗證腳本抓得到（個別標籤頁不進 sitemap）。
+  assertNoTagSlugCollisions(tagSet);
   return [...tagSet].map((tag) => ({
-    params: { tag },
+    params: { tag: tagSlug(tag) },
     props: { tag, tagPosts: posts.filter((p) => p.data.tags.includes(tag)) },
   }));
 }
@@ -62,7 +66,7 @@ const description = listPageDescription({
     collectionPageJsonLd({
       name: pageName,
       description,
-      path: `/tag/${encodeURIComponent(tag)}/`,
+      path: `/tag/${encodeURIComponent(tagSlug(tag))}/`,
       items: listed,
     }),
   ]}

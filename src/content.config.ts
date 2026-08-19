@@ -9,7 +9,7 @@ const posts = defineCollection({
       date: z.date(),
       updated: z.date().optional(),
       description: z.string().max(160, '描述不可超過 160 字（SEO 限制）'),
-      category: z.enum(['n8n', 'flutter', 'devops', 'raspberry-pi', 'tools']),
+      category: z.enum(['n8n', 'flutter', 'devops', 'raspberry-pi', 'tools', 'hardware']),
       tags: z.array(z.string()).default([]),
       cover: image(),
       draft: z.boolean().default(false),

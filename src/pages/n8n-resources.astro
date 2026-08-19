@@ -5,6 +5,7 @@ import ResourceCard from '../components/ResourceCard.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
 import { pageTitle } from '../utils/site-meta';
 import { getPublishedPosts } from '../utils/posts';
+import { tagSlug } from '../../scripts/lib/tag-slug.mjs';
 import {
   LEARNING_RESOURCES,
   ADVANCED_APPS,
@@ -73,7 +74,7 @@ const crumbs = [{ name: '首頁', href: '/' }];
       <section class="n8n-section">
         <div class="n8n-section-head">
           <h2 class="n8n-section-title">模板分享</h2>
-          <a href={`/tag/${encodeURIComponent('模板')}/`} class="n8n-section-link">更多模板 &rarr;</a>
+          <a href={`/tag/${encodeURIComponent(tagSlug('模板'))}/`} class="n8n-section-link">更多模板 &rarr;</a>
         </div>
         <div class="article-grid">
           {templatePosts.map((post) => (
