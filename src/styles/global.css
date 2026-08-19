@@ -38,7 +38,12 @@
   --radius-md: 4px;
   --radius-full: 9999px;
 
-  /* Font families */
+  /* Font families
+     拉丁字（Merriweather / Inter / JetBrains Mono）由 scripts/build-font-css.mjs 自 host。
+     中文沒有 webfont，由系統字型渲染——'Noto Serif TC' / 'Noto Sans TC' 留在堆疊裡是
+     「讀者系統裝了就用」的意思，站上不供應這兩個家族。2026-08-19 前它們曾對應到 88 片
+     自 host 分片，但因 @fontsource-variable 的家族名帶 'Variable' 後綴而從未命中，
+     那些分片沒有任何瀏覽器下載過。改動這兩行前先讀 build-font-css.mjs 的檔頭說明。 */
   --font-serif: 'Merriweather', 'Noto Serif TC', Georgia, serif;
   --font-sans: 'Inter', 'Noto Sans TC', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;

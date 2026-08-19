@@ -16,6 +16,21 @@
  * 產出（皆為 build artifact，已列入 .gitignore）：
  *   public/fonts/*.woff2
  *   src/styles/fonts.css
+ *
+ * ## 為什麼沒有 CJK（2026-08-19）
+ *
+ * 這支腳本原本也處理 Noto Serif TC / Noto Sans TC，產出 88 片、1.26MB。那些分片
+ * **從來沒有被任何瀏覽器下載過**：@fontsource-variable 的家族名帶 'Variable' 後綴
+ * （'Noto Sans TC Variable'），而 global.css 的 --font-serif/--font-sans 寫的是不帶
+ * 後綴的 'Noto Sans TC'，全站沒有一個元素引用得到那個家族名。沒有元素引用 = 瀏覽器
+ * 不下載，中文一直是系統字型在渲染。
+ *
+ * 因此移除 CJK 對讀者是零視覺變化——他們看到的本來就是系統字型。省下的是 build 時間、
+ * 88 個部署檔案，以及一份會讓人誤以為站上有中文 webfont 的假象。
+ *
+ * 這個判斷的前提是「本站接受中文由系統字型渲染」。要改成真的用 Noto，正確做法是
+ * 把 CJK 加回 FAMILIES **並且**同步改 global.css 的家族名，兩件事缺一不可——
+ * 只做其中一件就會回到 2026-08-19 之前的狀態：付出成本、拿不到效果。
  */
 import { glob } from 'glob';
 import fs from 'node:fs/promises';
@@ -38,8 +53,9 @@ const FAMILIES = [
   { pkg: '@fontsource/inter', css: '700.css' },
   { pkg: '@fontsource/jetbrains-mono', css: '400.css' },
   { pkg: '@fontsource/jetbrains-mono', css: '500.css' },
-  { pkg: '@fontsource-variable/noto-serif-tc', css: 'index.css' },
-  { pkg: '@fontsource-variable/noto-sans-tc', css: 'index.css' },
+  // CJK 兩支已於 2026-08-19 移除，中文改由系統字型渲染（讀者看到的樣子沒有改變——
+  // 見下方「為什麼沒有 CJK」）。要加回來的話，記得 @fontsource-variable 的家族名帶
+  // 'Variable' 後綴，必須與 global.css 的 --font-serif/--font-sans 對齊，否則又是死資產。
 ];
 
 /**
