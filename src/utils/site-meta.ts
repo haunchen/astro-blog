@@ -51,11 +51,11 @@ export const SITE = {
  * 網域取自 SITE.url 而非再寫一份字面值：這支的 `q` 參數決定讀者會把「哪個站」設為偏好來源，
  * 寫死的話改站台網域時不會有任何東西報錯，只會靜靜指向舊網域。
  *
- * UTM 不是給 Google 看的——它進不了我們的報表。它是給本站 GA4 用的：增強型評估的外連點擊
- * 事件會記下完整的 link_url，`utm_content` 因此成為分辨版位的唯一依據。所以 placement 必須
- * 跟元件的放置點同值，不要各寫各的。
+ * UTM 純粹是為了自救：讀者點擊後跳轉到 Google 的網域，那一端的 referral 統計回不到我們
+ * 手上，能量測點擊只能靠本站 GA4 的外連點擊事件自己記下完整 link_url，`utm_content` 因此
+ * 成為分辨版位的唯一依據。所以 placement 必須跟元件的放置點同值，不要各寫各的。
  */
-export function preferredSourceUrl(placement: string): string {
+export function preferredSourceUrl(placement: 'aside' | 'footer'): string {
   const host = new URL(SITE.url).hostname;
   const url = new URL('https://www.google.com/preferences/source');
   url.searchParams.set('q', host);

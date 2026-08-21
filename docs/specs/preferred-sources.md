@@ -21,8 +21,7 @@ last_modified: 2026-08-21
 ### R2: 可重用元件，放置點決定形態
 - **Level**: MUST
 - **Description**: 站內所有偏好來源入口由同一個元件輸出，以「放置點」為唯一參數。放置點同時
-  決定外觀形態、UTM 的版位標記、以及 Google 標誌用四色還是單色。不得出現形態與版位標記各自
-  設定而可能對不上的介面。
+  決定外觀形態、UTM 的版位標記。不得出現形態與版位標記各自設定而可能對不上的介面。
 
 ### R3: 兩個放置點與出現範圍
 - **Level**: MUST
@@ -40,8 +39,8 @@ last_modified: 2026-08-21
 - **Description**: 站台自身的所有色值取自 `global.css` 既有的 design token，不新增色票。品牌
   色半透明宣告與濃度一律遵守 `docs/specs/design-system.md` R1／R2。唯一
   例外是 Google 標誌的四個品牌色——那是外部商標的固定色，寫在標誌本身、不進 design token。
-  footer 那顆的尺寸與間距跟隨同列社群圖示，hover 因無 `currentColor` 可換而改以透明度變化
-  對齊「hover 變亮」的語意。
+  footer 那顆的尺寸與間距跟隨同列社群圖示，標誌本體全程原色、不加任何透明度，hover 回饋
+  改由外層淡橘底承擔。
 
 ### R6: 高對比模式下標誌不失真
 - **Level**: SHOULD
@@ -93,14 +92,14 @@ last_modified: 2026-08-21
 ### S5: footer 圖示列的 hover
 - **Given**: footer 社群圖示列，五顆單色圖示加尾端一顆四色 Google 標誌
 - **When**: 滑鼠移入該標誌
-- **Then**: 標誌整體變亮，四個品牌色維持原樣不被替換，尺寸與位置不變
+- **Then**: 標誌後方浮現淡橘底，標誌本身（四個品牌色、尺寸、位置）完全不變
 - **Implements**: #R5, #R9
 
 ## Design Decisions
 
 ### D1: 以放置點命名 prop，而非以外觀命名
 - **Decision**: 元件唯一的 prop 是放置點（`aside` / `footer`），不是外觀形態
-- **Rationale**: 放置點同時決定形態、UTM 版位標記與標誌配色三件事。若拆成外觀 prop 加版位
+- **Rationale**: 放置點同時決定形態與 UTM 版位標記兩件事。若拆成外觀 prop 加版位
   prop，就可能出現形態對了但版位標錯的組合，而這種漂移不會有任何東西擋得下來
 - **Date**: 2026-08-21
 

@@ -61,9 +61,9 @@ Google Preferred Sources（偏好來源）是讀者端主動把某個站標成�
 
 `src/components/PreferredSource.astro`，單一元件，一個 prop：`placement: 'aside' | 'footer'`。
 
-刻意用放置點命名而非外觀命名（不是 `variant: 'pill' | 'icon'`）：這個 prop 同時決定外觀形態、
-`utm_content` 的值、以及要用四色還是單色 G，三者一一對應，用同一個名字就不會出現「形態對了
-但 UTM 標錯版位」的漂移。只有兩個消費端，不預先拆成兩個 prop；日後同一形態用到第三處再拆。
+刻意用放置點命名而非外觀命名（不是 `variant: 'pill' | 'icon'`）：這個 prop 同時決定外觀形態
+與 `utm_content` 的值，兩者一一對應，用同一個名字就不會出現「形態對了但 UTM 標錯版位」的
+漂移。只有兩個消費端，不預先拆成兩個 prop；日後同一形態用到第三處再拆。
 
 ### 網址組裝（SSOT）
 

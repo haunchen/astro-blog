@@ -65,16 +65,21 @@ const G_LOGO = '<path d="M23 12.245c0-.905-.075-1.565-.236-2.25h-10.54v4.083h6.1
     background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
   }
 
-  /* footer：排在社群圖示列尾端，尺寸與間距跟隨那一列。旁邊五顆是 currentColor 的單色圖示、
-     hover 由 muted 轉白；四色標誌沒有 currentColor 可換，改用透明度對齊「hover 變亮」。 */
+  /* footer：排在社群圖示列尾端。旁邊五顆是 currentColor 的單色圖示、hover 由 muted 轉白；
+     四色標誌不能換色也不能改變它的渲染值（spec R9「不改色」），所以 hover 回饋改由外層
+     淡橘底承擔，標誌本體全程原色不做任何透明度調整。padding 撐出背景的呼吸空間，等量負
+     margin 把佔位盒收回 20x20，讓這一列的視覺間距仍是 .social-icons 的 14px。 */
   .ps-icon {
     display: inline-flex;
-    opacity: 0.75;
-    transition: opacity 300ms steps(3);
+    padding: 4px;
+    margin: -4px;
+    border-radius: var(--radius-full);
+    transition: background-color 300ms steps(3);
   }
 
   .ps-icon:hover {
-    opacity: 1;
+    background-color: rgba(251, 146, 60, 0.1);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
   }
 
   /* Windows 高對比模式預設會把 SVG 塗成系統色，四色標誌會整個失去辨識。
