@@ -1,0 +1,85 @@
+---
+import { preferredSourceUrl } from '../utils/site-meta';
+
+interface Props {
+  /**
+   * 放置點。同時決定三件事：外觀形態、UTM 的 utm_content 版位標記、以及在哪一列排版。
+   * 刻意不拆成「外觀」與「版位」兩個 prop——拆了就可能出現形態對了但版位標錯的組合，
+   * 而那種漂移沒有任何自動檢查擋得下來（見 docs/specs/preferred-sources.md D1）。
+   */
+  placement: 'aside' | 'footer';
+}
+
+const { placement } = Astro.props;
+const href = preferredSourceUrl(placement);
+
+// footer 那顆只有圖示、沒有可見文字，無障礙名稱要自己把話說完整。
+const A11Y_LABEL = '把本站設為 Google 偏好來源';
+
+/**
+ * Google 四色標誌，24x24 viewBox 的 path inner-markup（寫法沿用 SocialIcons.astro 的
+ * set:html 慣例）。fill 是 Google 的品牌色，刻意不換成 currentColor、也不進 design token
+ * ——那是外部商標的固定色，原樣使用是使用條件的一部分（見 spec R9）。
+ */
+const G_LOGO = '<path d="M23 12.245c0-.905-.075-1.565-.236-2.25h-10.54v4.083h6.186c-.124 1.014-.797 2.542-2.294 3.569l-.021.136 3.332 2.53.23.022C21.779 18.417 23 15.593 23 12.245z" fill="#4285F4"/><path d="M12.225 23c3.03 0 5.574-.978 7.433-2.665l-3.542-2.688c-.948.648-2.22 1.1-3.891 1.1a6.745 6.745 0 01-6.386-4.572l-.132.011-3.465 2.628-.045.124C4.043 20.531 7.835 23 12.225 23z" fill="#34A853"/><path d="M5.84 14.175A6.65 6.65 0 015.463 12c0-.758.138-1.491.361-2.175l-.006-.147-3.508-2.67-.115.054A10.831 10.831 0 001 12c0 1.772.436 3.447 1.197 4.938l3.642-2.763z" fill="#FBBC05"/><path d="M12.225 5.253c2.108 0 3.529.892 4.34 1.638l3.167-3.031C17.787 2.088 15.255 1 12.225 1 7.834 1 4.043 3.469 2.197 7.062l3.63 2.763a6.77 6.77 0 016.398-4.572z" fill="#EB4335"/>';
+---
+
+{placement === 'aside' ? (
+  <a class="ps-pill" href={href} target="_blank" rel="noopener noreferrer">
+    <svg class="ps-logo" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" set:html={G_LOGO} />
+    <span>新增至偏好來源</span>
+  </a>
+) : (
+  <a class="ps-icon" href={href} target="_blank" rel="noopener noreferrer" aria-label={A11Y_LABEL}>
+    <svg class="ps-logo" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" set:html={G_LOGO} />
+  </a>
+)}
+
+<style>
+  /* 側邊欄：滿寬的橘框 pill。作法沿用站上既有的橘框按鈕 .community-btn
+     （n8n-resources.astro）——transition 加 :hover 直接改 border-color，而不是
+     einkRefresh：那個動畫會把 border-color 掃到 --color-border-strong（灰），
+     套在橘框上等於把橘色蓋掉。 */
+  .ps-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-text-primary);
+    text-decoration: none;
+    border: 1px solid rgba(251, 146, 60, 0.4);
+    border: 1px solid color-mix(in srgb, var(--color-brand-orange) 40%, transparent);
+    border-radius: var(--radius-full);
+    transition: border-color 300ms steps(3), background-color 300ms steps(3);
+  }
+
+  .ps-pill:hover {
+    border-color: var(--color-brand-orange);
+    background-color: rgba(251, 146, 60, 0.1);
+    background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+  }
+
+  /* footer：排在社群圖示列尾端，尺寸與間距跟隨那一列。旁邊五顆是 currentColor 的單色圖示、
+     hover 由 muted 轉白；四色標誌沒有 currentColor 可換，改用透明度對齊「hover 變亮」。 */
+  .ps-icon {
+    display: inline-flex;
+    opacity: 0.75;
+    transition: opacity 300ms steps(3);
+  }
+
+  .ps-icon:hover {
+    opacity: 1;
+  }
+
+  /* Windows 高對比模式預設會把 SVG 塗成系統色，四色標誌會整個失去辨識。
+     標誌保留原色，其餘元素照系統配色走。 */
+  .ps-logo {
+    forced-color-adjust: none;
+  }
+</style>
