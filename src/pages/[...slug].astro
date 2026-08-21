@@ -8,6 +8,7 @@ import Breadcrumbs from '../components/Breadcrumbs.astro';
 import AdSide from '../components/AdSide.astro';
 import AdEnd from '../components/AdEnd.astro';
 import AdLoader from '../components/AdLoader.astro';
+import PreferredSource from '../components/PreferredSource.astro';
 import { SITE, categoryBadgeLabel, PUBLISHER_JSONLD, pageTitle } from '../utils/site-meta';
 import { ARTICLE_COVER_SIZES, CARD_IMAGE_WIDTHS, toPreloadImage } from '../utils/images';
 import { getPublishedPosts, getPublishedPostsByDateDesc } from '../utils/posts';
@@ -187,6 +188,14 @@ const crumbs = [
 
       <!-- Aside -->
       <aside class="layout-aside">
+        <!-- Google 偏好來源（docs/specs/preferred-sources.md R3）。放在作者區塊之前，
+             側邊欄最上緣是視線落點。注意 .layout-aside 在 1024px 以下整個不渲染
+             （見本檔 @media (max-width: 1024px)），手機與平板讀者看到的是 footer
+             那顆——所以 footer 版必須全站出現，不能排除文章頁。 -->
+        <div class="aside-widget">
+          <PreferredSource placement="aside" />
+        </div>
+
         <!-- Author widget -->
         <div class="aside-widget">
           <div class="aside-widget-title">作者</div>
