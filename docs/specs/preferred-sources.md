@@ -37,9 +37,11 @@ last_modified: 2026-08-21
 
 ### R5: 沿用既有 design token，不引入新色
 - **Level**: MUST
-- **Description**: 所有色值取自 `global.css` 既有的 design token，不新增色票。品牌色半透明
-  宣告、濃度、hover 驅動方式一律遵守 `docs/specs/design-system.md` R1／R2／R3。footer 那顆
-  的圖示樣式與同列社群圖示同一套規則（`currentColor`、muted → hover 轉白）。
+- **Description**: 站台自身的所有色值取自 `global.css` 既有的 design token，不新增色票。品牌
+  色半透明宣告與濃度一律遵守 `docs/specs/design-system.md` R1／R2。唯一
+  例外是 Google 標誌的四個品牌色——那是外部商標的固定色，寫在標誌本身、不進 design token。
+  footer 那顆的尺寸與間距跟隨同列社群圖示，hover 因無 `currentColor` 可換而改以透明度變化
+  對齊「hover 變亮」的語意。
 
 ### R6: 高對比模式下標誌不失真
 - **Level**: SHOULD
@@ -56,11 +58,10 @@ last_modified: 2026-08-21
 - **Description**: 此功能不修改 `robots.txt`、`llms.txt`、任何 JSON-LD，也不修改 `verify-*`
   腳本的檢查範圍或白名單。偏好來源是讀者端行為，不需要結構化資料支援。
 
-### R9: 標誌素材取自官方，取不到則退回文字
+### R9: 標誌原樣使用，不得變造
 - **Level**: MUST
-- **Description**: Google 標誌一律使用官方按鈕素材提供的向量圖，不得憑記憶重繪後宣稱為官方
-  版本。素材取不到、或商標規範不允許該用法（例如單色版）時，該放置點退回無標誌的純文字連結，
-  不自行變造標誌。
+- **Description**: 兩個放置點皆使用四色 Google 標誌，且一律原樣呈現——不改色、不改比例、不加
+  外框或陰影、不與本站標誌組合成共同品牌。標誌僅可整體縮放。實作不得憑記憶重繪標誌路徑。
 
 ## Scenarios
 
@@ -89,11 +90,11 @@ last_modified: 2026-08-21
 - **Then**: 按鈕邊框與文字跟隨系統配色且可辨讀，四色 Google 標誌維持原色
 - **Implements**: #R6
 
-### S5: 官方標誌素材取不到
-- **Given**: 實作時無法取得官方按鈕素材的向量圖，或查出該用法不符商標規範
-- **When**: 建置該放置點
-- **Then**: 輸出無標誌的純文字連結，其餘行為（網址、UTM、外連屬性、樣式）不變
-- **Implements**: #R9
+### S5: footer 圖示列的 hover
+- **Given**: footer 社群圖示列，五顆單色圖示加尾端一顆四色 Google 標誌
+- **When**: 滑鼠移入該標誌
+- **Then**: 標誌整體變亮，四個品牌色維持原樣不被替換，尺寸與位置不變
+- **Implements**: #R5, #R9
 
 ## Design Decisions
 
@@ -141,6 +142,16 @@ last_modified: 2026-08-21
 - **Rationale**: 需求明確要求不碰 `verify-*`；而網址組裝依 SSOT 規定必須放 `site-meta.ts`，
   該路徑不在 `npm test` 的涵蓋範圍（只跑 `scripts/lib/`）。結果是改壞 UTM 或網域時 CI 仍會
   全綠。這是刻意的取捨，記錄在此以免日後誤以為有防線
+- **Date**: 2026-08-21
+
+### D8: 採用四色 Google 標誌，商標風險已知並接受
+- **Decision**: 兩個放置點都用四色 Google 標誌，標誌 SVG 由站方提供，不使用官方素材包
+- **Rationale**: 官方素材包（2026-08-21 下載確認）只有 17 個語系的 PNG，沒有中文、沒有 SVG，
+  英文暗色版是 676×213 的黑色 pill，既無法用於中文站也無法融入站台風格；官方 standard
+  JavaScript button 雖能自動翻譯成中文，但需載入 Google script 並放寬 CSP，而 CSP 寫死在
+  `verify-headers.mjs`，動它違反「不碰 `verify-*`」的需求。Google 品牌規範載明不得將 G 用於
+  商業行銷素材，此 CTA 是否落入該範圍有解釋空間但方向偏向「是」。風險已完整說明，站方決定
+  採用並自行承擔
 - **Date**: 2026-08-21
 
 ## Open Questions

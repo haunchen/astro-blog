@@ -52,7 +52,7 @@ Google Preferred Sources（偏好來源）是讀者端主動把某個站標成�
 | 位置 | 形態 | 出現範圍 |
 |------|------|----------|
 | 文章頁側邊欄，作者 widget 之前（`[...slug].astro:189`） | 滿寬 240px pill，四色 G | 文章頁，>1024px |
-| Footer 社群圖示列尾端（`Footer.astro` 的 `.footer-id`） | 20×20 單色 G 圖示 | 全站每一頁 |
+| Footer 社群圖示列尾端（`Footer.astro` 的 `.footer-id`） | 20×20 四色 G 圖示 | 全站每一頁 |
 
 桌機文章頁會同時出現兩顆。兩者形態差很多、位置差很遠，不會讀成重複；換來的是手機讀者也有
 入口。
@@ -110,19 +110,31 @@ repo 內零筆 `utm_`，確實沒有既有慣例，這組是新訂的：
 的作用是替一段內容命名（「作者」「相關文章」），一顆自帶文字的按鈕不需要再被命名一次；一併
 省掉在元件裡複製那 12 行小標 CSS 的成本（Astro scoped style 無法跨檔共用）。
 
-品牌橘的用法照 `docs/specs/design-system.md`：
+品牌橘的用法照 `docs/specs/design-system.md`，並沿用站上既有的橘框按鈕 `.community-btn`
+（`n8n-resources.astro`）那一套：
 
-- 邊框 40%、hover 背景 10%（R2 的全站統一濃度）
+- 邊框 40%、hover 背景 10%（R2 的全站統一濃度。`.community-btn` 現況是 12%，屬既有孤例，
+  新元件照 spec 寫 10%）
 - 兩者都寫成 `rgba` 在前、`color-mix` 在後的成對宣告（R1）
-- hover 閃爍交給 `einkRefresh` 動畫，base 不留 `transition: border-color`（R3）
+- hover 用 `transition: border-color, background-color` 加 `:hover` 直接改 `border-color`，
+  **不用** `einkRefresh`。該動畫會把 `border-color` 掃到 `--color-border-strong`（灰），
+  套在橘框上等於把橘色蓋掉。這不違反 R3——R3 擋的是「`:hover` 不改 `border-color` 卻留著
+  `transition`」那種永不觸發的 dead code，而這裡的 `:hover` 確實直接改它
+- pill 用 `--radius-full` 做全圓角（照使用者提供的官方按鈕形狀），不是站上卡片慣用的
+  `--radius-sm`／`--radius-md`
+- 標籤文字用 `--color-text-primary` 而非 `--color-brand-orange`：橘字配四色 G 會有兩組暖色
+  互打，官方按鈕本身也是白字
 
-不引入任何新色，全部走 CSS 變數。四色 G 加 `forced-color-adjust: none`，避免 Windows 高對比
-模式把它塗成單色而失去辨識。
+站台本身不引入任何新色，全部走 CSS 變數；唯一的例外是 Google G 的四個品牌色，它們寫在 SVG
+的 `fill` 屬性上、不進 design token，因為那是外部商標的固定色、不是本站色票。四色 G 加
+`forced-color-adjust: none`，避免 Windows 高對比模式把它塗成單色而失去辨識。
 
 footer 那顆不動 `SocialIcons.astro`——該元件由 `SOCIAL` 陣列驅動，而 `SOCIAL` 推導自
 `SITE.sameAs`，硬塞一個不是社群帳號的項目會弄髒它的語意。改在 `Footer.astro` 把
 `<SocialIcons />` 與這顆包進同一個 `display: flex; gap: 14px; align-items: center` 的容器，
-G 排在五顆圖示右邊，20×20、`fill="currentColor"`、muted → hover 轉白，跟旁邊同一套規則。
+G 排在五顆圖示右邊、同樣 20×20。它是這一列唯一有顏色的元素：旁邊五顆是 `currentColor`
+的單色圖示、hover 由 muted 轉白，四色 G 沒有 `currentColor` 可換，改用 `opacity: 0.75 → 1`
+對齊「hover 變亮」這個語意。
 
 ### 文案
 
@@ -140,9 +152,22 @@ G 排在五顆圖示右邊，20×20、`fill="currentColor"`、muted → hover �
 1. **UTM 可能被 Google 那頁拒絕**。我們在 `preferences/source?q=` 後面掛四個它不認識的參數，
    官方沒有任何文件保證未知 query 的處理方式。驗收時必須真的點一次確認仍正常帶出
    frankchen.tw。若有問題，UTM 整組拿掉、退回沒有版位辨識度的量測。
-2. **G 標誌素材**。四色 G 的 SVG 實作時從 Google 官方按鈕素材取，不憑記憶重畫。取不到就退回
-   純文字（無 G）版本。Google 商標規範對單色 G 的使用限制尚未查證，footer 那顆若查出不合規，
-   同樣退回文字。
+2. **G 標誌的商標風險（已知並接受）**。2026-08-21 實際下載官方素材包
+   （`google_preferred_source_badge_all_languages.zip`，1.2 MB）確認：內容是 17 個語系
+   （DA/DE/EN/ES/ET/FI/FR/HI/IW/JA/KO/NO/PT-BR/RU/SV/TR/UK）的 PNG，沒有中文、沒有任何 SVG。
+   英文暗色版是 676×213（@2x）的黑色 pill，四色 G 加兩行白字。使用者截圖裡那顆中文按鈕來自
+   官方的 standard JavaScript button（文件載明會自動翻譯），但那需要載入 Google 的 script
+   並放寬 CSP，而 `verify-headers.mjs:40` 把整條 CSP 寫死，動它會撞上「不碰 `verify-*`」的
+   需求，該路徑已排除。
+
+   Google 品牌規範（partnermarketinghub.withgoogle.com，2026-08-21 查證）明載
+   「Don't use the Google G in marketing materials for a business or to imply endorsement
+   from Google」，允許的是新聞、教學、指稱性用途。站上這顆 CTA 是否落入「商業行銷素材」有
+   解釋空間，但方向偏向「是」。Preferred Sources 文件雖允許自製設計（"use your own design
+   assets"），該句指的是站方自己的素材，不等於授權把 Google 的 G 放進自製按鈕。
+
+   以上已完整說明，使用者於 2026-08-21 決定採用四色 G（SVG 由使用者提供，非官方素材包），
+   兩個放置點皆用彩色版。風險由站方承擔，不走純文字 fallback。
 3. **GA4 的外連點擊追蹤需要開著**。增強型評估的「外連點擊」預設開啟，但未實際確認過本站後台
    的設定。沒開的話兩顆都量不到，而且不會有任何錯誤訊息。上線後第一件要確認的事。
 4. **這功能沒有自動化回歸防線**。`verify-seo` 的站內連結檢查只看 `/` 開頭的 href、外連整條
