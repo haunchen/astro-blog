@@ -2,6 +2,7 @@
 import { SITE, FOOTER_COLS } from '../utils/site-meta';
 import logoImage from '../assets/logo.webp';
 import SocialIcons from './SocialIcons.astro';
+import PreferredSource from './PreferredSource.astro';
 
 const startYear = 2025;
 const currentYear = new Date().getFullYear();
@@ -24,7 +25,13 @@ const yearLabel = currentYear > startYear ? `${startYear}–${currentYear}` : `$
         <div class="footer-id">
           <div class="footer-title">{SITE.name}</div>
           <p class="footer-desc">{SITE.description}</p>
-          <SocialIcons />
+          <!-- 偏好來源排在社群圖示右邊，共用同一列。刻意不塞進 SocialIcons 的清單：
+               那支元件由 SOCIAL 陣列驅動，而 SOCIAL 推導自 SITE.sameAs（社群帳號的
+               單一來源），塞一個不是社群帳號的項目會讓那份資料同時代表兩種東西。 -->
+          <div class="footer-actions">
+            <SocialIcons />
+            <PreferredSource placement="footer" />
+          </div>
         </div>
       </div>
 
@@ -99,6 +106,13 @@ const yearLabel = currentYear > startYear ? `${startYear}–${currentYear}` : `$
     line-height: 1.7;
     margin: 0 0 16px;
     max-width: 420px;
+  }
+
+  /* gap 與 .social-icons 內部的 14px 一致，讓第六個元素看起來就在同一列上 */
+  .footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
   }
 
   .footer-cols {
