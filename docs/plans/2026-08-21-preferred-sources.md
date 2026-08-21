@@ -290,7 +290,7 @@ Step 2: Footer 接線
 import PreferredSource from './PreferredSource.astro';
 ```
 
-接著找到這段（第 24-28 行）：
+接著找到這段（約第 24-28 行，`.footer-id` 區塊）：
 
 ```astro
         <div class="footer-id">
@@ -375,7 +375,10 @@ Run:
 ART=dist/cloudflare-cache-rules-wordpress/index.html
 
 # 1. 側邊欄那顆的完整網址（含 utm_content=aside）
-grep -o 'https://www.google.com/preferences/source?q=frankchen.tw&amp;utm_source=frankchen.tw&amp;utm_medium=referral&amp;utm_campaign=preferred-sources&amp;utm_content=aside' "$ART" | head -1
+#    注意分隔符是原樣的 & 而不是 &amp;：Astro 的 addAttribute()
+#    （node_modules/astro/dist/runtime/server/render/util.js）對能被 new URL() 解析成
+#    http(s) 的字串會刻意跳過 HTML escape。2026-08-21 直接呼叫該函式實測確認。
+grep -o 'https://www.google.com/preferences/source?q=frankchen.tw&utm_source=frankchen.tw&utm_medium=referral&utm_campaign=preferred-sources&utm_content=aside' "$ART" | head -1
 
 # 2. footer 那顆的完整網址（含 utm_content=footer）
 grep -o 'utm_content=footer' "$ART" | head -1
@@ -407,14 +410,16 @@ Run:
 npm test
 npm run verify:seo
 ```
-Expected: `npm test` 115 項全過；`verify:seo` 16 條規則全過。
+Expected: 兩者皆全數通過，無 `[FAIL]`。刻意不寫死項數——`CLAUDE.md` 記的「115 個測試」與
+`docs/SEO_GUIDE.md` 記的「16 條規則」都已過時（2026-08-21 實測 `verify:seo` 為 37 條），
+把數字抄進驗收條件只會製造與實際輸出不符的假警報。
 
 Step 5: Commit
 
 若前面步驟有任何修正才需要 commit；全數通過且無檔案變動時跳過此步。
 
 ```bash
-git commit --allow-empty -m "chore(preferred-sources): 建置驗證通過（verify:seo 16 條、npm test 115 項）"
+git commit --allow-empty -m "chore(preferred-sources): 建置驗證通過（npm test 與 verify:seo 全綠）"
 ```
 
 ---
