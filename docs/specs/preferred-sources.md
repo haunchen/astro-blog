@@ -1,6 +1,6 @@
 ---
 domain: preferred-sources
-status: draft
+status: active
 created: 2026-08-21
 last_modified: 2026-08-21
 ---
@@ -158,7 +158,3 @@ last_modified: 2026-08-21
 <!-- 使用者明說先不決定的項目。AI 不得自行判定某項可延後。finish spec sync 不清除此區 -->
 
 （無）
-
-## Pending Changes
-
-<!-- Brownfield delta 放這裡，finish spec sync 時清除 -->
