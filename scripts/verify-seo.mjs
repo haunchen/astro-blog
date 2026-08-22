@@ -940,6 +940,56 @@ check('廣告版位只出現在文章頁', (failures) => {
   }
 });
 
+// Google Preferred Sources 的 CTA 版位（docs/specs/preferred-sources.md）。
+//
+// 這條原本不存在：preferred-sources 那一輪的需求明文禁止動 verify-*，而網址組裝依 SSOT
+// 規定要留在 src/utils/site-meta.ts，那個路徑不在 npm test 的 scripts/lib/ 範圍內，結果是
+// 整條功能線沒有任何回歸防線（記錄於該 spec D7）。PR #62 合併後那條 scope 限制隨任務結束，
+// 這裡補上（issue #61）。
+//
+// 驗的不只是「有沒有」，還有 utm_content 對不對得上版位——那是 D1 點名的漂移形態：
+// 元件的 placement prop 同時決定外觀與 UTM 標記，兩者錯開時頁面看起來完全正常，只有
+// GA4 的外連事件會把兩個版位記成同一個，而那要幾週後看報表才發現。
+// 網域同理：q 與 utm_source 都取自 SITE.url，寫死時改網域不會有任何東西報錯。
+const PREFERRED_SOURCE_PREFIX = 'https://www.google.com/preferences/source';
+const PREFERRED_SOURCE_HREF_RE = new RegExp(
+  `href="(${escapeRegExp(PREFERRED_SOURCE_PREFIX)}[^"]*)"`,
+  'g',
+);
+
+check('偏好來源 CTA：文章頁 2 個（aside + footer）、非文章頁 1 個（footer）', (failures) => {
+  for (const { pathname, html } of pages) {
+    const placements = [...html.matchAll(PREFERRED_SOURCE_HREF_RE)].map(([, rawHref]) => {
+      // 屬性值裡的 & 在 HTML 是 &amp;，直接丟給 URL 會把整串當成一個參數名。
+      const url = new URL(decodeEntities(rawHref));
+      return {
+        placement: url.searchParams.get('utm_content'),
+        q: url.searchParams.get('q'),
+        utmSource: url.searchParams.get('utm_source'),
+      };
+    });
+
+    const expected = articlePathnames.has(pathname) ? ['aside', 'footer'] : ['footer'];
+    const actual = placements.map((p) => p.placement).sort();
+    if (actual.join(',') !== [...expected].sort().join(',')) {
+      failures.push({
+        page: pathname,
+        reason: `預期版位 [${expected.join(', ')}]，實際 [${actual.join(', ') || '無'}]`,
+      });
+      continue;
+    }
+
+    for (const { placement, q, utmSource } of placements) {
+      if (q !== SITE_HOST) {
+        failures.push({ page: pathname, reason: `${placement} 的 q 是 ${q}，應為 ${SITE_HOST}` });
+      }
+      if (utmSource !== SITE_HOST) {
+        failures.push({ page: pathname, reason: `${placement} 的 utm_source 是 ${utmSource}，應為 ${SITE_HOST}` });
+      }
+    }
+  }
+});
+
 // _redirects 裡指向 /_astro/ 的目標必須真的被 emit 出來。
 //
 // 這條守的是 issue #35 留下的一個刻意取捨：cover.webp 與 logo.webp 搬進 src/assets/ 之後

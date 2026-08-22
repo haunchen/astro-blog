@@ -340,7 +340,28 @@ body::after {
   transform: translateY(0);
 }
 
-/* skip-link 落點：不顯示整塊內容的 focus 外框 */
-#main-content:focus {
+/* 全站鍵盤焦點指示。這是站上唯一的焦點樣式來源——元件不再各寫一套（spec R4）。
+ *
+ * 用 :focus-visible 不用 :focus：後者滑鼠點按也會亮，讀者會把它讀成「卡住了」而不是
+ * 「焦點在這」；前者由瀏覽器判斷輸入模態，只有鍵盤導覽時才畫。
+ *
+ * 刻意**不**寫 `:focus { outline: none }` 去清瀏覽器預設。清了之後，不支援
+ * :focus-visible 的舊瀏覽器會變成完全沒有焦點指示——那比預設外框不好看嚴重得多。
+ * 現代瀏覽器本來就會在 :focus-visible 命中時才畫預設外框，這條只是把它換成站台配色，
+ * 沒有需要先清掉的重疊。
+ *
+ * 顏色取 brand-orange 而非 brand-blue：橘色是站上既有的互動語彙（連結底線、hover
+ * 背景都用它），而且 404 頁的 .btn 是 brand-blue 實心底——藍框畫在藍底按鈕旁邊切不開。
+ * outline-offset 讓外框落在元素外緣的頁面底色上，任何底色的元件都能保持 3:1 以上。 */
+:focus-visible {
+  outline: 2px solid var(--color-brand-orange);
+  outline-offset: 2px;
+}
+
+/* skip-link 落點：不顯示整塊內容的 focus 外框。
+   兩個選擇器都要寫——skip-link 是程式化把焦點移進來，部分瀏覽器會同時命中
+   :focus 與 :focus-visible，只擋一邊會讓整塊 <main> 被橘框圈起來。 */
+#main-content:focus,
+#main-content:focus-visible {
   outline: none;
 }
