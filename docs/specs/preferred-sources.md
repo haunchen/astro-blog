@@ -2,7 +2,7 @@
 domain: preferred-sources
 status: active
 created: 2026-08-21
-last_modified: 2026-08-21
+last_modified: 2026-08-22
 ---
 
 # Preferred Sources
@@ -136,12 +136,17 @@ last_modified: 2026-08-21
   回報，拿掉 referrer 沒有損失；反之，站上出現唯一一個寫法不同的外連會是後續維護的雜訊
 - **Date**: 2026-08-21
 
-### D7: 接受此功能沒有自動化回歸防線
-- **Decision**: 不為此新增 `verify-*` 檢查，也不新增單元測試
-- **Rationale**: 需求明確要求不碰 `verify-*`；而網址組裝依 SSOT 規定必須放 `site-meta.ts`，
-  該路徑不在 `npm test` 的涵蓋範圍（只跑 `scripts/lib/`）。結果是改壞 UTM 或網域時 CI 仍會
-  全綠。這是刻意的取捨，記錄在此以免日後誤以為有防線
-- **Date**: 2026-08-21
+### D7: 回歸防線落在 `verify-seo.mjs`（原為「接受沒有防線」，2026-08-22 推翻）
+- **Decision**: `scripts/verify-seo.mjs` 新增一項檢查，斷言文章頁恰 2 個入口（`utm_content`
+  分別為 `aside`／`footer`）、非文章頁恰 1 個（`footer`），且每個入口的 `q` 與 `utm_source`
+  都等於站台網域
+- **Rationale**: 原決策是「不為此新增 `verify-*` 檢查，也不新增單元測試」，理由是需求明確
+  要求不碰 `verify-*`，而網址組裝依 SSOT 規定必須放 `site-meta.ts`——該路徑不在 `npm test`
+  的涵蓋範圍（只跑 `scripts/lib/`）。那條 scope 限制屬於 2026-08-21 那一輪任務，PR #62
+  合併後即失效，而缺防線的代價不會跟著消失：改壞 UTM 或網域時 CI 依然全綠。`verify-seo.mjs`
+  現成就有這條檢查需要的 `pages` 與 `articlePathnames` 兩個集合，補上的成本遠低於留著不管。
+  三種失效形態（版位標記錯置、入口消失、網域寫死）皆以竄改 `dist/` 反向驗證過會 FAIL
+- **Date**: 2026-08-22（原 2026-08-21，issue #61）
 
 ### D8: 採用四色 Google 標誌，商標風險已知並接受
 - **Decision**: 兩個放置點都用四色 Google 標誌，標誌 SVG 由站方提供，不使用官方素材包
