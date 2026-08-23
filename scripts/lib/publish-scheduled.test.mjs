@@ -62,24 +62,36 @@ publishAt: 2026-08-28
 分隔線後的第二段，這裡的三個減號不是 frontmatter 結尾。
 `;
 
-test('flipToPublished：date 換成 publishAt，draft 與 publishAt 兩行整行移除', () => {
+test('flipToPublished：date 換成 publishAt，draft、publishAt、updated 三行整行移除', () => {
+  // SAMPLE 的 updated（8/5）早於 publishAt（8/28），會產出 dateModified 早於
+  // datePublished 的 JSON-LD，所以連同 draft、publishAt 一起整行刪掉。
   const result = flipToPublished(SAMPLE);
   assert.notEqual(result, null);
   assert.equal(result.publishedOn, '2026-08-28');
   assert.match(result.text, /^date: 2026-08-28$/m);
   assert.doesNotMatch(result.text, /^draft:/m);
   assert.doesNotMatch(result.text, /^publishAt:/m);
+  assert.doesNotMatch(result.text, /^updated:/m);
 });
 
-test('flipToPublished：除了那三行以外一個字元都不動', () => {
+test('flipToPublished：除了那四行以外一個字元都不動', () => {
   const result = flipToPublished(SAMPLE);
   const before = SAMPLE.split('\n');
   const after = result.text.split('\n');
-  // 預期少兩行（draft、publishAt），date 那行換值，其餘逐行相同。
-  assert.equal(after.length, before.length - 2);
-  const survivors = before.filter((l) => !/^(draft|publishAt):/.test(l));
+  // 預期少三行（draft、publishAt、updated），date 那行換值，其餘逐行相同。
+  assert.equal(after.length, before.length - 3);
+  const survivors = before.filter((l) => !/^(draft|publishAt|updated):/.test(l));
   survivors[survivors.findIndex((l) => /^date:/.test(l))] = 'date: 2026-08-28';
   assert.deepEqual(after, survivors);
+});
+
+test('flipToPublished：updated 晚於或等於 publishAt 時保留原樣', () => {
+  const sampleWithLateUpdate = SAMPLE.replace('updated: 2026-08-05', 'updated: 2026-08-29');
+  const result = flipToPublished(sampleWithLateUpdate);
+  assert.notEqual(result, null);
+  assert.match(result.text, /^updated: 2026-08-29$/m);
+  assert.doesNotMatch(result.text, /^draft:/m);
+  assert.doesNotMatch(result.text, /^publishAt:/m);
 });
 
 test('flipToPublished：正文裡的 --- 不會被當成 frontmatter 結尾', () => {

@@ -47,12 +47,15 @@ jobs:
       - name: 檢查有沒有實際變更
         id: changes
         run: |
-          if git diff --quiet; then
+          # 限定 src/content/posts：翻牌只改這個目錄，若不限定路徑，工作區裡任何
+          # 其他變動都會讓 changed=true，接著 git add src/content/posts 卻什麼都
+          # 沒 stage，commit 會以「nothing to commit」失敗，失敗原因與排程發布無關。
+          if git diff --quiet -- src/content/posts; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "今天沒有要發的文章"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
-            git diff --stat
+            git diff --stat -- src/content/posts
           fi
 
       # 必須是完整的 npm run build 而不是 astro build：subset-fonts 對草稿直接 skip，
@@ -80,9 +83,18 @@ jobs:
       - name: 寫入 Job Summary
         if: always()
         run: |
+          # 失敗時（build 或 verify:seo 紅燈）steps.changes.outputs.changed 仍可能是
+          # true，但沒有 push——只看 changed 會印出「有文章發布」這種沒發生的事，
+          # 人唯一會看的就是這塊摘要，講錯話等於這條檢查白裝。job.status 優先判斷。
           {
             echo "## 排程發布"
             echo "- 觸發：${{ github.event_name }}"
             echo "- 模式：${{ inputs.dry_run == true && 'dry-run' || 'apply' }}"
-            echo "- 結果：${{ steps.changes.outputs.changed == 'true' && '有文章發布' || '今天沒有到期文章' }}"
+            if [ "${{ job.status }}" != "success" ]; then
+              echo "- 結果：失敗，未 push"
+            elif [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
+              echo "- 結果：有文章發布"
+            else
+              echo "- 結果：今天沒有到期文章"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

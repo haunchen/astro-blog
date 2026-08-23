@@ -67,6 +67,11 @@ const FM_DELIM = /^---\s*$/;
  * `draft: false` 不是留著而是整行刪掉——schema 的 default 就是 false，留著等於寫一個
  * 沒有資訊量的值。
  *
+ * `updated` 若早於新的 `date`（即 publishAt），也整行刪掉：`[...slug].astro` 的
+ * `dateModified` 讀的是 `updated ?? date`，排程稿典型形狀是「建立、修過、排某天發」，
+ * 翻牌後若留著舊的 updated，會讓 dateModified 早於 datePublished，JSON-LD 講不通。
+ * `updated` 缺席時上述 `?? date` 自然落到剛寫入的發布日，不必另外處理。
+ *
  * @param {string} raw md 全文
  * @returns {{ text: string, publishedOn: string } | null} 不具備翻牌條件時回 null
  */
@@ -87,6 +92,9 @@ export function flipToPublished(raw) {
   /** @type {string | null} */
   let publishedOn = null;
   let dateIndex = -1;
+  let updatedIndex = -1;
+  /** @type {string | null} */
+  let updatedValue = null;
   /** @type {Set<number>} */
   const drop = new Set();
 
@@ -102,8 +110,18 @@ export function flipToPublished(raw) {
       drop.add(i);
       continue;
     }
-    // 只認第一個頂層 date，行首不允許縮排，所以巢狀結構下的同名鍵不會被誤抓。
-    if (dateIndex === -1 && /^date:\s*/.test(line)) dateIndex = i;
+    // 只認第一個頂層 date/updated，行首不允許縮排，所以巢狀結構下的同名鍵不會被誤抓。
+    if (dateIndex === -1 && /^date:\s*/.test(line)) {
+      dateIndex = i;
+      continue;
+    }
+    if (updatedIndex === -1) {
+      const upd = /^updated:\s*(.+?)\s*$/.exec(line);
+      if (upd) {
+        updatedIndex = i;
+        updatedValue = upd[1];
+      }
+    }
   }
 
   if (publishedOn === null || dateIndex === -1) return null;
@@ -111,6 +129,14 @@ export function flipToPublished(raw) {
   // 直接沿用 publishAt 的字面值，不做格式正規化——避免把 `2026-08-28` 寫成
   // `2026-08-28T00:00:00.000Z` 這種與既有 36 篇不一致的形狀。
   lines[dateIndex] = `date: ${publishedOn}`;
+
+  if (updatedIndex !== -1 && updatedValue !== null) {
+    const updatedDay = toTaipeiDay(updatedValue);
+    const publishDay = toTaipeiDay(publishedOn);
+    if (updatedDay && publishDay && updatedDay < publishDay) {
+      drop.add(updatedIndex);
+    }
+  }
 
   return {
     text: lines.filter((_, i) => !drop.has(i)).join('\n'),
