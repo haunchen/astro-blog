@@ -1,0 +1,88 @@
+name: 排程發布
+
+on:
+  schedule:
+    # cron 一律 UTC。0 0 * * * = 台北時間早上八點。每天跑而不是只跑週一／週四，
+    # 是為了讓臨時插隊的文章不必等到下一個發布窗口。
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 只印今天到期的清單，不寫檔也不 push
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      # 官方 action 追大版本 tag 的理由見 seo-pr.yml 檔頭，不在這裡重複。
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: 安裝依賴
+        run: npm ci
+
+      # 這一步刻意沒有 continue-on-error：腳本會在 frontmatter 壞掉或「判為到期卻改不動」
+      # 時 exit 1，那正是需要人介入的情況，吞掉的話那篇會每天被判到期又每天沒動。
+      - name: 翻牌到期的排程文章
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            npm run publish:scheduled
+          else
+            node scripts/publish-scheduled.mjs --apply
+          fi
+
+      - name: 檢查有沒有實際變更
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "今天沒有要發的文章"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            git diff --stat
+          fi
+
+      # 必須是完整的 npm run build 而不是 astro build：subset-fonts 對草稿直接 skip，
+      # 所以排程稿的標題與分類從來沒進過字型子集。翻牌後若含新字元，OG 圖會 tofu 而
+      # astro build 照樣綠（hardware 分類那次踩過同一個坑）。
+      - name: 建置
+        if: steps.changes.outputs.changed == 'true'
+        run: npm run build
+
+      - name: 靜態 SEO 驗證
+        if: steps.changes.outputs.changed == 'true'
+        run: npm run verify:seo
+
+      # 驗證全綠才 push。失敗時工作區的改動隨 runner 消失，那篇文章維持 draft 留在 repo
+      # 裡，隔天 cron 會再試一次，同時 GitHub 上有一筆紅燈可查。
+      - name: Commit 並 push
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add src/content/posts
+          git commit -m "chore(publish): 排程發布到期文章"
+          git push
+
+      - name: 寫入 Job Summary
+        if: always()
+        run: |
+          {
+            echo "## 排程發布"
+            echo "- 觸發：${{ github.event_name }}"
+            echo "- 模式：${{ inputs.dry_run == true && 'dry-run' || 'apply' }}"
+            echo "- 結果：${{ steps.changes.outputs.changed == 'true' && '有文章發布' || '今天沒有到期文章' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
