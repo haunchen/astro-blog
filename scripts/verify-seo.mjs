@@ -698,8 +698,15 @@ check('.md 變體的 frontmatter 可解析、欄位齊全且不外洩內部欄�
         failures.push({ page: `/${slug}.md`, reason: `frontmatter 缺少 ${key}` });
       }
     }
-    if ('draft' in data) {
-      failures.push({ page: `/${slug}.md`, reason: 'frontmatter 不應曝光 draft 欄位' });
+    // 內部欄位不得出現在 md 變體。`.md` 是白名單輸出（見 [...slug].md.ts），本來就漏不
+    // 出去，這道是防呆——新增內部欄位時忘了跟上，就會靜默外流。
+    for (const internalKey of ['draft', 'publishAt']) {
+      if (internalKey in data) {
+        failures.push({
+          page: `/${slug}.md`,
+          reason: `frontmatter 不應曝光 ${internalKey} 欄位`,
+        });
+      }
     }
     const expectedCanonical = `${SITE_ORIGIN}/${slug}/`;
     if (data.canonical !== expectedCanonical) {

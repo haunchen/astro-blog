@@ -13,6 +13,10 @@ const posts = defineCollection({
       tags: z.array(z.string()).default([]),
       cover: image(),
       draft: z.boolean().default(false),
+      // 排程發布日。有值且 draft 為真時，publish-scheduled 到期會把 draft 翻掉並把
+      // date 改寫成這個值。沒有這個欄位的草稿永遠不會被自動發布。
+      // z.coerce 與上面的 date 一致，讓 YAML 的裸日期字串也能過。
+      publishAt: z.coerce.date().optional(),
     }),
 });
 
