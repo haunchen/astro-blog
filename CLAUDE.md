@@ -18,9 +18,10 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 115 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 164 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
-                    # md-path.mjs path mapping + og-image.mjs OG rendering/hashing)
+                    # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
+                    # publish-scheduled.mjs 排程發布判定/frontmatter 改寫)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -54,8 +55,10 @@ Astro v5 blog with Tailwind CSS v4, TypeScript strict mode, deployed to Cloudfla
 
 **Content Collections:** Single "posts" collection (`src/content/posts/`), Markdown via the glob loader,
 Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
-`title` ≤ 60 chars, `description` ≤ 160 chars, `category` enum (n8n, flutter, devops, raspberry-pi, tools),
-`cover` is a required `image()`. Optional: `updated`, `tags`, `draft`.
+`title` ≤ 60 chars, `description` ≤ 160 chars, `category` enum (n8n, flutter, devops, raspberry-pi, tools,
+hardware), `cover` is a required `image()`. Optional: `updated`, `tags`, `draft`, `publishAt` (scheduled
+publish date — when set, `draft` must also be `true`, enforced by a schema `.refine()`; on the day it's
+due, `publish-scheduled` flips `draft` off and rewrites `date` to this value).
 
 Never call `getCollection('posts', …)` directly — go through `getPublishedPosts()` /
 `getPublishedPostsByDateDesc()` in `src/utils/posts.ts`. The `!data.draft` predicate used to be
@@ -136,7 +139,9 @@ its markdown variant and only runs at build time; `md-path.mjs` has three consum
 integration, `functions/_middleware.js` at request time, and `BaseLayout.astro` — so it must stay
 zero-dependency), `scripts/lib/og-image.mjs` (pure satori+sharp OG rendering and content hashing, under test;
 wired up by `src/utils/og.ts`, which memoizes per post so page render and the OG endpoint never
-render the same image twice), `build-manifest`, `verify-*`.
+render the same image twice), `publish-scheduled` (CLI — daily-run script that flips due scheduled
+posts from draft; the judging/rewriting logic lives in `scripts/lib/publish-scheduled.mjs`, pure
+functions under test), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for
@@ -145,7 +150,8 @@ enforcement, and the two lists do not sync. Verify with `verify:headers` / `veri
 live site rather than reading the files.
 
 **CI:** `.github/workflows/seo-pr.yml` runs `npm test` + build + `verify:seo` + Lighthouse on every PR;
-`seo-daily.yml` runs a scheduled squirrelscan audit. `.githooks/pre-commit` (enabled by `npm install`
+`seo-daily.yml` runs a scheduled squirrelscan audit; `publish-scheduled.yml` runs daily to flip due
+scheduled posts from draft and push the commit. `.githooks/pre-commit` (enabled by `npm install`
 via the `prepare` script) validates frontmatter on staged posts only — seconds-fast, no build.
 
 **Docs:** `docs/specs/` (feature specs), `docs/plans/` (dated design + implementation pairs),
