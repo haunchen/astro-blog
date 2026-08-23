@@ -357,7 +357,9 @@ Run:
 ```bash
 cd /Users/haunchenchen/Projects/astro-blog
 mkdir -p src/content/posts/tmp-schedule-probe/images
-cp src/content/posts/test-markdown-rendering/images/cover.webp src/content/posts/tmp-schedule-probe/images/cover.webp
+# 借一張既有的 webp 封面。刻意不用 test-markdown-rendering，它是全站 36 篇裡唯一
+# 用 cover.png 的例外，拿它當來源會直接 cp 不到檔。
+cp src/content/posts/cloudflare-cache-rules-wordpress/images/cover.webp src/content/posts/tmp-schedule-probe/images/cover.webp
 cat > src/content/posts/tmp-schedule-probe/index.md <<'EOF'
 ---
 title: 排程探針
@@ -551,7 +553,8 @@ Run:
 ```bash
 cd /Users/haunchenchen/Projects/astro-blog
 mkdir -p src/content/posts/tmp-due-probe/images
-cp src/content/posts/test-markdown-rendering/images/cover.webp src/content/posts/tmp-due-probe/images/cover.webp
+# 同 Task 2：test-markdown-rendering 是全站唯一用 cover.png 的例外，不能當來源。
+cp src/content/posts/cloudflare-cache-rules-wordpress/images/cover.webp src/content/posts/tmp-due-probe/images/cover.webp
 cat > src/content/posts/tmp-due-probe/index.md <<'EOF'
 ---
 title: 到期探針
@@ -581,13 +584,42 @@ Expected:
 - apply 後檔案的 `date` 變成 `2026-08-20`，`draft` 與 `publishAt` 兩行消失
 - `--date 2026-08-19` 印「今天沒有到期的排程文章」
 
-Step 5: 清掉探針
+Step 5: 驗證翻牌後的產物真的上得了站
+
+前一步只看了 frontmatter 的三行變動，但 design 的驗收要的是「翻牌後 build 與 verify:seo
+全綠、文章進得了 listing 與 sitemap、`datePublished` 等於 `publishAt`」。這一步把它補上——
+探針還在工作區、已經是翻牌後的狀態，正是驗這件事的時機。
+
+Run:
+
+```bash
+cd /Users/haunchenchen/Projects/astro-blog
+npm run build && npm run verify:seo
+echo '--- 進得了 sitemap ---'
+grep -c 'tmp-due-probe' dist/sitemap.xml
+echo '--- JSON-LD 的 datePublished 等於 publishAt ---'
+grep -o '"datePublished":"[^"]*"' dist/tmp-due-probe/index.html
+echo '--- 頁面實際產出 ---'
+ls dist/tmp-due-probe/index.html
+```
+
+Expected:
+- `npm run build` 與 `npm run verify:seo` 皆 PASS
+- `grep -c` 回 `1`（sitemap 有這篇）
+- `datePublished` 是 `2026-08-20T00:00:00.000Z`（`[...slug].astro:71` 用 `date.toISOString()`）
+- `dist/tmp-due-probe/index.html` 存在
+
+若 `verify:seo` 因為探針缺廣告版位之類的文章級契約而報 FAIL，那是探針內容太陽春造成的，
+不是這次改動的問題——把失敗訊息記下來，補足探針缺的欄位再跑一次，不要改 `verify-seo.mjs`
+去遷就探針。
+
+Step 6: 清掉探針
 
 Run: `cd /Users/haunchenchen/Projects/astro-blog && rm -rf src/content/posts/tmp-due-probe && git status --short`
 
 Expected: 只剩 Task 3 該有的改動（`scripts/publish-scheduled.mjs`、`package.json`）
 
-Step 6: Commit
+Step 7: Commit
 
 `feat(publish): 加 publish-scheduled CLI`
 
@@ -713,7 +745,7 @@ console.log('permissions:', JSON.stringify(doc.jobs.publish.permissions));
 "
 ```
 
-Expected: 印出 `jobs: [ 'publish' ]`、步驟數 8、`permissions: {"contents":"write"}`
+Expected: 印出 `jobs: [ 'publish' ]`、步驟數 9、`permissions: {"contents":"write"}`
 
 若 `js-yaml` 不在依賴裡，改用 `npx --yes js-yaml .github/workflows/publish-scheduled.yml > /dev/null && echo YAML OK`。
 
