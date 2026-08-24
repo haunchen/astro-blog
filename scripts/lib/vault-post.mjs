@@ -157,6 +157,44 @@ export function toDate(value) {
   return null;
 }
 
+/** `--publish-at` 只收這一種寫法——寬鬆解析會讓 `8/28` 這種輸入靜默變成別的日期。 */
+const ISO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * 驗 `--publish-at` 的輸入並轉成 Date。
+ *
+ * 「今天」由呼叫端傳台北日曆日，與 publish-scheduled 的 `isDue` 同形狀：純函式不讀時鐘，
+ * 測試才不必凍結系統時間。回傳 `{date}` 或 `{error}`，兩者只會有一個。
+ *
+ * 拒收過去日期是刻意的。排一個昨天的日期不會壞事（下一次 cron 就翻掉），但那是「我想現在
+ * 就發」的迂迴寫法，而那件事的正解是不加這個 flag、直接落地成非草稿。允許它只會讓
+ * 「排程」與「立刻發布」兩個意圖在同一個參數裡混在一起。
+ *
+ * @param {string} raw
+ * @param {string} today 台北日曆日 `YYYY-MM-DD`
+ * @returns {{date: Date, error: null} | {date: null, error: string}}
+ */
+export function parsePublishAt(raw, today) {
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  if (!ISO_DAY_RE.test(value)) {
+    return { date: null, error: `--publish-at 需要 YYYY-MM-DD 格式：${JSON.stringify(raw ?? null)}` };
+  }
+  const date = new Date(`${value}T00:00:00Z`);
+  // 光看 NaN 不夠：V8 對 `2026-02-30T00:00:00Z` 不回 Invalid Date，而是溢位成 3/2。
+  // 靜默把排程日挪走兩天是這個參數最糟的失敗方式，所以回寫比對原字串。
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    return { date: null, error: `--publish-at 不是合法日期：${value}` };
+  }
+  // 逐日比字串就夠——兩邊都是 YYYY-MM-DD，字典序即時間序。
+  if (value < today) {
+    return {
+      date: null,
+      error: `--publish-at 是過去的日期（${value} < 今天 ${today}）。要立刻發布請不要加這個參數。`,
+    };
+  }
+  return { date, error: null };
+}
+
 /**
  * 一篇 vault tutorial 轉成 repo 文章的完整判定與轉換。
  *
@@ -170,6 +208,7 @@ export function toDate(value) {
  *
  * @param {Record<string, any>} data vault frontmatter（已由 gray-matter 解析）
  * @param {string} body vault 正文
+ * @param {{publishAt?: Date | null}} [options] `publishAt` 有值時排程落地（見下方註解）
  * @returns {{
  *   slug: string | null,
  *   status: 'ok' | 'skipped' | 'blocked',
@@ -181,7 +220,7 @@ export function toDate(value) {
  *   cover?: {src: string, destName: string} | null,
  * }}
  */
-export function transformPost(data, body) {
+export function transformPost(data, body, options = {}) {
   const slug = typeof data.slug === 'string' && data.slug.trim() ? data.slug.trim() : null;
 
   if (data.type !== 'tutorial') {
@@ -239,6 +278,16 @@ export function transformPost(data, body) {
   const updated = toDate(data.updated);
   const tags = Array.isArray(data.tags) ? data.tags.filter((t) => typeof t === 'string') : [];
 
+  // 排程落地：`publishAt` 與 `draft: true` 必須成對出現（content.config.ts 的 refine 在
+  // build 期擋），所以這裡不是「照抄 content_status 再附加一個欄位」，而是由 publishAt
+  // 反過來決定 draft。vault 的 `ready` 會映成 draft: false，若照抄就會產出一篇 schema
+  // 拒收的文章——而最常見的排程對象正好就是 ready 稿。強制翻成 true 並留一條 warning
+  // 說明覆寫了什麼，比讓人在 build 失敗時才發現好。
+  const scheduled = options.publishAt instanceof Date ? options.publishAt : null;
+  if (scheduled && draft === false) {
+    warnings.push('content_status 是 ready，但排程落地一律標 draft: true（到期由 cron 翻牌）');
+  }
+
   return {
     slug,
     status: 'ok',
@@ -253,7 +302,10 @@ export function transformPost(data, body) {
       category,
       tags,
       cover: './images/cover.webp',
-      draft,
+      draft: scheduled ? true : draft,
+      // 放最後：翻牌是行級刪除，欄位順序不影響它，但擺在 draft 之後讓「這篇排在哪天」
+      // 與「它現在是草稿」在 diff 裡相鄰，人 review 時一眼看得到這組不變量。
+      ...(scheduled ? { publishAt: scheduled } : {}),
     },
     body: rewriteImageSyntax(body),
     images,
