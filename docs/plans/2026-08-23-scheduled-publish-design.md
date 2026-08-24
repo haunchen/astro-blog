@@ -21,9 +21,14 @@ vault 進 repo」，它把 `content_status: draft` 的稿子照樣搬進來標 `
 
 不做：
 
-- `sync-from-vault` 與 `vault-post.mjs` 一行都不動。第一版 `publishAt` 由人手動在 repo 加
+- ~~`sync-from-vault` 與 `vault-post.mjs` 一行都不動。第一版 `publishAt` 由人手動在 repo 加
   一行，不加 `--publish-at` flag——那會牽動 `transformPost` 的回傳結構與它 26 個測試，而
-  手動加一行的成本是兩秒鐘。要自動化等這條跑順了再說。
+  手動加一行的成本是兩秒鐘。要自動化等這條跑順了再說。~~
+
+  **2026-08-24 解除**：「跑順了」的定義是首次真翻牌驗收綠燈，當日已達成（cron run
+  `32677492465` → main `f912e3d`，六項全綠）。`--publish-at` 已實作，見下方 D11。
+  當初預期的成本沒有發生——`transformPost` 加的是第三個 optional 參數，回傳結構不變，
+  既有 26 個測試一行都沒改。
 - 不碰 vault 端的 `schedule_wordpress` 死路徑（`schedule-manager` skill、排程中心 MOC）。
 - 不做社群發文連動。那是 webhook 那條線的事，另案。
 
@@ -112,6 +117,24 @@ cron 會再試一次，同時 GitHub 上有一筆紅燈可查。
 
 部署面不受影響——字型產物在 `.gitignore` 裡不進版控，CF Pages 部署時本來就會重跑一次。
 這條純粹是為了讓 CI 驗到的東西跟實際部署的一致。
+
+### D11 — `sync-from-vault --publish-at` 強制搭 `--slug`，並覆寫 `draft`（2026-08-24 追加）
+
+排程訊號仍然只住 repo（D1 不變），這個 flag 做的是「落地時就把那一行寫進去」，不是去
+vault 拿排程日。vault 的 `schedule_wordpress` 依舊不讀——那是寫作行事曆，不具發布效力。
+
+兩條約束都是為了擋掉會靜默出錯的誤用：
+
+- **強制搭 `--slug`**。腳本掃的是整個 vault，不限定單篇時這個參數會把當次所有可搬的文章
+  排在同一天、到期一起發出去。那幾乎不可能是本意，而且是 `--apply` 之後才看得出來的錯。
+  排程是逐篇的決定，介面就該長成逐篇的樣子。
+- **`draft` 由 `publishAt` 反決定，不照抄 `content_status`**。schema 的 refine 要求兩者成對，
+  而 vault 的 `ready` 映成 `draft: false`——照抄會產出一篇 build 期就被擋下的文章，偏偏最常見
+  的排程對象正好就是 ready 稿。改成強制 `true` 並留一條 warning 說明覆寫了什麼。
+
+日期驗證拒收過去日期：那是「我想現在就發」的迂迴寫法，正解是不加這個參數。另外 V8 對
+`2026-02-30T00:00:00Z` 不回 Invalid Date 而是溢位成 3/2，所以解析後要回寫比對原字串——
+靜默把排程日挪走兩天是這個參數最糟的失敗方式。
 
 ## 規格
 

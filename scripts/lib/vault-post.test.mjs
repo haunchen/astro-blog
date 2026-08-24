@@ -9,6 +9,7 @@ import {
   rewriteImageSyntax,
   transformPost,
   renderPostFile,
+  parsePublishAt,
 } from './vault-post.mjs';
 
 test('mapCategory：同一概念的中英文寫法映射到同一個 slug', () => {
@@ -194,4 +195,73 @@ test('renderPostFile：draft 是 YAML 布林而非字串——寫成字串會讓
   const out = renderPostFile({ draft: true }, '內文');
   assert.ok(out.includes('draft: true'));
   assert.ok(!out.includes('draft: "true"'));
+});
+
+test('parsePublishAt：合法日期回 UTC 午夜的 Date', () => {
+  const r = parsePublishAt('2026-09-01', '2026-08-24');
+  assert.equal(r.error, null);
+  assert.equal(r.date.toISOString(), '2026-09-01T00:00:00.000Z');
+});
+
+test('parsePublishAt：今天可以排（cron 當天就會翻）', () => {
+  assert.equal(parsePublishAt('2026-08-24', '2026-08-24').error, null);
+});
+
+test('parsePublishAt：過去日期擋掉，訊息指向「不要加這個參數」', () => {
+  const r = parsePublishAt('2026-08-23', '2026-08-24');
+  assert.equal(r.date, null);
+  assert.ok(r.error.includes('過去的日期'));
+});
+
+test('parsePublishAt：只收 YYYY-MM-DD，寬鬆寫法一律拒收', () => {
+  for (const bad of ['2026/09/01', '9/1', '2026-9-1', '2026-09-01T00:00:00Z', '', null]) {
+    assert.ok(parsePublishAt(bad, '2026-08-24').error, `應拒收：${bad}`);
+  }
+});
+
+test('parsePublishAt：格式對但日期不存在（2 月 30 日）要擋', () => {
+  assert.ok(parsePublishAt('2026-02-30', '2026-01-01').error);
+});
+
+test('transformPost：不帶 publishAt 時 frontmatter 沒有這個欄位', () => {
+  const r = transformPost(validData(), '正文');
+  assert.equal(r.frontmatter.publishAt, undefined);
+});
+
+test('transformPost：帶 publishAt 時輸出該欄位且 draft 為 true', () => {
+  const at = new Date('2026-09-01T00:00:00Z');
+  const r = transformPost(validData(), '正文', { publishAt: at });
+  assert.equal(r.status, 'ok');
+  assert.equal(r.frontmatter.publishAt, at);
+  assert.equal(r.frontmatter.draft, true);
+});
+
+test('transformPost：ready 稿排程時強制 draft: true 並留 warning', () => {
+  // schema 的 refine 要求 publishAt 與 draft: true 成對；ready 映成 draft: false，
+  // 照抄會產出一篇 build 期就被擋下的文章。
+  const r = transformPost(validData({ content_status: 'ready' }), '正文', {
+    publishAt: new Date('2026-09-01T00:00:00Z'),
+  });
+  assert.equal(r.frontmatter.draft, true);
+  assert.ok(r.warnings.some((w) => w.includes('draft: true')));
+});
+
+test('transformPost：draft 稿排程時不會多留一條 ready 的 warning', () => {
+  const r = transformPost(validData(), '正文', { publishAt: new Date('2026-09-01T00:00:00Z') });
+  assert.ok(!r.warnings.some((w) => w.includes('content_status 是 ready')));
+});
+
+test('transformPost：publishAt 非 Date 時忽略，不會產出壞欄位', () => {
+  const r = transformPost(validData(), '正文', { publishAt: '2026-09-01' });
+  assert.equal(r.frontmatter.publishAt, undefined);
+  assert.equal(r.frontmatter.draft, true); // 來自 content_status: draft，不是被排程翻的
+});
+
+test('renderPostFile：publishAt 序列化成裸日期，schema 的 z.coerce.date 才收得下', () => {
+  const out = renderPostFile(
+    { draft: true, publishAt: new Date('2026-09-01T00:00:00Z') },
+    '內文',
+  );
+  assert.ok(out.includes('publishAt: 2026-09-01'));
+  assert.ok(!out.includes('publishAt: "2026-09-01"'));
 });

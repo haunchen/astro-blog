@@ -18,10 +18,11 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 164 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 176 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
-                    # publish-scheduled.mjs 排程發布判定/frontmatter 改寫)
+                    # publish-scheduled.mjs 排程發布判定/frontmatter 改寫 +
+                    # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -141,7 +142,12 @@ zero-dependency), `scripts/lib/og-image.mjs` (pure satori+sharp OG rendering and
 wired up by `src/utils/og.ts`, which memoizes per post so page render and the OG endpoint never
 render the same image twice), `publish-scheduled` (CLI — daily-run script that flips due scheduled
 posts from draft; the judging/rewriting logic lives in `scripts/lib/publish-scheduled.mjs`, pure
-functions under test), `build-manifest`, `verify-*`.
+functions under test), `sync-from-vault` (CLI — pulls tutorials from the Obsidian vault into
+`src/content/posts/`; dry-run by default, `--apply` writes, and **adds only, never overwrites**.
+`--publish-at YYYY-MM-DD` lands a post as a scheduled draft — it requires `--slug`, rejects past
+dates, and forces `draft: true` regardless of the vault's `content_status`, because the schema
+refine demands `publishAt` and `draft: true` come as a pair. Transform logic is in
+`scripts/lib/vault-post.mjs`, pure functions under test), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for

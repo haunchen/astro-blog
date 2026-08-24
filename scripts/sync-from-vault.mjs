@@ -13,6 +13,8 @@
  *   node scripts/sync-from-vault.mjs --apply         # 真的寫入
  *   node scripts/sync-from-vault.mjs --slug <slug>   # 只處理單篇
  *   node scripts/sync-from-vault.mjs --vault <path>  # 覆寫 vault 位置
+ *   node scripts/sync-from-vault.mjs --slug <slug> --publish-at 2026-09-01
+ *                                                    # 落地成排程稿，到期由 cron 翻牌
  */
 
 import { glob } from 'glob';
@@ -21,7 +23,8 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
-import { transformPost, renderPostFile } from './lib/vault-post.mjs';
+import { toTaipeiDay } from './lib/publish-scheduled.mjs';
+import { transformPost, renderPostFile, parsePublishAt } from './lib/vault-post.mjs';
 
 const POSTS_DIR = 'src/content/posts';
 
@@ -29,12 +32,13 @@ const POSTS_DIR = 'src/content/posts';
 const WEBP_QUALITY = 82;
 
 function parseArgs(argv) {
-  const args = { apply: false, slug: null, vault: null };
+  const args = { apply: false, slug: null, vault: null, publishAt: null };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--apply') args.apply = true;
     else if (a === '--slug') args.slug = argv[++i] ?? null;
     else if (a === '--vault') args.vault = argv[++i] ?? null;
+    else if (a === '--publish-at') args.publishAt = argv[++i] ?? null;
     else if (a === '--help' || a === '-h') args.help = true;
     else throw new Error(`未知參數：${a}`);
   }
@@ -119,9 +123,30 @@ async function main() {
         '  --apply         真的寫入（預設只做 dry-run）',
         '  --slug <slug>   只處理指定的一篇',
         '  --vault <path>  覆寫 vault 位置（預設 $VAULT_PATH 或 ~/obsidian-vault）',
+        '  --publish-at <YYYY-MM-DD>',
+        '                  落地成排程稿（draft: true + publishAt），到期由 cron 翻牌。',
+        '                  必須搭 --slug；日期不可早於今天。',
       ].join('\n'),
     );
     return;
+  }
+
+  // --publish-at 強制搭 --slug：不限定單篇時，這個參數會把當次所有可搬的文章排在同一天，
+  // 一次全發出去。那幾乎不可能是本意，而且是 --apply 之後才看得出來的錯。
+  let publishAt = null;
+  if (args.publishAt !== null) {
+    if (!args.slug) {
+      console.error('--publish-at 必須搭 --slug 使用（排程是逐篇的決定，不是批次的）。');
+      process.exitCode = 1;
+      return;
+    }
+    const parsed = parsePublishAt(args.publishAt, toTaipeiDay(new Date()));
+    if (parsed.error) {
+      console.error(parsed.error);
+      process.exitCode = 1;
+      return;
+    }
+    publishAt = parsed.date;
   }
 
   const vaultRoot = await resolveVaultRoot(args.vault);
@@ -132,7 +157,9 @@ async function main() {
   }
 
   console.log(`vault：${vaultRoot}`);
-  console.log(`模式：${args.apply ? 'APPLY（會寫檔）' : 'dry-run（不寫任何檔案）'}\n`);
+  console.log(`模式：${args.apply ? 'APPLY（會寫檔）' : 'dry-run（不寫任何檔案）'}`);
+  if (publishAt) console.log(`排程：${toTaipeiDay(publishAt)} 發布（落地標 draft: true）`);
+  console.log();
 
   const [files, existingSlugs] = await Promise.all([
     findVaultTutorials(vaultRoot),
@@ -153,7 +180,15 @@ async function main() {
       continue; // frontmatter 壞掉的檔在 vault 裡不歸這支腳本管
     }
 
-    const result = transformPost(parsed.data, parsed.content);
+    // 排程只套在 --slug 指定的那一篇。這裡不能無條件傳：迴圈掃的是整個 vault，
+    // 而 slug 過濾發生在 transformPost 之後——無條件傳會讓每一篇都先被標成排程稿，
+    // 雖然隨後就被濾掉，但過程中產生的 warning 會照樣印出來，讀起來像是全部要排程。
+    const isTarget = typeof parsed.data.slug === 'string' && parsed.data.slug.trim() === args.slug;
+    const result = transformPost(
+      parsed.data,
+      parsed.content,
+      publishAt && isTarget ? { publishAt } : {},
+    );
     if (result.status === 'skipped') {
       if (parsed.data.type === 'tutorial') skippedOther++;
       continue;
@@ -196,7 +231,11 @@ async function main() {
     console.log(`可搬 ${ready.length} 篇`);
     for (const { result } of ready) {
       const fm = result.frontmatter;
-      const state = fm.draft ? 'draft' : 'READY→上站';
+      const state = fm.publishAt
+        ? `排程 ${toTaipeiDay(fm.publishAt)}`
+        : fm.draft
+          ? 'draft'
+          : 'READY→上站';
       console.log(`  + ${result.slug}  [${fm.category}] ${state}  圖 ${result.images.length + 1} 張`);
     }
     console.log();
