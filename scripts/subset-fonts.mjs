@@ -26,25 +26,25 @@ const text = [...chars].join('');
 // text= 請求無需含 ASCII。過濾半形 ASCII 只影響 Noto，全形標點（≥U+3000）仍留在 CJK subset。
 const cjkChars = new Set([...chars].filter((c) => !/[\x00-\x7F]/.test(c)));
 const cjkText = [...cjkChars].join('');
-console.log(`[subset-fonts] unique chars: ${chars.size} total, ${cjkChars.size} CJK-only (sent to Google Fonts text=)`);
+console.log(`[subset-fonts] unique chars: ${chars.size} total, ${cjkChars.size} CJK-only`);
 
-// 守門：Google Fonts css2 的 text= 超過約 800 unique chars 會被靜默忽略、
-// 回傳整套字型的預設 CSS，subset 後大多字形缺失 → OG 圖豆腐字但 build 照樣綠燈。
-// 守實際送往 Google 的 CJK-only 數（才是真正逼近上限的那條線），把無聲失敗變成 build 期警告／錯誤。永久修法見 Issue #2。
-if (cjkChars.size > 700) {
-  throw new Error(
-    `[subset-fonts] CJK unique chars ${cjkChars.size} 已逼近 Google Fonts text= 的 ~800 unique chars 上限，` +
-    `超過會被靜默忽略、回整套字型導致 OG 圖豆腐字；` +
-    `請改用本地完整字型 subset 永久修法，見 Issue #2。`
-  );
-} else if (cjkChars.size > 600) {
-  console.warn(
-    `[subset-fonts] ⚠ CJK unique chars ${cjkChars.size} 已超過 600，逼近 Google Fonts text= 的 ~800 上限；` +
-    `該規劃永久修法了，見 Issue #2。`
-  );
-}
+/**
+ * 子集由誰產生，2026-08-31 換人了。
+ *
+ * 原本靠 Google Fonts css2 的 `text=` 回一份現成子集，本地的 subsetFont 只做 woff2→woff
+ * 的格式轉換；於是那個參數失效就等於子集失效，前面兩道守門（>700 字 throw、來源 >512KB
+ * throw）都是在替它把關。而 Google 現在對 Noto Sans TC 一律忽略 `text=`——實測送三個字
+ * 也回 4,519,440 bytes 的整套字型，與字數無關，所以那兩道門是在擋一個沒辦法避開的常態。
+ *
+ * 改成不依賴它：`text=` 照送（哪天恢復就省 4.5MB 頻寬），但無論回整套或子集，一律由本地
+ * subsetFont 依 cjkText 重新裁一次。這條路兩種回應都成立，也就不必再猜 Google 的行為。
+ * 代價是每次 build 多下載 4.5MB；真正的永久修法是連下載都不要、字型入庫，見 Issue #2。
+ *
+ * 守門改守輸出：來源字型缺字形時 subsetFont 不會報錯，只會安靜地少裁幾個字，OG 圖照樣
+ * 豆腐字而 build 綠燈——那才是這支腳本從頭到尾要防的事，而且與 Google 怎麼回無關。
+ */
 
-// CJK: 透過 Google Fonts API 一次取得包含實際用字的 woff2
+// CJK: 向 Google Fonts 取字型來源（回整套或子集都可以，本地會再裁一次）
 const cjkUrl = `https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700&text=${encodeURIComponent(cjkText)}`;
 const cssRes = await fetch(cjkUrl, {
   headers: {
@@ -59,21 +59,37 @@ if (!woffMatch) throw new Error('Could not extract font URL from Google Fonts CS
 const fontRes = await fetch(woffMatch[1]);
 if (!fontRes.ok) throw new Error(`Font binary fetch failed: ${fontRes.status}`);
 const cjkSrc = Buffer.from(await fontRes.arrayBuffer());
-console.log(`[subset-fonts] fetched CJK source from Google Fonts: ${cjkSrc.length} bytes`);
+const srcKind = cjkSrc.length > 512 * 1024 ? '整套字型（text= 被忽略）' : '子集（text= 生效）';
+console.log(`[subset-fonts] fetched CJK source: ${cjkSrc.length} bytes — ${srcKind}`);
 
-// 第二道保險：正常子集約數十 KB；若異常大代表 text= 已被 Google 忽略、回傳整套字型 → throw。
-if (cjkSrc.length > 512 * 1024) {
+// subset-font 依 cjkText 裁出子集，並把 woff2 轉為 woff（satori 不接 woff2）
+const cjkSubset = await subsetFont(cjkSrc, cjkText, { targetFormat: 'woff' });
+
+/**
+ * 輸出驗收：CJK 字形一個約 200 bytes（2026-08-31 實測 283 字得 59,124 bytes，209 bytes/字）。
+ * 門檻取 50 保守留四倍餘裕——它要抓的是「來源缺字形、裁出來剩沒幾個字」那種數量級的落差，
+ * 不是字形繁簡造成的正常浮動。這是全腳本唯一擋得住 OG 圖豆腐字的檢查，別為了讓 build 過而放寬它。
+ *
+ * 侷限：woff 的表頭是固定開銷，字數少時會把 bytes/字 墊高（實測拿只含 3 字形的來源裁 24 字
+ * 仍有 45 bytes/字），所以這道門在小樣本下偏寬鬆。偏寬鬆的方向是安全的——本站字數在數百量級，
+ * 表頭佔比可以忽略，真的缺字形時比值會掉到個位數。
+ */
+const MIN_BYTES_PER_CJK_CHAR = 50;
+const minExpected = cjkChars.size * MIN_BYTES_PER_CJK_CHAR;
+if (cjkSubset.length < minExpected) {
   throw new Error(
-    `[subset-fonts] 取回的 CJK woff2 為 ${cjkSrc.length} bytes，異常過大，` +
-    `疑似 Google Fonts 已忽略 text= 而回傳整套字型；OG 圖將豆腐字，見 Issue #2。`
+    `[subset-fonts] subset 後僅 ${cjkSubset.length} bytes，低於 ${cjkChars.size} 字的預期下限 ${minExpected} bytes` +
+    `（約 ${(cjkSubset.length / cjkChars.size).toFixed(1)} bytes/字）；` +
+    `來源字型可能缺字形，OG 圖會出現豆腐字。來源為 ${srcKind}，${cjkSrc.length} bytes。`
   );
 }
 
-// subset-font 把 woff2 重新轉為 woff（satori 不接 woff2）
-const cjkSubset = await subsetFont(cjkSrc, cjkText, { targetFormat: 'woff' });
 await fs.mkdir('src/assets/og-fonts', { recursive: true });
 await fs.writeFile('src/assets/og-fonts/noto-sans-tc-subset.woff', cjkSubset);
-console.log(`[subset-fonts] noto-sans-tc-subset.woff: ${cjkSubset.length} bytes`);
+console.log(
+  `[subset-fonts] noto-sans-tc-subset.woff: ${cjkSubset.length} bytes ` +
+  `(${(cjkSubset.length / cjkChars.size).toFixed(1)} bytes/字，下限 ${MIN_BYTES_PER_CJK_CHAR})`
+);
 
 const interCandidates = [
   'node_modules/@fontsource/inter/files/inter-latin-700-normal.woff',
