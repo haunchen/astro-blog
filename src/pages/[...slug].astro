@@ -34,6 +34,12 @@ const readingTime = Math.max(1, Math.ceil(wordCount / 400));
 // Date formatting
 const formattedDate = post.data.date.toISOString().slice(0, 10);
 
+// 更新日期只在真的比發布日新時才顯示。schema 沒禁止 updated 與 date 同日，
+// sync-from-vault 會自己省略那種值，但手寫的文章不受它管——同日還印一次
+// 「2025-07-15 · 更新於 2025-07-15」對讀者是純噪音。
+const updatedDate = post.data.updated?.toISOString().slice(0, 10) ?? null;
+const formattedUpdated = updatedDate !== formattedDate ? updatedDate : null;
+
 // Prev / Next navigation
 const allPosts = await getPublishedPostsByDateDesc();
 
@@ -115,9 +121,20 @@ const crumbs = [
            階層。current 直接用 post.data.title——BaseLayout 的 JSON-LD 末階是
            title 去掉品牌後綴後的結果，兩者必須是同一字串。 -->
       <Breadcrumbs items={crumbs} current={post.data.title} />
+      <!-- 兩個日期放同一列，讀者才看得到「2025 年寫的、2026 年更新過」這個對比——
+           那正是顯示 updated 的理由。拆到 reading time 那行會被 H1 隔開，就不成一組了。
+           改用 <time datetime> 而非原本的純 <span>：日期本來就該是語意元素，
+           順手補上，成本為零。 -->
       <div class="article-header-meta">
         <TagBadge text={categoryLabel} href={`/category/${post.data.category}/`} />
-        <span class="article-header-date">{formattedDate}</span>
+        <span class="article-header-date">
+          <time datetime={formattedDate}>{formattedDate}</time>
+          {formattedUpdated && (
+            <span class="article-header-updated">
+              更新於 <time datetime={formattedUpdated}>{formattedUpdated}</time>
+            </span>
+          )}
+        </span>
       </div>
       <h1>{post.data.title}</h1>
       <div class="article-header-info">{readingTime} min read</div>
@@ -240,7 +257,11 @@ const crumbs = [
   .article-header-meta {
     display: flex;
     align-items: center;
-    gap: 16px;
+    /* 這一列原本只有分類 badge 與發布日，塞得下才沒設 wrap。多一個更新日期後，
+       窄螢幕會擠出容器，所以補上換行；row-gap 比 column-gap 小，換行後兩列
+       才不會鬆成兩個獨立區塊。 */
+    flex-wrap: wrap;
+    gap: 8px 16px;
     margin-bottom: 16px;
     font-family: var(--font-sans);
     font-size: 14px;
@@ -251,6 +272,17 @@ const crumbs = [
     font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.02em;
+  }
+
+  /* 分隔點跟著「更新於…」一起走：整段設 nowrap，換行時不會把日期斷成兩截，
+     也不會在上一行留一個孤兒的 ·。 */
+  .article-header-updated {
+    white-space: nowrap;
+  }
+
+  .article-header-updated::before {
+    content: '·';
+    margin: 0 8px;
   }
 
   .article-header h1 {
