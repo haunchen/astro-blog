@@ -1,15 +1,11 @@
 ---
 title: "從 Zeabur 資安事件學到的事：一把金鑰能走多遠？"
-date: 2026-08-31
-description: "Zeabur 環境變數外洩事件中，攻擊者用一把 AWS 金鑰走了三段路才到主資料庫。這篇不談換平台，談自架系統該怎麼檢查自己的權限半徑，以及止血、清冊、分層該用什麼順序做。"
+date: 2026-09-01
+description: "2026 年 8 月 Zeabur 環境變數外洩事件中，攻擊者用一把 AWS 金鑰走了三段路才碰到主資料庫。這篇不談該不該換平台，而是談事件真正的形狀：權限半徑。不管自架還是用 PaaS，都該盤點一把金鑰能走多遠，以及止血、清冊、分層該用什麼順序做。"
 category: "devops"
 tags: ["security", "deployment"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-09-01
 ---
-
-# 從 Zeabur 資安事件學到的事：一把金鑰能走多遠？
 
 ## 前言：Zeabur 資安事件爆發時，我差一個月
 
