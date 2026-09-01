@@ -7,6 +7,7 @@ import {
   toDate,
   collectImageRefs,
   rewriteImageSyntax,
+  stripLeadingH1,
   transformPost,
   renderPostFile,
   parsePublishAt,
@@ -91,13 +92,17 @@ test('rewriteImageSyntax：外部網址原樣不動', () => {
   assert.equal(rewriteImageSyntax(body), body);
 });
 
+/** 剛好落在 120–160 區間的描述——湊字數不是為了好看，是因為下限現在會擋。 */
+const VALID_DESCRIPTION =
+  '挑選 UPS 電池要看的規格與常見地雷：容量怎麼換算成實際撐機時間、原廠與副廠電池差在哪、換電池前該量哪幾個數字、買回來之後多久要重測一次，還有哪些規格表上的數字其實看了也沒用。這篇把選購到驗收的順序一次講完，讓你不必在停電當下才發現買錯。';
+
 /** 一份會通過所有檢查的 vault frontmatter，各測試只覆寫要驗的那一欄。 */
 function validData(overrides = {}) {
   return {
     type: 'tutorial',
     slug: 'ups-battery-buying-guide',
     title: 'UPS 電池選購指南',
-    description: '挑選 UPS 電池要看的規格與常見地雷',
+    description: VALID_DESCRIPTION,
     category: '硬體維護',
     cover_image: 'attachments/cover_ups.png',
     created: new Date('2026-03-06T00:00:00Z'),
@@ -115,7 +120,7 @@ test('transformPost：合規的 draft 轉出完整 frontmatter 與 draft: true',
     title: 'UPS 電池選購指南',
     date: new Date('2026-03-06T00:00:00Z'),
     updated: new Date('2026-08-16T00:00:00Z'),
-    description: '挑選 UPS 電池要看的規格與常見地雷',
+    description: VALID_DESCRIPTION,
     category: 'hardware',
     tags: ['ups', 'hardware'],
     cover: './images/cover.webp',
@@ -166,6 +171,27 @@ test('transformPost：超長 title/description 各自 blocked，兩條一次報�
   );
   assert.equal(r.status, 'blocked');
   assert.equal(r.issues.length, 2);
+});
+
+test('transformPost：description 太短也 blocked——下限漏掉會一路過到 CI 才炸', () => {
+  const r = transformPost(validData({ description: 'b'.repeat(119) }), '正文');
+  assert.equal(r.status, 'blocked');
+  assert.ok(r.issues.some((i) => i.includes('119 字')));
+});
+
+test('transformPost：剝掉正文開頭的 H1，避免與 layout 的標題湊成兩個 <h1>', () => {
+  const r = transformPost(validData(), '# UPS 電池選購指南\n\n## 前言\n內文');
+  assert.equal(r.status, 'ok');
+  assert.equal(r.body, '\n## 前言\n內文');
+});
+
+test('transformPost：正文中段的 H1 不動——那是作者的層級選擇，不是重複標題', () => {
+  const r = transformPost(validData(), '## 前言\n\n# 中段標題\n內文');
+  assert.equal(r.body, '## 前言\n\n# 中段標題\n內文');
+});
+
+test('stripLeadingH1：# 開頭但沒空白的不是標題，原樣保留', () => {
+  assert.equal(stripLeadingH1('#hashtag\n內文'), '#hashtag\n內文');
 });
 
 test('transformPost：blocked 時不輸出 frontmatter，避免半成品被誤用', () => {

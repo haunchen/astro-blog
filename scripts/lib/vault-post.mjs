@@ -14,6 +14,13 @@ const TITLE_MAX = 60;
 const DESCRIPTION_MAX = 160;
 
 /**
+ * 下限不在 zod schema 裡，但 `verify-seo` 與 `.githooks/pre-commit` 都硬擋 120–160。
+ * 只驗上限的話，一篇 86 字的描述會一路過到 CI 才炸（2026-09-01 排程發布就是這樣掛的），
+ * 而那時人已經不在現場。既然下游是硬擋，這裡就一起擋。
+ */
+const DESCRIPTION_MIN = 120;
+
+/**
  * vault 分類 → repo 分類 slug。
  *
  * key 一律是正規化後（trim + 小寫）的值：vault 裡同一個概念中英文並存——
@@ -140,6 +147,22 @@ export function rewriteImageSyntax(body) {
 }
 
 /**
+ * 剝掉正文開頭那一個 H1。
+ *
+ * vault 的稿子習慣在正文第一行重寫一次標題，但 `src/pages/[...slug].astro` 已經用
+ * frontmatter 的 title render 過 `<h1>`——照抄進來就是一頁兩個 H1，`verify-seo` 會擋。
+ *
+ * 只動「第一個非空行」這一個位置：正文中段若真的有 H1，那是作者刻意的層級選擇（雖然少見），
+ * 全域刪除會默默改掉文章結構，而這支腳本沒有立場做那個決定。
+ *
+ * @param {string} body
+ * @returns {string}
+ */
+export function stripLeadingH1(body) {
+  return body.replace(/^\s*#[ \t]+[^\n]*\n?/, '');
+}
+
+/**
  * 把 vault 的日期欄位轉成 Date。
  *
  * gray-matter 對 `created: 2025-11-24` 這種無引號日期會直接給 Date，但加了引號就是字串，
@@ -249,8 +272,10 @@ export function transformPost(data, body, options = {}) {
 
   const description = typeof data.description === 'string' ? data.description.trim() : '';
   if (!description) issues.push('缺 description');
-  else if (description.length > DESCRIPTION_MAX) {
-    issues.push(`description ${description.length} 字，超過 ${DESCRIPTION_MAX}`);
+  else if (description.length > DESCRIPTION_MAX || description.length < DESCRIPTION_MIN) {
+    issues.push(
+      `description ${description.length} 字，需介於 ${DESCRIPTION_MIN}–${DESCRIPTION_MAX}`,
+    );
   }
 
   const category = mapCategory(data.category);
@@ -307,7 +332,7 @@ export function transformPost(data, body, options = {}) {
       // 與「它現在是草稿」在 diff 裡相鄰，人 review 時一眼看得到這組不變量。
       ...(scheduled ? { publishAt: scheduled } : {}),
     },
-    body: rewriteImageSyntax(body),
+    body: stripLeadingH1(rewriteImageSyntax(body)),
     images,
     cover: { src: coverSrc, destName: 'cover.webp' },
   };
