@@ -1,12 +1,15 @@
 ---
 title: "網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學（新手友善）"
 date: 2025-07-15
+updated: 2026-09-01
 description: "把自架 WordPress 搬到 PaaS 平台 Zeabur 的完整步驟：用 All-in-One WP Migration 外掛備份成 .wpress 檔、開通開發者方案、選用 WordPress 模板部署，再匯入備份資料並綁定網域，新手也能照著完成。"
 category: "devops"
 tags: ["WordPress", "Zeabur"]
 cover: "./images/cover.webp"
 draft: false
 ---
+
+> **2026 年 9 月 1 日補充**：Zeabur 在 2026 年 8 月 27 日發生環境變數外洩事件，部分使用者存放的 API Key 與資料庫連線字串遭到外洩。這篇的搬家步驟本身仍然可用，但它沒有談到 WordPress 的資料庫憑證放在平台環境變數裡代表什麼風險。要照著做之前，建議先看〈[從 Zeabur 資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉。我自己的站已於 2026 年 7 月遷離 Zeabur，原因是架構整併，不是這次事件。
 
 ## 告別傳統部署困境，擁抱雲端捷徑
 

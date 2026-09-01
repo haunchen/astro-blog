@@ -1,12 +1,15 @@
 ---
 title: "Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰"
 date: 2025-10-20
+updated: 2026-09-01
 description: "把分散在多個子網域的服務，用 Zeabur 部署的 Nginx 反向代理整合到主網域底下的子目錄。比較子網域與子目錄在 SEO 權重、SSL 與 DNS 管理上的差異，並說明 Zeabur Internal 與 External URL 的運作方式。"
 category: "devops"
 tags: ["Nginx", "SEO", "WordPress"]
 cover: "./images/cover.webp"
 draft: false
 ---
+
+> **2026 年 9 月 1 日補充**：Zeabur 在 2026 年 8 月 27 日發生環境變數外洩事件，部分使用者存放的 API Key 與資料庫連線字串遭到外洩。這篇文章講的架構方法本身沒有變，但當年我完全沒有提到「密鑰該放在哪裡」這件事。如果你打算照這篇做，請先看一下〈[從 Zeabur 資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉。另外，我自己的網站已於 2026 年 7 月遷移到 Cloudflare Pages，原因是架構整併而非這次事件。
 
 ## 前言：為什麼要用 Zeabur + Nginx 重構網站？
 
