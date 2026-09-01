@@ -8,6 +8,7 @@
     "preview": "astro preview",
     "preview:pages": "wrangler pages dev dist --port 8788 --compatibility-date=2026-06-26",
     "test": "node --test \"scripts/lib/*.test.mjs\"",
+    "check:functions": "tsc --noEmit -p functions/tsconfig.json",
     "astro": "astro",
     "subset-fonts": "node scripts/subset-fonts.mjs",
     "fonts": "node scripts/build-font-css.mjs",
@@ -18,7 +19,8 @@
     "verify:robots": "node scripts/verify-robots.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
     "verify:dns-aid": "node scripts/verify-dns-aid.mjs",
-    "verify:negotiation": "node scripts/verify-negotiation.mjs"
+    "verify:negotiation": "node scripts/verify-negotiation.mjs",
+    "verify:agent-ua": "node scripts/verify-agent-ua.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
+    "@cloudflare/workers-types": "^5.20260901.1",
     "@types/sanitize-html": "^2.16.1",
     "fast-xml-parser": "^5.8.0",
     "turndown": "^7.2.4",

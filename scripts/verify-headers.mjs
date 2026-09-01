@@ -243,6 +243,43 @@ const CHECKS = [
     name: '內頁的 Link 標頭（不含首頁專屬的 /index.md）',
     verify: verifyLinks(EXPECTED_LINKS_SITE_WIDE),
   },
+  // 反向斷言：x-agent-detected 只該出現在白名單內的即時取用型 agent 的回應上
+  // （docs/specs/agent-markdown.md R12）。本腳本用 Node 的預設 fetch 發請求，
+  // 不在白名單裡，所以這裡出現該標頭有三種可能：middleware 的 UA 判準寫太寬、
+  // zone 層有規則在注入標頭，或邊緣快取把某個 agent 命中的回應存起來、供一般
+  // 讀者取用。第三種目前不成立——本站 HTML 是 `cf-cache-status: DYNAMIC`，不進
+  // 邊緣快取——但那是 zone 設定決定的，隨時可能變，紅燈時三種都該查。
+  //
+  // 正向斷言在 scripts/verify-agent-ua.mjs，但那支在 PR CI 上打的是本機 wrangler，
+  // 那裡沒有 zone 層規則；本檔是打正式站、進每日排程的那一支。理由與上方
+  // 「靜態資產不帶 Link 標頭」那條反向斷言同構——少了它，判準寫寬的退化會是靜默的：
+  // 站台功能完全正常，只是每位讀者的每個頁面回應都多背一個標頭。
+  {
+    path: '/',
+    header: 'x-agent-detected',
+    name: '一般請求不帶 x-agent-detected（UA 判準未寫寬）',
+    verify: (v) => (v ? `不應有 x-agent-detected，實際為 ${v}` : null),
+  },
+  // 同一條反向要求的另一半（spec R12 那句話的後半）：判準寫寬會同時造成兩個症狀，
+  // 多一個 x-agent-detected 標頭、以及 Vary 多一個 User-Agent token。後者更難察覺——
+  // 它不是新標頭而是既有標頭多一個值，而 Vary 一旦含 User-Agent，中間層快取就會
+  // 按 UA 分鍵，等於把快取命中率打散給每一種瀏覽器字串。
+  //
+  // 拆成獨立一項而不是併進上一條：兩者的失效原因不同（一個是 middleware 判準，
+  // 一個可能是 zone 層的 Managed Transforms／Cache 規則附掛），合成一條的話報出來
+  // 的訊息分不出該去查哪裡。
+  {
+    path: '/',
+    header: 'vary',
+    name: '一般請求的 Vary 不含 User-Agent（UA 判準未寫寬）',
+    verify: (v) => {
+      const tokens = (v ?? '')
+        .split(',')
+        .map((token) => token.trim().toLowerCase())
+        .filter(Boolean);
+      return tokens.includes('user-agent') ? `Vary 不應含 User-Agent，實際為 ${v}` : null;
+    },
+  },
 ];
 
 /**

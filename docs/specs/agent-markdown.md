@@ -2,7 +2,7 @@
 domain: agent-markdown
 status: active
 created: 2026-07-29
-last_modified: 2026-08-15
+last_modified: 2026-09-01
 ---
 
 # Agent Markdown
@@ -134,6 +134,88 @@ last_modified: 2026-08-15
   無對應 md 產物的路徑（404 頁、靜態資產）須退回 HTML／原有行為，不得因協商而產生新的 404。
 
   協商能力的存在不取代 R4 的既有管道：路徑慣例仍須獨立可用。
+
+## Pending Changes
+
+> 來源：`docs/plans/2026-09-01-agent-ua-detection-design.md`（issue #33 B 案 UA 分流，第一階段）。
+> 實作已完成並在 `feat/agent-ua-detection` 分支內（40fe84f 起），待上線與兩項上線後實測
+> （Claude 對本站的實際 UA、Vary 分流雙向實測——見設計文件「上線後待驗」）完成後併入正文。
+
+### ADDED R12: agent UA 偵測
+- **Level**: MUST
+- **Description**: 邊緣中介層須辨認即時取用型 AI agent 的 User-Agent，命中時在回應加上
+  `x-agent-detected`（值為命中的 agent 名稱）並使 `Vary` 含 `User-Agent`。
+
+  白名單只收代使用者即時抓取的 agent（`Claude-User`、`ChatGPT-User`、`Perplexity-User`），
+  **不得**收索引型（`Claude-SearchBot`、`OAI-SearchBot` 等）——理由見 D18。
+
+  本需求為純偵測：命中與否都不得改變回應的狀態碼、內容與 `Content-Type`，
+  既有的 Accept 協商契約（R11、MODIFIED R5）在任何 UA 下皆須維持原行為。
+
+  作用範圍與 R11 相同——即「是頁面」的路徑。靜態資產、`.md` 路徑本身、
+  `/llms.txt` 與 `/sitemap.xml` 這類非頁面路徑不得帶此標頭。
+
+  非白名單 UA 的回應不得出現 `x-agent-detected`，`Vary` 亦不得含 `User-Agent`。
+  這條反向要求與正向要求同等重要：判準寫寬的退化是靜默的（站台功能完全正常，
+  只是每位讀者的每個頁面回應都多背一個標頭），只有反向斷言抓得到。
+
+### ADDED D17: UA 判斷作為裝飾，不新增分支
+- **Decision**: UA 偵測不在中介層新增控制流分支，改為裝飾既有出口的回應標頭；
+  `Vary` 的合併沿用既有的去重函式，一般化後同時服務 `Accept` 與 `User-Agent`
+- **Rationale**: 上游設計文件的骨架是「命中即 early-return」。照做的話，一個同時送
+  `Accept: text/markdown` 的 agent 會從拿到 markdown 退回拿到 HTML——那違反 R12
+  「純偵測、零行為變更」。裝飾式改法讓四條出口的內容一字不動，只有標頭多兩項。
+
+  `Vary` 走既有的合併函式而非直接 append，是為了保留它兩個既有性質：不讓標頭在多次
+  經手後累積成 `Accept, Accept, Accept`，以及不蓋掉 asset 回應可能已帶的 `Accept-Encoding`
+- **Date**: 2026-09-01
+
+### ADDED D18: 白名單只收即時取用型 agent
+- **Decision**: 白名單只放 `Claude-User`／`ChatGPT-User`／`Perplexity-User`，
+  不放 `Claude-SearchBot`／`OAI-SearchBot` 等索引型
+- **Rationale**: 兩類 agent 的目的相反。即時取用型代使用者抓一頁就走，給它 markdown 是淨賺；
+  索引型要建索引，而本案第二階段會把命中者導向 `/<slug>.md`，那個路徑帶
+  `X-Robots-Tag: noindex`（D5），等於自斷收錄。
+
+  honestmc-website 有一份 12 個 AI 代理的現成白名單，但那份是為「被索引」設計的，
+  用途與本案相反——名單可以參考，用途不可照抄
+- **Date**: 2026-09-01
+
+### ADDED D19: 路徑範圍沿用既有的頁面判定，不另立排除清單
+- **Decision**: UA 偵測的作用範圍直接沿用 `pagePathToMdPath` 回傳非 `null` 這道既有閘門，
+  不在中介層另寫一條路徑排除正規式
+- **Rationale**: 上游骨架帶了一條 `SKIP_PATH` 正規式，它與 `public/_routes.json` 的排除清單
+  重疊（`/_astro/`、`/fonts/`、`/og/`、`/samples/`），等於同一件事維護兩份；而既有的
+  「不以 `/` 結尾就不是頁面」判定涵蓋得更完整——`/llms.txt`、`/sitemap.xml`、`/rss.xml`、
+  `/*.md`、`/favicon.png` 全落在 `null` 那條，骨架那條正規式反而漏了 `/samples/`。
+
+  分工維持現狀：`_routes.json` 管「哪些路徑根本不進 Worker」，中介層只管「進來了的請求
+  裡哪些是頁面」，兩邊不重疊
+- **Date**: 2026-09-01
+
+### ADDED S13: 即時取用型 agent 被辨認且行為不變
+- **Given**: 站台已部署
+- **When**: 以白名單內的 UA 對任一文章頁發出請求
+- **Then**: 回應 200 且 `Content-Type: text/html`（與一般瀏覽器完全相同），
+  帶 `x-agent-detected` 且值為命中的 agent 名稱，`Vary` 同時含 `Accept` 與 `User-Agent`
+- **Implements**: #R12
+
+### ADDED S14: 非白名單與索引型 agent 不受影響
+- **Given**: 站台已部署
+- **When**: 分別以瀏覽器 UA、一般 HTTP 客戶端的預設 UA、`Claude-SearchBot`、`OAI-SearchBot`
+  請求同一文章頁；另以白名單 UA 請求 `/favicon.png`、`/llms.txt`、`/sitemap.xml` 與該文的 `.md`
+  （不用字型檔當受測對象：`/fonts/*` 在 `public/_routes.json` 就被排除、根本不進 Worker，
+  拿它斷言會是恆真的假綠燈；`/favicon.png` 會進 Worker，驗的才是中介層自己的頁面判定）
+- **Then**: 前四者皆不含 `x-agent-detected` 且 `Vary` 不含 `User-Agent`；
+  後四個路徑在白名單 UA 下同樣不含 `x-agent-detected`
+- **Implements**: #R12
+
+### ADDED S15: 偵測不打破既有的 Accept 協商
+- **Given**: 站台已部署
+- **When**: 以白名單 UA 並帶 `Accept: text/markdown` 請求任一文章頁
+- **Then**: 回應仍為 200、`Content-Type: text/markdown; charset=utf-8`、不含 `X-Robots-Tag`
+  （即 S10、S11 的契約完全不變），並額外帶 `x-agent-detected`
+- **Implements**: #R11, #R12
 
 ## Scenarios
 

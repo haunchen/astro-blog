@@ -1,0 +1,229 @@
+# agent UA 偵測（第一階段）設計
+
+- 日期：2026-09-01
+- domain：`agent-markdown`（brownfield，spec 已 active）
+- 上游文件：vault `20-Side/astro-blog/agent-md-UA分流方案_20260730.md`（issue #33 B 案的 UA 分流方案）
+- 範圍：只做第一階段（偵測 + 標頭），不做第二階段的 307 重導
+
+## 這次要做什麼
+
+在既有的 `functions/_middleware.js` 裡加一條 UA 白名單判斷：命中即時取用型 agent 時，
+在回應加上 `x-agent-detected` 標頭並把 `User-Agent` 併進 `Vary`，其餘行為完全不變。
+
+零行為變更是硬條件。這一階段換到的是三樣東西：一套判斷邏輯、一組守得住它的 CI 斷言、
+以及第二階段 307 的插入點。上線之後只要把命中那條出口換成 `return new Response(null, {status: 307, ...})`
+就是第二階段，其餘一行不動。
+
+## 動工前的複驗（2026-09-01，打正式站 https://frankchen.tw）
+
+上游文件寫於 2026-07-30，當時 repo 還沒有 runtime 層。動工前逐條複驗，四項全部有結果。
+
+### 一、設計文件的骨架已過期：這是改既有檔案，不是新建
+
+上游骨架寫「新建 `functions/_middleware.ts`」。2026-08-03 PR #48（main `0ede97b`）已上線 Accept
+內容協商，`functions/_middleware.js` 現在就存在且在跑。本案是在既有 middleware 裡增加判斷。
+
+### 二、ETag 觀察仍成立，而且比 7/30 更有利
+
+文章頁與首頁皆無 `ETag`／`Last-Modified`，且 `cf-cache-status: DYNAMIC` —— HTML 根本沒進邊緣快取。
+2026-08-10 之後 BaseLayout 補的 GA4 config 沒有改變這件事（body 仍被 Bot Fight 的 JS Detections 改寫，
+ETag 照樣被丟掉）。
+
+這與 spec D15 當初推翻 D1 所依據的是同一條實測。上游文件列為「唯一剩下的技術風險」的那個情境
+——「CDN 已快取不帶 Vary 的版本供 agent 用，就會錯回 HTML」——在正式站的前提目前不成立。
+仍須實測（見「上線後待驗」），但預期是確認而非賭。
+
+### 三、UA 觀測面本來就存在，第一階段的定位要修正
+
+上游文件說第一階段要換到「確認 Claude 打自家站時 UA 真的是那串」，並暗示靠 `x-agent-detected` 達成。
+這條不成立：`x-agent-detected` 是回應標頭，只送給發請求的 agent，站主看不到；本站是 CF Free 方案，
+沒有 Logpush。
+
+但站主不需要它來觀測 UA。專案 MEMORY 的 2026-08-28 盤點就是靠 Cloudflare GraphQL Analytics 的
+`httpRequestsAdaptiveGroups` 按 UA 拆的（`Claude-SearchBot` 單日 2,613 次、`nginx-ssl early hints`
+557 次、`bastion early hints` 97 次），也就是本站早已有一個看得見 UA 的觀測面，與這次要不要上
+middleware 無關。真正的缺口只有保留期：Free 方案的 `httpRequestsAdaptiveGroups` 只查得到 1 天，
+`httpRequests1dGroups` 有 30 天但不帶 UA 維度。
+
+因此第一階段的定位改寫為「第二階段的鷹架 + CI 防線」，不再宣稱它提供觀測能力。
+「Claude 對本站送什麼 UA」改由一次性實證回答（見「上線後待驗」第 1 項），不必等本案上線。
+
+### 四、`functions/` 進 tsconfig 不能靠全域 checkJs
+
+實測：`npx tsc --noEmit` 現況 exit 0；加 `--checkJs` 變成 361 個錯，其中只有 7 個在 `functions/`，
+其餘散在 `astro.config.mjs` 與 `scripts/**`。`scripts/lib/md-path.mjs` 本身在 checkJs 下乾淨
+（只有它的 `.test.mjs` 會噴，而測試檔不會進本案的檢查範圍）。
+
+結論是範圍化：另開 `functions/tsconfig.json`，不動根 tsconfig。
+
+## 設計
+
+### middleware：裝飾出口，不新增分支
+
+現有控制流有四條出口：
+
+1. 非 GET/HEAD → `next()`
+2. `pagePathToMdPath(pathname) === null`（不是頁面）→ `next()`
+3. `!wantsMarkdown(request)` → `withVaryOnAccept(await next())`
+4. `wantsMarkdown` 命中 → md 產物（或找不到時退回 3）
+
+UA 判斷加在出口 2 的閘門之後，作用於出口 3 與 4，出口 1、2 維持原樣直接 `next()`
+——靜態資產連 UA 標頭都不讀。
+
+實作：閘門之後算一次 `detectAgent(request)`，回傳命中的 agent 名稱或 `null`；
+既有的 `withVaryOnAccept(response)` 一般化為 `withVaryAndDetection(response, agent)`，
+沿用它現有的「逐一比對既有值再合併、不無條件 append」邏輯（那是為了避免標頭在多次經手後
+累積成 `Accept, Accept, Accept`，同時保留 asset 回應可能已帶的 `Accept-Encoding`），
+只是要合併的 token 從寫死的 `Accept` 變成 `Accept` 加上命中時的 `User-Agent`。
+命中時另外 `set('x-agent-detected', <名稱>)`。
+
+**為什麼是裝飾而不是分支**：若照上游骨架在 `wantsMarkdown` 之前 early-return `next()`，
+一個同時送 `Accept: text/markdown` 的 agent 會從拿到 md 退回拿到 HTML，那就不是零行為變更了。
+裝飾式改法讓四條出口的內容一字不動，只有標頭多兩項。
+
+### 白名單
+
+只放即時取用型（代使用者即時抓取）：
+
+```
+/(?:^|[^\w-])Claude-User\//i
+/(?:^|[^\w-])ChatGPT-User\//i
+/(?:^|[^\w-])Perplexity-User\//i
+```
+
+兩邊都要綁邊界，缺一邊就會從兩個不同方向漏。右邊綁版本斜線，擋掉 `Claude-UserAgent`
+這類只有後綴不同的；左邊綁「不是字母也不是連字號」，擋掉 `Fake-Claude-User/1.0`
+這類前綴冒充的。真實 UA 裡 `Claude-User` 前面是空格或分號，落在 `[^\w-]` 因此照樣命中。
+
+（左邊界是 Final Review 才補上的：初版只綁了右邊，`Fake-Claude-User/1.0` 會被認成
+`Claude-User`。第二階段動這幾條時不要退回單邊。）
+
+不放 `Claude-SearchBot`、`OAI-SearchBot` 等索引型 —— 它們要建索引，第二階段導去帶 `noindex`
+的 md 等於自斷收錄。honestmc-website 那份 12 個白名單是為「被索引」設計的，目的相反，
+名單可抄、用途不可抄。
+
+`x-agent-detected` 的值只回命中的名稱（`Claude-User` 等），不回顯整串 UA。
+
+### 路徑範圍：不寫 `SKIP_PATH`
+
+上游骨架有一條 `SKIP_PATH` 正規式。整條刪掉，不寫進去。
+
+`pagePathToMdPath` 的「不以 `/` 結尾就不是頁面」已經完整涵蓋骨架想擋的東西而且更嚴：
+`/llms.txt`、`/sitemap.xml`、`/rss.xml`、`/*.md`、`/favicon.png` 全落在 `null` 那條。
+骨架那條正規式反而漏了 `/samples/`，又與 `public/_routes.json` 的排除清單
+（`/_astro/*`、`/fonts/*`、`/og/*`、`/samples/*`）重複維護。
+
+分工維持現狀：`_routes.json` 管「哪些路徑根本不進 Worker」，middleware 內只管
+「進來了的請求裡哪些是頁面」，兩邊不重疊。
+
+### 型別防線
+
+新增 `functions/tsconfig.json`，extends 根那份，開 `checkJs: true`，
+`types` 指 `@cloudflare/workers-types`（新增 devDependency）。
+
+必須明確設 `lib` 不含 DOM：不設的話 TS 會依 target 自動帶進 `lib.dom`，
+`Response`／`Headers` 會同時來自 DOM 與 workers-types 而打架。
+
+Astro base tsconfig 的 `include` 用 `${configDir}`，extends 之後會解析成 `functions/`，
+範圍剛好就是要的，不必自己重寫 include。`env.ASSETS.fetch()`、`context.next()`
+從 workers-types 拿到真型別，middleware 內部參數補 JSDoc 標註。
+
+這不是走形式：那 7 個錯裡包含 `request`、`context`、`response` 三個核心參數的 implicit any，
+也就是說目前那支檔案的型別檢查等於零。
+
+新增 npm script `check:functions`，接進 `seo-pr.yml`，位置在 `npm test` 之後、`npm run build`
+之前，比照既有的 fail fast 原則。
+
+**刻意不做**：不把 `.js` 改寫成 `.ts`（它 import `../scripts/lib/md-path.mjs`，換副檔名要連帶
+處理 `allowImportingTsExtensions` 與 Pages 的建置行為，換到的只有語法糖）；
+不新增 `wrangler.toml` 產生型別 —— 現代 CF 的做法是 `wrangler types` 讀設定檔生成
+`worker-configuration.d.ts`，那條路直接撞「Pages 專案一旦有設定檔，CF 會拿它當建置與執行設定的
+唯一來源、蓋掉後台」這條護欄，所以走 `@cloudflare/workers-types` 這個純型別套件。
+
+### 驗證腳本
+
+新增 `scripts/verify-agent-ua.mjs`（`npm run verify:agent-ua`），形狀完全比照
+`verify-negotiation.mjs`：預設打正式站、可傳 origin、逐項 PASS/FAIL、任一項不符 exit 1、
+文章頁從 llms.txt 第一個 `.md` 網址回推而不寫死 slug（理由同那兩支既有腳本：寫死的 slug
+遲早 404，屆時看起來像功能壞了、其實是檢查本身過期）。
+
+CI 接在 `seo-pr.yml` 既有的 wrangler step 之後打 `localhost:8788`，與 `verify:negotiation` 並排。
+
+斷言四組：
+
+- 正向：三個白名單 UA 打文章頁 → 200、`x-agent-detected` 等於命中的名稱、
+  `Vary` 同時含 `Accept` 與 `User-Agent`
+- 反向（防判準寫太寬）：瀏覽器 UA、Node 預設 UA、`Claude-SearchBot`、`OAI-SearchBot`、
+  以及兩種只差一個邊界的冒充字串（`Claude-UserAgent` 後綴、`Fake-Claude-User` 前綴）
+  → 一律不得有 `x-agent-detected`，`Vary` 不得含 `User-Agent`
+- 範圍：白名單 UA 打 `/favicon.png`、`/llms.txt`、`/sitemap.xml`、`/<slug>.md` 本身
+  → 一律不得命中。**不用字型檔當受測對象**：`/fonts/*` 在 `_routes.json` 就被排除、
+  根本不進 Worker，拿它斷言是恆真的假綠燈；`/favicon.png` 會進 Worker，驗的才是
+  中介層自己的頁面判定
+- 零行為變更：白名單 UA 再加 `Accept: text/markdown` 打文章頁 → 仍回 200 md、
+  Content-Type 為 markdown、無 `X-Robots-Tag`（既有協商契約沒被動到）
+
+`verify-headers.mjs` 補兩條反向斷言，對應 R12 那句話的兩個子句：以它預設的請求（Node UA）
+打首頁時，既不得出現 `x-agent-detected`，`Vary` 也不得含 `User-Agent`。拆成兩條是因為
+失效原因不同（中介層判準寫寬 vs zone 層規則附掛），合成一條報出來的訊息分不出該查哪裡。
+
+理由與那支腳本裡「字型檔不得帶 `Link`」同構 —— 正向斷言擋不住「判準寫寬了、每個真人
+回應都多背一個標頭」這種靜默退化，而那支打正式站、進日檢，抓得到 zone 層的意外。
+
+CSP 不動，因此 `EXPECTED_CSP_DIRECTIVES` 不需同步。`public/_headers` 一個字都不改。
+
+## 第二階段的優先序（記錄，不在本次動工）
+
+第一階段是裝飾不是分支，所以「UA 與 Accept 誰優先」在這一階段不存在。
+第二階段改 307 時，判斷是 **Accept 優先於 UA**。
+
+站主原本的看法是 UA 優先，理由是 Claude-User 送 `*/*`、在 Accept 那條本來就不會命中。
+那個觀察正確，但它只證明兩者不衝突，不代表 UA 該排前面。真的有 agent 同時送
+`Accept: text/markdown` 時，現有協商已經在正規網址回 200 md，那比 307 更好：
+少一趟往返，而且 307 的終點 `/<slug>.md` 帶著 `X-Robots-Tag: noindex`。
+UA 分流的定位是補 Accept 分不出來的那批，不是取代它。
+
+## 驗收
+
+第一階段（本次動工範圍）：
+
+- [ ] `functions/` 進 tsconfig，`npx tsc -p functions/tsconfig.json --noEmit` 真的檢查得到
+      （驗法：暫時把某個參數的 JSDoc 拿掉，確認會紅）
+- [ ] `npm run preview:pages` 上非白名單 UA 行為與現況完全一致，含靜態資產、`/llms.txt`、
+      `/sitemap.xml`、`/*.md` 自身
+- [ ] `npm run preview:pages` 上既有 Accept 協商 12 項（`verify:negotiation`）未被打破
+- [ ] `npm run preview:pages` 上三個白名單 UA 命中並回 `x-agent-detected`
+- [ ] `verify:headers` 的 middleware 反向斷言到位且對正式站綠燈
+- [ ] `seo-pr.yml` 接上 `check:functions` 與 `verify:agent-ua`
+
+## 上線後待驗
+
+這兩項在本機與 CI 都做不到，merge 後才跑得了。
+
+1. **Claude 對 frankchen.tw 送什麼 UA**（一次性實證，與本案上線無依賴，可先做）：
+   站主在 Claude 對話裡貼一個自家文章網址讓 `web_fetch` 打一次，立刻用 CF GraphQL 的
+   `httpRequestsAdaptiveGroups` 查那一分鐘的 UA。這把「httpbin 上的合理推定」升級成對本站的實測，
+   連帶涵蓋 zone 層有沒有改寫 UA。Free 方案只查得到 1 天，所以要當天查。
+
+2. **Vary 分流雙向實測**（全案唯一未驗項，驗完就寫死進本文件與上游 vault 文件）：
+   在**正式站**跑，不是 `npm run preview:pages`。`wrangler pages dev` 是本機 workerd，
+   沒有 Cloudflare 邊緣快取層 —— 要測的東西根本不存在，兩個方向都會「通過」，那是假綠燈。
+   護欄「驗證一律用 preview:pages」管的是 Functions 執不執行，對這一項不適用。
+
+   也不在 `*.pages.dev` 上定案：那個環境沒有 apex zone 的 Cache Rule，而 zone 會覆寫 `_headers`
+   正是 `verify:headers` 存在的理由，在那裡驗過可能寫下一個對正式站不成立的結論。
+
+   選正式站的前提是第一階段零行為變更：就算分流不可靠，最壞也只是某些回應多帶或少帶一個標頭，
+   沒有人會拿到錯的內容。
+
+   驗法（兩個方向都要對）：
+   1. 瀏覽器 UA 打某篇文章頁，讓邊緣存一份
+   2. `Claude-User` UA 打同一 URL，看有沒有正確命中
+   3. 反向順序（先 agent 再瀏覽器）再跑一次
+
+## 收尾
+
+- 上游 vault 文件 `20-Side/astro-blog/agent-md-UA分流方案_20260730.md`：
+  frontmatter 的 `status` 從 `in-progress` 更新，補「第一階段已上線」與 Vary 實測結果，
+  並更正第 97 行的「新建 `functions/_middleware.ts`」與「第一階段換到可觀測訊號」兩處
+- 專案 MEMORY 的 open issues 同步（issue #33 條目下的「B 案該改走 UA 分流」那條）

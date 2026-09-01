@@ -38,16 +38,20 @@ npm run verify:robots    # robots.txt of the LIVE site
 npm run verify:assets    # Static assets referenced by LIVE pages actually resolve
 npm run verify:dns-aid   # DNS-AID records (_index._agents.<host>) on the LIVE zone
 npm run verify:negotiation  # Accept content negotiation on the LIVE site (or pass an origin)
+npm run verify:agent-ua  # Agent UA detection (x-agent-detected / Vary) on the LIVE site (or pass an origin)
 ```
 
-`verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` / `verify:negotiation` hit
-**https://frankchen.tw (production)** by default — they exist precisely because Cloudflare
-zone-level rules (and, for `verify:dns-aid`, the zone's DNS records themselves) can override or
-simply not exist in what the repo says, so pointing them at localhost defeats their purpose.
-Override the origin with `npm run verify:headers -- https://other-origin`.
+`verify:headers` / `verify:robots` / `verify:assets` / `verify:dns-aid` / `verify:negotiation` /
+`verify:agent-ua` hit **https://frankchen.tw (production)** by default — they exist precisely
+because Cloudflare zone-level rules (and, for `verify:dns-aid`, the zone's DNS records themselves)
+can override or simply not exist in what the repo says, so pointing them at localhost defeats
+their purpose. Override the origin with `npm run verify:headers -- https://other-origin`.
 
 No linter is configured. TypeScript is strict; `@astrojs/check` is installed for `npx astro check`
-(not wired to an npm script).
+(not wired to an npm script). `npx astro check` does not cover `functions/`, though — the root
+tsconfig doesn't enable `checkJs` (turning it on globally surfaces 361 errors, only 7 of them
+actually in `functions/`), so that edge middleware's type checking runs off a scoped
+`functions/tsconfig.json` instead, via `npm run check:functions`.
 
 ## Architecture
 
@@ -155,7 +159,10 @@ some header and AI-crawler rules — `public/robots.txt` and `public/_headers` a
 enforcement, and the two lists do not sync. Verify with `verify:headers` / `verify:robots` against the
 live site rather than reading the files.
 
-**CI:** `.github/workflows/seo-pr.yml` runs `npm test` + build + `verify:seo` + Lighthouse on every PR;
+**CI:** `.github/workflows/seo-pr.yml` runs `npm test` + `check:functions` + build + `verify:seo` +
+Lighthouse + `verify:agent-ua` (the last against a `wrangler pages dev` instance started in the
+job, since agent UA detection lives in Pages Functions, which `astro preview` doesn't execute)
+on every PR;
 `seo-daily.yml` runs a scheduled squirrelscan audit; `publish-scheduled.yml` runs daily to flip due
 scheduled posts from draft and push the commit. `.githooks/pre-commit` (enabled by `npm install`
 via the `prepare` script) validates frontmatter on staged posts only — seconds-fast, no build.
