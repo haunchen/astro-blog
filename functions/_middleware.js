@@ -12,15 +12,36 @@
 import { pagePathToMdPath } from '../scripts/lib/md-path.mjs';
 
 /**
+ * 這支中介層實際用到的 context 欄位。
+ *
+ * 刻意不用 workers-types 的 `PagesFunction<Env>`：那個名稱跨大版本未必穩定，而本檔
+ * 只用得到 context 的三個欄位，寫成 typedef 反而把「這支到底依賴什麼」講清楚了。
+ * `Request`／`Response`／`Fetcher` 這幾個核心型別才是從 workers-types 來的。
+ *
+ * @typedef {{
+ *   request: Request,
+ *   next: () => Promise<Response>,
+ *   env: { ASSETS: Fetcher },
+ * }} MiddlewareContext
+ */
+
+/**
  * token 數估算，供 x-markdown-tokens 使用。
  *
  * 是估算不是精確值：中文與英文的 token 密度差很多，這裡取「每 2.5 個字元約一個 token」的
  * 粗略係數，讓 agent 有個量級可以決定要不要抓全文。CF 原生方案的同名標頭一樣是估算值。
+ *
+ * @param {string} text
+ * @returns {number}
  */
 function estimateTokens(text) {
   return Math.ceil([...text].length / 2.5);
 }
 
+/**
+ * @param {Request} request
+ * @returns {boolean}
+ */
 function wantsMarkdown(request) {
   const accept = request.headers.get('accept');
   if (!accept) return false;
@@ -53,6 +74,9 @@ function wantsMarkdown(request) {
  *
  * 逐一比對既有值而不是無條件 append：重複 append 會讓標頭在多次經手後累積成
  * `Accept, Accept, Accept`。
+ *
+ * @param {Response} response
+ * @returns {Response}
  */
 function withVaryOnAccept(response) {
   const headers = new Headers(response.headers);
@@ -68,6 +92,7 @@ function withVaryOnAccept(response) {
   });
 }
 
+/** @param {MiddlewareContext} context */
 export const onRequest = async (context) => {
   const { request, next, env } = context;
 

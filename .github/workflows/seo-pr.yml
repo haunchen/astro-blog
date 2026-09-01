@@ -42,6 +42,14 @@ jobs:
       - name: 單元測試（WP 遷移工具鏈）
         run: npm test
 
+      # functions/ 的型別檢查。根 tsconfig 刻意沒開 checkJs——全域開會噴 361 個錯，
+      # 其中只有 7 個在 functions/，其餘散在 astro.config.mjs 與 scripts/**。所以邊緣
+      # 中介層的型別檢查是靠 functions/tsconfig.json 範圍化撐著，而範圍化的設定沒有
+      # 東西會自動跑它。沒有這一步，那份設定形同不存在。
+      # 位置與 npm test 同一個理由：fail fast，不必等 build 與 Lighthouse 跑完。
+      - name: functions/ 型別檢查
+        run: npm run check:functions
+
       - name: 建置
         run: npm run build
 
