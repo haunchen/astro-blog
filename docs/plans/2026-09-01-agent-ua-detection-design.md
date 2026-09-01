@@ -86,17 +86,19 @@ UA 判斷加在出口 2 的閘門之後，作用於出口 3 與 4，出口 1、2
 只放即時取用型（代使用者即時抓取）：
 
 ```
-/(?:^|[^\w-])Claude-User\//i
-/(?:^|[^\w-])ChatGPT-User\//i
-/(?:^|[^\w-])Perplexity-User\//i
+/(?:^|[^\w-])Claude-User(?![\w-])/i
+/(?:^|[^\w-])ChatGPT-User(?![\w-])/i
+/(?:^|[^\w-])Perplexity-User(?![\w-])/i
 ```
 
-兩邊都要綁邊界，缺一邊就會從兩個不同方向漏。右邊綁版本斜線，擋掉 `Claude-UserAgent`
-這類只有後綴不同的；左邊綁「不是字母也不是連字號」，擋掉 `Fake-Claude-User/1.0`
-這類前綴冒充的。真實 UA 裡 `Claude-User` 前面是空格或分號，落在 `[^\w-]` 因此照樣命中。
+兩邊都綁邊界，缺一邊就會從一個方向漏；而且兩邊綁的都是「token 到此為止」，不是某個特定字元。
+左邊 `(?:^|[^\w-])` 擋掉 `Fake-Claude-User/1.0` 這類前綴冒充；右邊 `(?![\w-])` 擋掉
+`Claude-UserAgent` 這類後綴不同的，同時放行 `/`、空格、`;`。
 
-（左邊界是 Final Review 才補上的：初版只綁了右邊，`Fake-Claude-User/1.0` 會被認成
-`Claude-User`。第二階段動這幾條時不要退回單邊。）
+這兩個邊界都是事後補的，各對應一次踩坑，第二階段動這幾條時不要退回去：
+左邊界是 Final Review 補的（初版只綁右邊，`Fake-Claude-User/1.0` 會被認成 `Claude-User`）；
+右邊界原本寫死 `\/`，上線後實測發現 Claude Code 的 WebFetch 送 `Claude-User (claude-code/…)`
+接的是空格，整個被漏掉，才改成通用邊界（見「上線後實測結果」第二節與 spec D20）。
 
 不放 `Claude-SearchBot`、`OAI-SearchBot` 等索引型 —— 它們要建索引，第二階段導去帶 `noindex`
 的 md 等於自斷收錄。honestmc-website 那份 12 個白名單是為「被索引」設計的，目的相反，
@@ -196,30 +198,53 @@ UA 分流的定位是補 Accept 分不出來的那批，不是取代它。
 - [ ] `verify:headers` 的 middleware 反向斷言到位且對正式站綠燈
 - [ ] `seo-pr.yml` 接上 `check:functions` 與 `verify:agent-ua`
 
-## 上線後待驗
+## 上線後實測結果（2026-09-01，main `871948f` 部署後）
 
-這兩項在本機與 CI 都做不到，merge 後才跑得了。
+三支線上驗證對正式站全綠：`verify:agent-ua` 14/14、`verify:headers`（含新增的兩條反向斷言）、
+`verify:negotiation`（既有協商未被打破）。
 
-1. **Claude 對 frankchen.tw 送什麼 UA**（一次性實證，與本案上線無依賴，可先做）：
-   站主在 Claude 對話裡貼一個自家文章網址讓 `web_fetch` 打一次，立刻用 CF GraphQL 的
-   `httpRequestsAdaptiveGroups` 查那一分鐘的 UA。這把「httpbin 上的合理推定」升級成對本站的實測，
-   連帶涵蓋 zone 層有沒有改寫 UA。Free 方案只查得到 1 天，所以要當天查。
+### 一、Vary 分流雙向實測：通過，但要記住通過的理由
 
-2. **Vary 分流雙向實測**（全案唯一未驗項，驗完就寫死進本文件與上游 vault 文件）：
-   在**正式站**跑，不是 `npm run preview:pages`。`wrangler pages dev` 是本機 workerd，
-   沒有 Cloudflare 邊緣快取層 —— 要測的東西根本不存在，兩個方向都會「通過」，那是假綠燈。
-   護欄「驗證一律用 preview:pages」管的是 Functions 執不執行，對這一項不適用。
+兩個方向都對——瀏覽器先／agent 先各跑一輪，各自拿到該拿的東西，沒有互相污染。
 
-   也不在 `*.pages.dev` 上定案：那個環境沒有 apex zone 的 Cache Rule，而 zone 會覆寫 `_headers`
-   正是 `verify:headers` 存在的理由，在那裡驗過可能寫下一個對正式站不成立的結論。
+**但六次請求的 `cf-cache-status` 全是 `DYNAMIC`。** 也就是說這一項驗到的是「風險結構上不存在」
+（HTML 根本沒進邊緣快取，沒有被快取的錯誤版本可以被端出來），**不是**「CF 邊緣正確依
+`Vary: User-Agent` 分流」。後者到目前為止仍然零證據。
 
-   選正式站的前提是第一階段零行為變更：就算分流不可靠，最壞也只是某些回應多帶或少帶一個標頭，
-   沒有人會拿到錯的內容。
+這個差別是本項唯一值得記住的東西：哪天有人在 zone 加一條 Cache Rule 開始快取 HTML，
+這個測試必須重跑——那時才第一次真的依賴 Vary。不要把本次結果讀成「Vary 分流已驗證可靠」。
 
-   驗法（兩個方向都要對）：
-   1. 瀏覽器 UA 打某篇文章頁，讓邊緣存一份
-   2. `Claude-User` UA 打同一 URL，看有沒有正確命中
-   3. 反向順序（先 agent 再瀏覽器）再跑一次
+驗法（供重跑時照做）：瀏覽器 UA 打某篇文章頁 → 同 URL 換 `Claude-User` UA → 反向順序再一輪。
+
+### 二、UA 實證：推翻了「產品名後面接版本斜線」這個前提
+
+Claude Code 的 WebFetch 對 httpbin 回顯送出的是：
+
+```
+User-Agent: Claude-User (claude-code/2.1.252; +https://support.anthropic.com/)
+Accept: text/markdown, text/html, */*
+```
+
+`Claude-User` 後面接的是**空格**，不是斜線。初版正規式綁死 `Claude-User\/`（依據是 7/30 對
+claude.ai `web_fetch` 的 httpbin 觀察 `Claude-User/1.0`），因此正式站實測這串 UA **不命中**——
+一個自我標示為 `Claude-User` 的真實 Claude 客戶端被白名單整個漏掉。
+
+已修正：兩側邊界都改成「token 到此為止」（`(?:^|[^\w-])` 與 `(?![\w-])`），不再綁定特定後接字元，
+並把 Claude Code 那串補進 `verify-agent-ua.mjs` 的 `ALLOWED` 當回歸測資。寫成 spec 硬規定見 D20。
+
+同一次實測的第二個收穫更重要：Claude Code 送 `Accept: text/markdown`，**它早就命中 R11 的協商、
+在正規網址拿到 markdown**（實測 `x-markdown-tokens: 1346`）。這讓本文件先前「第二階段 Accept 應
+優先於 UA」的建議從偏好升格為正確性要求——協商回應是 200、走正規網址、不帶 `noindex`，而 307
+多一跳且終點帶 `noindex`。已寫進 spec D20。
+
+### 三、仍未做的一項
+
+「**claude.ai 的 `web_fetch` 對 frankchen.tw 送什麼 UA**」仍只有 2026-07-30 的 httpbin 觀察撐著。
+上面第二項量到的是 Claude Code 這個客戶端，不是同一個東西。要補這一項得站主在 Claude 對話裡貼一個
+自家文章網址讓 `web_fetch` 打一次，**當天**用 CF GraphQL 的 `httpRequestsAdaptiveGroups` 查那一分鐘
+的 UA（Free 方案只留 1 天）。
+
+第二階段動工前應該補完——它決定白名單裡 `Claude-User` 那條到底涵蓋幾種客戶端。
 
 ## 收尾
 

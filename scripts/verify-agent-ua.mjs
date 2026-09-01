@@ -36,6 +36,14 @@ const ALLOWED = [
     'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Perplexity-User/1.0; +https://perplexity.ai/perplexity-user)',
     'Perplexity-User',
   ],
+  // Claude Code 的 WebFetch（2026-09-01 對 httpbin 回顯實測取得）。同樣自我標示為
+  // Claude-User，但接的是空格不是版本斜線——初版把右邊界寫死成 `\/`，這串就整個漏掉了。
+  // 留著它當測資，是為了讓「右邊界又被收窄回某個特定字元」這種退化當場紅燈。
+  [
+    'Claude-User (claude-code/2.1.252; +https://support.anthropic.com/)',
+    'Claude-User',
+    'Claude-User（Claude Code 文法，接空格）',
+  ],
 ];
 
 /**
@@ -120,9 +128,12 @@ const checks = [];
 const article = await resolveArticlePath();
 
 if (article.htmlPath) {
-  for (const [ua, name] of ALLOWED) {
+  // label 用來區分「同一個 agent 名稱、不同客戶端文法」的測資（同一個 name 會出現多次），
+  // 沒給就退回 name。少了它，兩筆 Claude-User 測資會印出一模一樣的檢查名稱，紅燈時分不出
+  // 是哪一種 UA 文法壞了——而那正是這組測資存在的理由。
+  for (const [ua, name, label] of ALLOWED) {
     checks.push({
-      name: `${name} 命中且行為不變（${article.htmlPath}）`,
+      name: `${label ?? name} 命中且行為不變（${article.htmlPath}）`,
       run: async () => {
         const { res, error } = await get(article.htmlPath, { 'User-Agent': ua });
         if (error) return error;

@@ -46,18 +46,22 @@ function estimateTokens(text) {
  * /<slug>.md，等於自斷收錄。honestmc-website 有一份 12 個 AI 代理的白名單，但那份是
  * 為「被索引」設計的，目的相反——名單可以參考，用途不可照抄。
  *
- * 正規式結尾的 `\/` 綁的是版本斜線（實際 UA 長相為 `Claude-User/1.0`）。少了它，
- * `Claude-UserAgent` 這種只是前綴相同的字串也會命中。
+ * 兩邊都綁邊界，而且兩邊綁的都是「token 到此為止」而非某個特定字元——**不要再收窄成
+ * 只認版本斜線**。初版右邊界寫死 `\/`（依據是 7/30 在 httpbin 上看到 claude.ai 的
+ * web_fetch 送 `Claude-User/1.0`），2026-09-01 上線後實測發現 Claude Code 的 WebFetch
+ * 送的是 `Claude-User (claude-code/2.1.252; +https://support.anthropic.com/)`——同樣自我
+ * 標示為 Claude-User，接的卻是空格，於是這個真實的 Claude 客戶端被白名單整個漏掉。
+ * 同一個產品名底下不同客戶端的 UA 文法並不一致，綁字元就是在賭其中一種。
  *
- * 開頭的 `(?:^|[^\w-])` 綁左邊界：真實 UA 裡這個 token 前面永遠是字串開頭或
- * 空白／`; `（例如 `compatible; Claude-User/1.0`），落在 `[^\w-]` 內，不受影響；
- * 但 `Fake-Claude-User/1.0` 這種前綴冒充，`Claude` 前面接的是 `-`，落在 `[\w-]`
- * 範圍內因此被排除，不會被誤認成 `Claude-User`。
+ * 左邊 `(?:^|[^\w-])`：真實 UA 裡這個 token 前面是字串開頭或空白／`; `
+ * （例如 `compatible; Claude-User/1.0`），落在 `[^\w-]` 內不受影響；`Fake-Claude-User/1.0`
+ * 這種前綴冒充，`Claude` 前面接的是 `-`，落在 `[\w-]` 因此被排除。
+ * 右邊 `(?![\w-])`：`Claude-UserAgent` 這種後綴不同的被排除，而 `/`、空格、`;` 都放行。
  */
 const AGENT_UA = [
-  { name: 'Claude-User', pattern: /(?:^|[^\w-])Claude-User\//i },
-  { name: 'ChatGPT-User', pattern: /(?:^|[^\w-])ChatGPT-User\//i },
-  { name: 'Perplexity-User', pattern: /(?:^|[^\w-])Perplexity-User\//i },
+  { name: 'Claude-User', pattern: /(?:^|[^\w-])Claude-User(?![\w-])/i },
+  { name: 'ChatGPT-User', pattern: /(?:^|[^\w-])ChatGPT-User(?![\w-])/i },
+  { name: 'Perplexity-User', pattern: /(?:^|[^\w-])Perplexity-User(?![\w-])/i },
 ];
 
 /**
