@@ -235,6 +235,10 @@ if (failed) {
     'UA 偵測在 functions/_middleware.js。本機要重現需以 wrangler 執行（npm run preview:pages），' +
       'astro preview 不會執行 Pages Functions。',
   );
+  console.log(
+    '若失敗的是全部項目且狀態碼非 200，先查 zone 的 AI 爬蟲政策（WAF／AI Crawl Control）' +
+      '有沒有把這幾個 UA 擋掉（見 docs/specs/seo-perfection.md），那不是中介層的問題。',
+  );
   process.exit(1);
 }
 console.log('全部符合預期。');

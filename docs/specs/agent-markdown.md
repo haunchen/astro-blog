@@ -138,7 +138,8 @@ last_modified: 2026-09-01
 ## Pending Changes
 
 > 來源：`docs/plans/2026-09-01-agent-ua-detection-design.md`（issue #33 B 案 UA 分流，第一階段）。
-> 尚未實作，實作並上線後併入正文。
+> 實作已完成並在 `feat/agent-ua-detection` 分支內（40fe84f 起），待上線與兩項上線後實測
+> （Claude 對本站的實際 UA、Vary 分流雙向實測——見設計文件「上線後待驗」）完成後併入正文。
 
 ### ADDED R12: agent UA 偵測
 - **Level**: MUST
@@ -202,7 +203,9 @@ last_modified: 2026-09-01
 ### ADDED S14: 非白名單與索引型 agent 不受影響
 - **Given**: 站台已部署
 - **When**: 分別以瀏覽器 UA、一般 HTTP 客戶端的預設 UA、`Claude-SearchBot`、`OAI-SearchBot`
-  請求同一文章頁；另以白名單 UA 請求任一字型檔、`/llms.txt`、`/sitemap.xml` 與該文的 `.md`
+  請求同一文章頁；另以白名單 UA 請求 `/favicon.png`、`/llms.txt`、`/sitemap.xml` 與該文的 `.md`
+  （不用字型檔當受測對象：`/fonts/*` 在 `public/_routes.json` 就被排除、根本不進 Worker，
+  拿它斷言會是恆真的假綠燈；`/favicon.png` 會進 Worker，驗的才是中介層自己的頁面判定）
 - **Then**: 前四者皆不含 `x-agent-detected` 且 `Vary` 不含 `User-Agent`；
   後四個路徑在白名單 UA 下同樣不含 `x-agent-detected`
 - **Implements**: #R12

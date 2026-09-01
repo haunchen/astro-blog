@@ -31,14 +31,19 @@ npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈
 npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
+npm run check:functions # functions/ 的型別檢查（tsc --noEmit -p functions/tsconfig.json）
 ```
+
+`npx astro check` 檢查不到 `functions/`：根 tsconfig 沒開 `checkJs`（全域開會噴 361 個錯，
+其中只有 7 個真的在 `functions/` 裡），所以邊緣中介層的型別檢查改靠範圍化的
+`functions/tsconfig.json` 撐著，要單獨跑 `npm run check:functions`。
 
 `npm test` 的 glob **刻意加了雙引號**，要讓 Node 自己展開而不是 shell 展開（這是
 Node 官方文件建議的可攜寫法）。拿掉引號、或改傳目錄（`node --test scripts/lib/`）
 在 Windows 上會失敗，不要「順手修正」。
 
-另有五支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
-`verify:assets`、`verify:dns-aid`、`verify:negotiation`。前三支存在的理由是 Cloudflare
+另有六支打**正式站**（而非 localhost）的驗證腳本：`verify:headers`、`verify:robots`、
+`verify:assets`、`verify:dns-aid`、`verify:negotiation`、`verify:agent-ua`。前三支存在的理由是 Cloudflare
 zone 層規則會覆寫 repo 裡的設定——`public/_headers` 與 `public/robots.txt` 是請求，
 zone 才是執行——所以指向 localhost 等於讓這些檢查失去意義。`verify:dns-aid` 則是驗證
 zone 上的 DNS-AID 記錄（`_index._agents.<host>`）還在、還是對的：DNS 記錄完全不在 repo，
@@ -47,6 +52,9 @@ zone 上的 DNS-AID 記錄（`_index._agents.<host>`）還在、還是對的：D
 它預設也是打正式站，但因為協商邏輯活在本機 `astro preview` 不會執行的 Pages Functions
 裡，要在本機驗證得先 `npm run preview:pages` 起 wrangler，再指向它：
 `npm run verify:negotiation http://localhost:8788`。
+`verify:agent-ua` 驗證即時取用型 agent 的 UA 偵測（`x-agent-detected`／`Vary: User-Agent`）——
+邏輯同樣活在 Pages Functions 裡，本機驗證同理得先起 wrangler；正向斷言在這支腳本，
+反向斷言（一般請求不該帶該標頭）另外釘在 `verify:headers` 的正式站日檢裡。
 要換來源用 `npm run verify:headers -- https://其他來源`。
 
 `dev` / `build` 前會自動跑 `scripts/build-font-css.mjs`（產出 gitignore 的

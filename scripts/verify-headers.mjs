@@ -245,8 +245,10 @@ const CHECKS = [
   },
   // 反向斷言：x-agent-detected 只該出現在白名單內的即時取用型 agent 的回應上
   // （docs/specs/agent-markdown.md R12）。本腳本用 Node 的預設 fetch 發請求，
-  // 不在白名單裡，所以這裡出現該標頭只有兩種可能：middleware 的 UA 判準寫太寬，
-  // 或 zone 層有規則在注入標頭。兩種都該紅。
+  // 不在白名單裡，所以這裡出現該標頭有三種可能：middleware 的 UA 判準寫太寬、
+  // zone 層有規則在注入標頭，或邊緣快取把某個 agent 命中的回應存起來、供一般
+  // 讀者取用。第三種目前不成立——本站 HTML 是 `cf-cache-status: DYNAMIC`，不進
+  // 邊緣快取——但那是 zone 設定決定的，隨時可能變，紅燈時三種都該查。
   //
   // 正向斷言在 scripts/verify-agent-ua.mjs，但那支在 PR CI 上打的是本機 wrangler，
   // 那裡沒有 zone 層規則；本檔是打正式站、進每日排程的那一支。理由與上方

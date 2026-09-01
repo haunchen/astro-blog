@@ -71,7 +71,7 @@ UA 判斷加在出口 2 的閘門之後，作用於出口 3 與 4，出口 1、2
 ——靜態資產連 UA 標頭都不讀。
 
 實作：閘門之後算一次 `detectAgent(request)`，回傳命中的 agent 名稱或 `null`；
-既有的 `withVaryOnAccept(response)` 一般化為 `withVary(response, ...tokens)`，
+既有的 `withVaryOnAccept(response)` 一般化為 `withVaryAndDetection(response, agent)`，
 沿用它現有的「逐一比對既有值再合併、不無條件 append」邏輯（那是為了避免標頭在多次經手後
 累積成 `Accept, Accept, Accept`，同時保留 asset 回應可能已帶的 `Accept-Encoding`），
 只是要合併的 token 從寫死的 `Accept` 變成 `Accept` 加上命中時的 `User-Agent`。
