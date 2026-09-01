@@ -138,8 +138,10 @@ last_modified: 2026-09-01
 ## Pending Changes
 
 > 來源：`docs/plans/2026-09-01-agent-ua-detection-design.md`（issue #33 B 案 UA 分流，第一階段）。
-> 實作已完成並在 `feat/agent-ua-detection` 分支內（40fe84f 起），待上線與兩項上線後實測
-> （Claude 對本站的實際 UA、Vary 分流雙向實測——見設計文件「上線後待驗」）完成後併入正文。
+> 第一階段已於 2026-09-01 上線（main `871948f`），正式站 `verify:agent-ua`／`verify:headers`／
+> `verify:negotiation` 三支全綠。Vary 分流雙向實測已完成，但通過的理由是「HTML 為
+> `cf-cache-status: DYNAMIC`、根本不進邊緣快取」，不是「CF 邊緣依 Vary 正確分流」——後者仍無證據，
+> 詳見設計文件。留在 Pending 的原因是第二階段（307）尚未實作，D20 的優先序條款要到那時才受檢驗。
 
 ### ADDED R12: agent UA 偵測
 - **Level**: MUST
@@ -148,6 +150,10 @@ last_modified: 2026-09-01
 
   白名單只收代使用者即時抓取的 agent（`Claude-User`、`ChatGPT-User`、`Perplexity-User`），
   **不得**收索引型（`Claude-SearchBot`、`OAI-SearchBot` 等）——理由見 D18。
+
+  判準比對的是 UA 裡的**產品名 token**，兩側各綁一個「token 到此為止」的邊界，
+  **不得**綁定特定的後接字元（例如版本斜線）——同一個產品名底下不同客戶端的 UA 文法
+  並不一致，見 D20。
 
   本需求為純偵測：命中與否都不得改變回應的狀態碼、內容與 `Content-Type`，
   既有的 Accept 協商契約（R11、MODIFIED R5）在任何 UA 下皆須維持原行為。
@@ -193,11 +199,36 @@ last_modified: 2026-09-01
   裡哪些是頁面」，兩邊不重疊
 - **Date**: 2026-09-01
 
+### ADDED D20: UA 判準綁 token 邊界，不綁版本斜線；且 Accept 永遠優先於 UA
+- **Decision**: 白名單正規式兩側各綁一個「token 到此為止」的邊界，不綁定特定後接字元。
+  並且無論現在或第二階段，**請求若已明確要求 markdown（R11 的 Accept 協商命中），
+  一律以協商回應服務，不得因 UA 命中而改走 UA 那條路徑**
+- **Rationale**: 兩件事出自同一次實測（2026-09-01 第一階段上線後）。
+
+  初版右邊界寫死版本斜線（`Claude-User\/`），依據是 2026-07-30 在 httpbin 上看到
+  claude.ai 的 `web_fetch` 送 `Claude-User/1.0`。上線後對 Claude Code 的 WebFetch 實測，
+  它送的是 `Claude-User (claude-code/2.1.252; +https://support.anthropic.com/)`——同樣
+  自我標示為 `Claude-User`，接的卻是空格，於是這個真實的 Claude 客戶端被白名單整個漏掉。
+  同一個產品名底下不同客戶端的 UA 文法並不一致，綁字元等於賭其中一種，而那個賭注已經輸過一次。
+
+  同一次實測也量到 Claude Code 送 `Accept: text/markdown, text/html, */*`——它早就命中
+  R11 的協商、在正規網址拿到 markdown。這使優先序不再是偏好問題而是正確性問題：協商回應
+  是 200、走正規網址、不帶 `noindex`；第二階段的 307 多一跳，終點的 `/<slug>.md` 還帶著
+  `X-Robots-Tag: noindex`（D5）。UA 命中若壓過 Accept，等於把已經拿到較好結果的客戶端降級。
+
+  因此 UA 分流的定位確定為「補 Accept 分不出來的那批」，不是取代它。第二階段實作 307 時，
+  控制流必須維持「先看 Accept、Accept 沒命中才輪到 UA」
+- **Date**: 2026-09-01
+
 ### ADDED S13: 即時取用型 agent 被辨認且行為不變
 - **Given**: 站台已部署
 - **When**: 以白名單內的 UA 對任一文章頁發出請求
 - **Then**: 回應 200 且 `Content-Type: text/html`（與一般瀏覽器完全相同），
   帶 `x-agent-detected` 且值為命中的 agent 名稱，`Vary` 同時含 `Accept` 與 `User-Agent`
+
+  受測 UA 須涵蓋**同一個產品名的多種客戶端文法**，至少包含產品名後接版本斜線
+  （`Claude-User/1.0`，claude.ai 的 `web_fetch`）與後接空格（`Claude-User (claude-code/…)`，
+  Claude Code 的 WebFetch）兩種。只驗一種文法時，判準被收窄成只認那一種是抓不出來的（D20）
 - **Implements**: #R12
 
 ### ADDED S14: 非白名單與索引型 agent 不受影響
