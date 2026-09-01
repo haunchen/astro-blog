@@ -258,6 +258,26 @@ const CHECKS = [
     name: '一般請求不帶 x-agent-detected（UA 判準未寫寬）',
     verify: (v) => (v ? `不應有 x-agent-detected，實際為 ${v}` : null),
   },
+  // 同一條反向要求的另一半（spec R12 那句話的後半）：判準寫寬會同時造成兩個症狀，
+  // 多一個 x-agent-detected 標頭、以及 Vary 多一個 User-Agent token。後者更難察覺——
+  // 它不是新標頭而是既有標頭多一個值，而 Vary 一旦含 User-Agent，中間層快取就會
+  // 按 UA 分鍵，等於把快取命中率打散給每一種瀏覽器字串。
+  //
+  // 拆成獨立一項而不是併進上一條：兩者的失效原因不同（一個是 middleware 判準，
+  // 一個可能是 zone 層的 Managed Transforms／Cache 規則附掛），合成一條的話報出來
+  // 的訊息分不出該去查哪裡。
+  {
+    path: '/',
+    header: 'vary',
+    name: '一般請求的 Vary 不含 User-Agent（UA 判準未寫寬）',
+    verify: (v) => {
+      const tokens = (v ?? '')
+        .split(',')
+        .map((token) => token.trim().toLowerCase())
+        .filter(Boolean);
+      return tokens.includes('user-agent') ? `Vary 不應含 User-Agent，實際為 ${v}` : null;
+    },
+  },
 ];
 
 /**
