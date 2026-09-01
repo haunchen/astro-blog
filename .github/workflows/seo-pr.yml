@@ -272,3 +272,9 @@ jobs:
 
       - name: 驗證 Accept 內容協商
         run: npm run verify:negotiation http://localhost:8788
+
+      # 與上一步同一個理由：UA 偵測也活在 Pages Functions 裡，前面的步驟一個都碰不到它。
+      # 這支的反向斷言（瀏覽器 UA、索引型 SearchBot、只是前綴相同的 UA 都不得命中）
+      # 比正向斷言更重要——判準寫寬的退化是靜默的。
+      - name: 驗證 agent UA 偵測
+        run: npm run verify:agent-ua http://localhost:8788

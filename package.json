@@ -19,7 +19,8 @@
     "verify:robots": "node scripts/verify-robots.mjs",
     "verify:assets": "node scripts/verify-assets.mjs",
     "verify:dns-aid": "node scripts/verify-dns-aid.mjs",
-    "verify:negotiation": "node scripts/verify-negotiation.mjs"
+    "verify:negotiation": "node scripts/verify-negotiation.mjs",
+    "verify:agent-ua": "node scripts/verify-agent-ua.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.18",

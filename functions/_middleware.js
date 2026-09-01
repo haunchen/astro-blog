@@ -39,6 +39,38 @@ function estimateTokens(text) {
 }
 
 /**
+ * 即時取用型 AI agent 的 UA 白名單（spec R12、D18）。
+ *
+ * 只放代使用者即時抓取的 agent。刻意不放 Claude-SearchBot／OAI-SearchBot 這類索引型：
+ * 它們是為了建索引而來，而第二階段會把命中者導向帶 X-Robots-Tag: noindex 的
+ * /<slug>.md，等於自斷收錄。honestmc-website 有一份 12 個 AI 代理的白名單，但那份是
+ * 為「被索引」設計的，目的相反——名單可以參考，用途不可照抄。
+ *
+ * 正規式結尾的 `\/` 綁的是版本斜線（實際 UA 長相為 `Claude-User/1.0`）。少了它，
+ * `Claude-UserAgent` 這種只是前綴相同的字串也會命中。
+ */
+const AGENT_UA = [
+  { name: 'Claude-User', pattern: /Claude-User\//i },
+  { name: 'ChatGPT-User', pattern: /ChatGPT-User\//i },
+  { name: 'Perplexity-User', pattern: /Perplexity-User\//i },
+];
+
+/**
+ * 認出請求是不是白名單內的即時取用型 agent。
+ *
+ * 回傳命中的名稱而非整串 UA：x-agent-detected 要回答的只有「是誰」，把請求者送來的
+ * 原始字串原封回顯出去沒有必要。
+ *
+ * @param {Request} request
+ * @returns {string | null} 命中的 agent 名稱，未命中為 null
+ */
+function detectAgent(request) {
+  const ua = request.headers.get('user-agent');
+  if (!ua) return null;
+  return AGENT_UA.find(({ pattern }) => pattern.test(ua))?.name ?? null;
+}
+
+/**
  * @param {Request} request
  * @returns {boolean}
  */
@@ -66,25 +98,36 @@ function wantsMarkdown(request) {
 }
 
 /**
- * 補上 `Vary: Accept`。
+ * 統一收尾：合併 Vary，並在命中白名單 agent 時標記 x-agent-detected（spec R12）。
  *
- * 兩種回應都要帶：Cloudflare 邊緣對 Accept-Encoding 以外的 Vary 不做快取分流，但這個標頭的
- * 對象是瀏覽器與中間層快取——同一個客戶端先後以不同 Accept 取同一個網址時，沒有 Vary 就會
- * 拿到快取裡的另一種表示。
+ * 兩種回應都要帶 `Vary: Accept`：Cloudflare 邊緣對 Accept-Encoding 以外的 Vary 不做快取
+ * 分流，但這個標頭的對象是瀏覽器與中間層快取——同一個客戶端先後以不同 Accept 取同一個
+ * 網址時，沒有 Vary 就會拿到快取裡的另一種表示。命中 agent 時再加 User-Agent，同理。
  *
  * 逐一比對既有值而不是無條件 append：重複 append 會讓標頭在多次經手後累積成
- * `Accept, Accept, Accept`。
+ * `Accept, Accept, Accept`；而整個 set 掉又會蓋掉 asset 回應可能已帶的 Accept-Encoding。
+ *
+ * UA 偵測做成「裝飾既有出口」而不是新增一條分支，是為了守住 R12 的零行為變更：若命中
+ * 就 early-return next()，一個同時送 Accept: text/markdown 的 agent 會從拿到 markdown
+ * 退回拿到 HTML（spec D17）。
  *
  * @param {Response} response
+ * @param {string | null} agent detectAgent() 的結果
  * @returns {Response}
  */
-function withVaryOnAccept(response) {
+function withVaryAndDetection(response, agent) {
   const headers = new Headers(response.headers);
   const existing = headers.get('Vary');
   const values = existing ? existing.split(',').map((v) => v.trim().toLowerCase()) : [];
-  if (!values.includes('accept') && !values.includes('*')) {
-    headers.set('Vary', existing ? `${existing}, Accept` : 'Accept');
+  if (!values.includes('*')) {
+    const missing = (agent ? ['Accept', 'User-Agent'] : ['Accept']).filter(
+      (token) => !values.includes(token.toLowerCase()),
+    );
+    if (missing.length > 0) {
+      headers.set('Vary', existing ? `${existing}, ${missing.join(', ')}` : missing.join(', '));
+    }
   }
+  if (agent) headers.set('x-agent-detected', agent);
   return new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
@@ -109,12 +152,16 @@ export const onRequest = async (context) => {
   const pageMdPath = pagePathToMdPath(url.pathname);
   if (pageMdPath === null) return next();
 
-  if (!wantsMarkdown(request)) return withVaryOnAccept(await next());
+  // UA 偵測放在「這是不是頁面」閘門之後：靜態資產、.md 路徑本身與 404.html 連 UA 標頭
+  // 都不必讀，也不得帶 x-agent-detected（spec R12 的作用範圍與 R11 相同）。
+  const agent = detectAgent(request);
+
+  if (!wantsMarkdown(request)) return withVaryAndDetection(await next(), agent);
 
   const asset = await env.ASSETS.fetch(new URL(pageMdPath, url.origin));
   // 找不到 md 產物就退回 HTML，不製造新的 404（spec R11）。正常情況下不會走到這裡——
   // verify-seo 有一條硬斷言要求每個 HTML 頁面都有對應 md。
-  if (!asset.ok) return withVaryOnAccept(await next());
+  if (!asset.ok) return withVaryAndDetection(await next(), agent);
 
   const body = await asset.text();
   const headers = new Headers(asset.headers);
@@ -127,8 +174,8 @@ export const onRequest = async (context) => {
   // body 已重新讀出，長度交給 runtime 重算。
   headers.delete('Content-Length');
 
-  // Vary 交給 withVaryOnAccept() 統一合併，不在這裡直接 set：asset.headers 可能已帶
+  // Vary 交給 withVaryAndDetection() 統一合併，不在這裡直接 set：asset.headers 可能已帶
   // 邊緣壓縮設的 Vary（例如 Accept-Encoding），直接 set('Vary', 'Accept') 會整個蓋掉，
   // 走共用函式才能在補上 Accept 的同時保留原有值。
-  return withVaryOnAccept(new Response(body, { status: 200, headers }));
+  return withVaryAndDetection(new Response(body, { status: 200, headers }), agent);
 };
