@@ -48,11 +48,16 @@ function estimateTokens(text) {
  *
  * 正規式結尾的 `\/` 綁的是版本斜線（實際 UA 長相為 `Claude-User/1.0`）。少了它，
  * `Claude-UserAgent` 這種只是前綴相同的字串也會命中。
+ *
+ * 開頭的 `(?:^|[^\w-])` 綁左邊界：真實 UA 裡這個 token 前面永遠是字串開頭或
+ * 空白／`; `（例如 `compatible; Claude-User/1.0`），落在 `[^\w-]` 內，不受影響；
+ * 但 `Fake-Claude-User/1.0` 這種前綴冒充，`Claude` 前面接的是 `-`，落在 `[\w-]`
+ * 範圍內因此被排除，不會被誤認成 `Claude-User`。
  */
 const AGENT_UA = [
-  { name: 'Claude-User', pattern: /Claude-User\//i },
-  { name: 'ChatGPT-User', pattern: /ChatGPT-User\//i },
-  { name: 'Perplexity-User', pattern: /Perplexity-User\//i },
+  { name: 'Claude-User', pattern: /(?:^|[^\w-])Claude-User\//i },
+  { name: 'ChatGPT-User', pattern: /(?:^|[^\w-])ChatGPT-User\//i },
+  { name: 'Perplexity-User', pattern: /(?:^|[^\w-])Perplexity-User\//i },
 ];
 
 /**

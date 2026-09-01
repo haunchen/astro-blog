@@ -60,6 +60,7 @@ const REJECTED = [
     'OAI-SearchBot（索引型）',
   ],
   ['Mozilla/5.0 (compatible; Claude-UserAgent/1.0)', '只是前綴相同的 UA'],
+  ['Mozilla/5.0 (compatible; Fake-Claude-User/1.0)', '前綴冒充的 UA'],
 ];
 
 const AGENT_UA = ALLOWED[0][0];
