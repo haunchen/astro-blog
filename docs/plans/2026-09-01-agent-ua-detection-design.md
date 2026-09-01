@@ -86,12 +86,17 @@ UA 判斷加在出口 2 的閘門之後，作用於出口 3 與 4，出口 1、2
 只放即時取用型（代使用者即時抓取）：
 
 ```
-/Claude-User\//i
-/ChatGPT-User\//i
-/Perplexity-User\//i
+/(?:^|[^\w-])Claude-User\//i
+/(?:^|[^\w-])ChatGPT-User\//i
+/(?:^|[^\w-])Perplexity-User\//i
 ```
 
-結尾綁版本斜線，避免誤中 `Claude-UserAgent` 這類。
+兩邊都要綁邊界，缺一邊就會從兩個不同方向漏。右邊綁版本斜線，擋掉 `Claude-UserAgent`
+這類只有後綴不同的；左邊綁「不是字母也不是連字號」，擋掉 `Fake-Claude-User/1.0`
+這類前綴冒充的。真實 UA 裡 `Claude-User` 前面是空格或分號，落在 `[^\w-]` 因此照樣命中。
+
+（左邊界是 Final Review 才補上的：初版只綁了右邊，`Fake-Claude-User/1.0` 會被認成
+`Claude-User`。第二階段動這幾條時不要退回單邊。）
 
 不放 `Claude-SearchBot`、`OAI-SearchBot` 等索引型 —— 它們要建索引，第二階段導去帶 `noindex`
 的 md 等於自斷收錄。honestmc-website 那份 12 個白名單是為「被索引」設計的，目的相反，
@@ -148,16 +153,22 @@ CI 接在 `seo-pr.yml` 既有的 wrangler step 之後打 `localhost:8788`，與 
 
 - 正向：三個白名單 UA 打文章頁 → 200、`x-agent-detected` 等於命中的名稱、
   `Vary` 同時含 `Accept` 與 `User-Agent`
-- 反向（防判準寫太寬）：瀏覽器 UA、Node 預設 UA、`Claude-SearchBot`、`OAI-SearchBot`
+- 反向（防判準寫太寬）：瀏覽器 UA、Node 預設 UA、`Claude-SearchBot`、`OAI-SearchBot`、
+  以及兩種只差一個邊界的冒充字串（`Claude-UserAgent` 後綴、`Fake-Claude-User` 前綴）
   → 一律不得有 `x-agent-detected`，`Vary` 不得含 `User-Agent`
-- 範圍：白名單 UA 打字型檔、`/llms.txt`、`/sitemap.xml`、`/<slug>.md` 本身 → 一律不得命中
+- 範圍：白名單 UA 打 `/favicon.png`、`/llms.txt`、`/sitemap.xml`、`/<slug>.md` 本身
+  → 一律不得命中。**不用字型檔當受測對象**：`/fonts/*` 在 `_routes.json` 就被排除、
+  根本不進 Worker，拿它斷言是恆真的假綠燈；`/favicon.png` 會進 Worker，驗的才是
+  中介層自己的頁面判定
 - 零行為變更：白名單 UA 再加 `Accept: text/markdown` 打文章頁 → 仍回 200 md、
   Content-Type 為 markdown、無 `X-Robots-Tag`（既有協商契約沒被動到）
 
-`verify-headers.mjs` 補一條反向斷言：以它預設的請求（Node UA）打首頁時不得出現
-`x-agent-detected`。理由與那支腳本裡「字型檔不得帶 `Link`」同構 —— 正向斷言擋不住
-「判準寫寬了、每個真人回應都多背一個標頭」這種靜默退化，而那支打正式站、進日檢，
-抓得到 zone 層的意外。
+`verify-headers.mjs` 補兩條反向斷言，對應 R12 那句話的兩個子句：以它預設的請求（Node UA）
+打首頁時，既不得出現 `x-agent-detected`，`Vary` 也不得含 `User-Agent`。拆成兩條是因為
+失效原因不同（中介層判準寫寬 vs zone 層規則附掛），合成一條報出來的訊息分不出該查哪裡。
+
+理由與那支腳本裡「字型檔不得帶 `Link`」同構 —— 正向斷言擋不住「判準寫寬了、每個真人
+回應都多背一個標頭」這種靜默退化，而那支打正式站、進日檢，抓得到 zone 層的意外。
 
 CSP 不動，因此 `EXPECTED_CSP_DIRECTIVES` 不需同步。`public/_headers` 一個字都不改。
 
