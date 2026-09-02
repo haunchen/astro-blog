@@ -1,0 +1,19 @@
+# 倉庫內一律 LF。
+#
+# 起因：sync-from-vault 把 vault 稿子的正文行尾原樣抄過來，而 vault 裡有一部分 .md
+# 是 CRLF（多半來自另一台 Windows 機）。zeabur-incident-permission-blast-radius
+# 就是這樣帶著 CRLF 進版控的，當時沒人看見。行尾差異在 diff 上幾乎不可見，靠人眼
+# 守不住，交給 git 在 checkin 時正規化才是能長期成立的作法。
+* text=auto eol=lf
+
+# 圖片與字型不得被當文字處理（text=auto 通常偵測得出來，但這裡寫死，
+# 免得哪天有個 webp 開頭剛好長得像文字而被改寫，那種壞法很難查）。
+*.webp binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.woff  binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
