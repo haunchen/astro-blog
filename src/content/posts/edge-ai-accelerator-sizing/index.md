@@ -1,12 +1,10 @@
 ---
 title: "當你只有一個選項，就不會去算自己需要多少：邊緣 AI 算力估算"
-date: 2026-09-02
+date: 2026-09-03
 description: "邊緣 AI 到底需不需要 Hailo 這種加速器？我在樹莓派專案上裝了一張，事後才發現從沒算過需要多少算力。這篇從 Dyson 那支相機牙刷的規格往回推，整理出解析度、幀率、延遲預算、任務類型四個旋鈕的估算法，並說明為什麼該不該買是被任務類型決定的。"
 category: "raspberry-pi"
 tags: ["on-device-ai", "hardware", "raspberry-pi"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-09-03
 ---
 ## 前言：一支電動牙刷，讓我回頭重算樹莓派上的 AI 算力
 
