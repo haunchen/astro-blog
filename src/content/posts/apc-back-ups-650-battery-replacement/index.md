@@ -1,13 +1,10 @@
 ---
 title: "APC Back-UPS 650 電池更換教學 - 翻過來打開底蓋就能換"
-date: 2026-03-06
-updated: 2026-09-13
+date: 2026-09-14
 description: "公司 Router 用的 APC Back-UPS 650（BN650M1-TW）用了三年，電池該換了。這台是三台 UPS 裡最好拆的一台：不用螺絲起子，翻過來打開底蓋就能抽換電池匣。本文附實拍圖文步驟，並記錄替換電池選 CSB HR 1224W F2 的規格比對與蝦皮採購價。"
 category: "hardware"
 tags: []
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-09-14
 ---
 公司有三台 UPS 的電池同時到壽命了，我花了一個傍晚全部換完。這篇先從最簡單的一台開始——APC Back-UPS 650（型號 BN650M1-TW），負責保護公司的 Router。
 
