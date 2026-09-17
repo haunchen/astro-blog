@@ -322,12 +322,29 @@ export const HEADER_NAV = [
 ] as const;
 
 // Footer 兩欄策展連結（標籤沿用原站文字；分類/標籤連到實際頁面）
+//
+// 第一欄最後那條是**站外**連結，指向 medical-news.frankchen.tw。
+// 它不是湊版面的，是刻意放的、而且是全站唯一指向該主機的連結——**別拿掉**。
+//
+// 原因（2026-09-17 實測）：medical-news 的 24 條 sitemap 只有首頁進索引，
+// 其餘全是 `URL is unknown to Google`。sitemap 2026-07-06 就提交且零錯誤、
+// 站台對 Googlebot 全 200、meta 是 index/follow——技術側乾淨。真正的原因是
+// 沒有任何連結指向那個主機，Google 對它的爬取需求趨近於零（sitemap 的
+// lastDownloaded 停在提交當日、73 天沒重讀）。
+//
+// 對照組就在同一個 GSC property 底下：n8n-skills 與 threads-wrapped 都有
+// referringUrls 從本站指過去，兩者持續被爬（09-01、09-14）。
+//
+// 放頁尾而不是單篇文章，是因為頁尾出現在全站 54 頁上，給爬蟲的路徑最穩。
+// 效果怎麼驗：看 medical-news 首頁的 lastCrawlTime 有沒有離開 2026-07-27，
+// 以及 GSC 抽樣的已索引數有沒有從 1 往上走（每月 SEO 月報會追）。
 export const FOOTER_COLS = [
   [
     { href: '/category/n8n/', label: 'n8n 自動化' },
     { href: `/tag/${encodeURIComponent(tagSlug('模板'))}/`, label: 'n8n 模板' },
     { href: '/category/devops/', label: 'WordPress 架站' },
     { href: '/category/flutter/', label: 'App 應用開發' },
+    { href: 'https://medical-news.frankchen.tw/', label: 'Frank 的醫材週報' },
   ],
   [
     { href: '/n8n-resources/', label: 'n8n 學習資源' },
