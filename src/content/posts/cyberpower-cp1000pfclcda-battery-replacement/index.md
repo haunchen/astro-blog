@@ -1,13 +1,10 @@
 ---
 title: "CyberPower CP1000PFCLCDa 電池更換教學 - 拆前面板抽屜式換電池"
-date: 2026-03-06
-updated: 2026-09-13
+date: 2026-09-17
 description: "公司 Server 用的 CyberPower CP1000PFCLCDa 正弦波 UPS 開始頻繁嗶叫，用三年該換電池了。這台要先拆底部螺絲、掀開前面板才能抽出抽屜式電池槽，比 APC 多一道工。本文附實拍步驟，並說明換完怎麼用 LCD 確認狀態、副廠 YUASA REW45-12 的規格比對。"
 category: "hardware"
 tags: []
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-09-17
 ---
 公司 Server 用的 CyberPower CP1000PFCLCDa 是正弦波機種，電池更換比 [APC Back-UPS 650](/apc-back-ups-650-battery-replacement/) 多了一步：要先拆底部螺絲才能打開前面板。不過有 LCD 螢幕的好處是，換完電池馬上就能從螢幕上確認狀態，不用靠猜。
 
