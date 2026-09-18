@@ -1,6 +1,6 @@
 ---
 domain: index-submission
-status: draft
+status: active
 created: 2026-09-18
 last_modified: 2026-09-18
 ---
@@ -128,6 +128,15 @@ last_modified: 2026-09-18
 ### D6: 列表頁不送
 - **Decision**: 只送文章網址，首頁、文章總覽、分類頁、標籤頁不送。
 - **Rationale**: IndexNow 對「送了但內容沒實質變化」的網址會降低提交端信任度，列表頁靠 sitemap 已足夠。
+- **Date**: 2026-09-18
+
+### D7: 補送靠手動觸發而非重跑
+- **Decision**: 提交流程獨立出一條手動觸發路徑（`indexnow.yml` 的 `workflow_dispatch`，吃一個比對起點
+  參數），排程路徑送出失敗時的摘要直接指向它並印出該填的值。
+- **Rationale**: 「重跑排程 workflow」補不回來——重跑時文章已翻牌，翻牌邏輯判不到到期文章，送出
+  步驟被條件跳過，摘要反而印「今天沒有到期文章」且整個 job 綠燈；push 事件那條也接不走，因為
+  它的比對起點就是翻牌那筆 commit 本身。沒有這條手動路徑，一次失敗等於該篇永遠送不出去，而
+  介面上看不出來。R5 要的「失敗可見」若沒有可行的補救動作，可見本身沒有意義。
 - **Date**: 2026-09-18
 
 ## Open Questions
