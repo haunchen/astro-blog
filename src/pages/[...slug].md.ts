@@ -8,6 +8,7 @@ import type { Post } from '../utils/posts';
 import { getOgImage } from '../utils/og';
 import {
   buildImageUrlMap,
+  changelogToMarkdown,
   rewriteImagePaths,
   toYamlFrontmatter,
 } from '../../scripts/lib/md-export.mjs';
@@ -38,7 +39,14 @@ export const GET: APIRoute = async ({ props }) => {
   const container = await getContainer();
   const html = await container.renderToString(Content);
 
-  const body = rewriteImagePaths(post.body ?? '', buildImageUrlMap(html), SITE.url);
+  // 更新紀錄疊在正文之前，位置與 HTML 版一致：引用這篇的 agent 要在讀內容之前
+  // 就知道哪幾段是後補的。正文本身仍是原樣輸出。
+  const body = [
+    changelogToMarkdown(post.data.changelog),
+    rewriteImagePaths(post.body ?? '', buildImageUrlMap(html), SITE.url),
+  ]
+    .filter(Boolean)
+    .join('\n\n');
 
   // 白名單：draft 等內部欄位不輸出。image 用 OG 圖而非文章封面——CF 的規格本就
   // 從 og:image 抽這個欄位，且封面在文章頁是四尺寸 srcset，要複製那套解析得多接

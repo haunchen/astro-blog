@@ -18,8 +18,9 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 176 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
-                    # export + DNS-AID parsing/evaluation + page-md.mjs page→markdown conversion +
+npm test           # 185 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+                    # export incl. changelog blockquote + DNS-AID parsing/evaluation +
+                    # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
                     # publish-scheduled.mjs 排程發布判定/frontmatter 改寫 +
                     # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證)
@@ -63,7 +64,8 @@ Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 `title` ≤ 60 chars, `description` ≤ 160 chars, `category` enum (n8n, flutter, devops, raspberry-pi, tools,
 hardware), `cover` is a required `image()`. Optional: `updated`, `tags`, `draft`, `publishAt` (scheduled
 publish date — when set, `draft` must also be `true`, enforced by a schema `.refine()`; on the day it's
-due, `publish-scheduled` flips `draft` off and rewrites `date` to this value).
+due, `publish-scheduled` flips `draft` off and rewrites `date` to this value), `changelog` (see
+**Updating a published post** below — three `.refine()`s tie it to `updated` and `date`).
 
 Never call `getCollection('posts', …)` directly — go through `getPublishedPosts()` /
 `getPublishedPostsByDateDesc()` in `src/utils/posts.ts`. The `!data.draft` predicate used to be
@@ -150,7 +152,9 @@ functions under test), `sync-from-vault` (CLI — pulls tutorials from the Obsid
 `src/content/posts/`; dry-run by default, `--apply` writes, and **adds only, never overwrites**.
 `--publish-at YYYY-MM-DD` lands a post as a scheduled draft — it requires `--slug`, rejects past
 dates, and forces `draft: true` regardless of the vault's `content_status`, because the schema
-refine demands `publishAt` and `draft: true` come as a pair. Transform logic is in
+refine demands `publishAt` and `draft: true` come as a pair. The vault's `updated` is dropped for
+anything landing as a draft — it means "last edited in Obsidian", not "revised after publication"
+(see **Updating a published post**). Transform logic is in
 `scripts/lib/vault-post.mjs`, pure functions under test), `build-manifest`, `verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
@@ -189,3 +193,50 @@ Dark e-ink aesthetic defined in `src/styles/global.css` via CSS custom propertie
 - Tailwind v4 configured via Vite plugin (not PostCSS), imported in global.css with `@import "tailwindcss"`
 - Canonical host is **non-www** (`site: 'https://frankchen.tw'`). Never emit www URLs in content,
   sitemaps, or internal links.
+
+## Updating a published post
+
+`updated` means one thing only: **a post that readers have already seen has changed.** It is not a
+"last touched" timestamp. A post that isn't live yet has no previous version to be updated from, so
+an unpublished post must never carry `updated` — however much it was rewritten while being drafted.
+A schema `.refine()` fails the build on `draft: true` + `updated`.
+
+That distinction is exactly what `sync-from-vault` got wrong until 2026-09-18: the vault's own
+`updated` field means "when I last edited this note", so a post drafted over six months landed
+carrying its writing history as if it were a revision. `vault-post.mjs` now emits `updated` only
+when the post lands published.
+
+Any content change to a post that **is** already live gets a `changelog` entry — no exceptions for
+"small" fixes. Set `updated` at the same time:
+
+```yaml
+updated: 2026-09-18
+changelog:
+  - date: 2026-09-18
+    note: "補上原生 Windows 支援（v2.1.234 起）與相關差異"
+```
+
+`note` answers **what got updated**, not what the update says — the latter is the article's job.
+It's capped at 60 chars to force one sentence; if it doesn't fit, the detail belongs in the body.
+Newest entry first.
+
+Three schema `.refine()`s fail the build rather than warn: `updated` must equal the first entry's
+date, entries must run newest-to-oldest, and no entry may predate `date`. Without them the field
+would be decoration — the header prints "更新於 X" from `updated` while the block prints Y, and
+nothing would catch it.
+
+The block renders above the body via `ArticleChangelog.astro`, and `changelogToMarkdown()` puts the
+same thing at the top of the `.md` variant (spec R1). It stays out of the `.md` frontmatter on
+purpose: R2's whitelist is a contract, and this is content, not metadata.
+
+Typo-only or formatting-only edits that change no claim don't need an entry — but when in doubt,
+add one. A reader who can't tell whether a fact was revised is the failure this prevents.
+
+A `changelog` on an unpublished post is the same mistake as an `updated` on one, and the two
+refines already make it impossible: a changelog needs a matching `updated`, and a draft can't have
+one. Nothing to disclose to readers who haven't read it yet.
+
+Flipping a scheduled post is safe alongside all this: `publish-scheduled`'s `^date:` match rejects
+indented lines, so the nested `date:` keys inside a changelog entry are never mistaken for the
+post's own. Its "drop an `updated` older than the new `date`" branch is now belt-and-braces —
+the schema stops such a file from existing in the first place.

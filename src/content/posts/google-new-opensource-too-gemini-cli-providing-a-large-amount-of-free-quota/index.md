@@ -2,6 +2,9 @@
 title: "Gemini CLI 安裝與常用指令教學（免費額度政策已異動）"
 date: 2025-06-26
 updated: 2026-07-23
+changelog:
+  - date: 2026-07-23
+    note: "加註免費額度政策已異動，並修正 MCP 文件連結"
 description: "Google 開源的 Gemini CLI 安裝教學與常用指令整理：Node.js 環境需求、Google 帳號與 API Key 等三種登入方式，以及 /chat、/mcp、/tools 等指令用法。注意免費額度政策已於發文後調整，文中數字僅代表 2025-06 當時狀況。"
 category: "tools"
 tags: ["AI", "Gemini"]

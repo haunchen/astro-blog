@@ -1,0 +1,96 @@
+---
+/**
+ * 文章頂部的更新紀錄區塊。
+ *
+ * 放在正文之前而不是文末：讀者要在投入閱讀之前就知道這篇被改過、改了什麼，
+ * 讀完才發現「原來上面那段是後補的」已經來不及。頁首那個「更新於 YYYY-MM-DD」
+ * 只回答何時，這裡回答什麼。
+ *
+ * 刻意不進 .prose：正文的 h2 有自己的字級與上下留白，這塊要比正文安靜，
+ * 而且 TableOfContents 只掃 .prose 的 h2/h3，放外面就不會在目錄裡多一項。
+ */
+interface Props {
+  entries: { date: Date; note: string }[];
+}
+
+const { entries } = Astro.props;
+
+const iso = (d: Date) => d.toISOString().slice(0, 10);
+---
+
+{
+  entries.length > 0 && (
+    <section class="article-changelog" aria-labelledby="article-changelog-label">
+      <h2 id="article-changelog-label" class="article-changelog-label">
+        更新紀錄
+      </h2>
+      <ul class="article-changelog-list">
+        {entries.map((entry) => (
+          <li class="article-changelog-item">
+            <time class="article-changelog-date" datetime={iso(entry.date)}>
+              {iso(entry.date)}
+            </time>
+            <span class="article-changelog-note">{entry.note}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+<style>
+  .article-changelog {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-subtle);
+    /* 左邊那條橘線沿用站上 blockquote 的語彙：同一種「這不是正文，是旁註」的訊號。 */
+    border-left: 2px solid var(--color-brand-orange);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 16px 20px;
+    margin-bottom: 32px;
+  }
+
+  .article-changelog-label {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--color-text-secondary);
+    margin-bottom: 10px;
+  }
+
+  .article-changelog-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* 日期與說明用 grid 而非 flex：多列時日期欄對齊成一直行，掃視比較快。
+     窄螢幕塌成單欄，說明自己佔滿一列，不會被壓成一字一行。 */
+  .article-changelog-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+  }
+
+  @media (max-width: 480px) {
+    .article-changelog-item {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .article-changelog-date {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-muted);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .article-changelog-note {
+    color: var(--color-text-secondary);
+  }
+</style>

@@ -5,6 +5,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import TagBadge from '../components/TagBadge.astro';
 import TableOfContents from '../components/TableOfContents.astro';
 import Breadcrumbs from '../components/Breadcrumbs.astro';
+import ArticleChangelog from '../components/ArticleChangelog.astro';
 import AdSide from '../components/AdSide.astro';
 import AdEnd from '../components/AdEnd.astro';
 import AdLoader from '../components/AdLoader.astro';
@@ -164,6 +165,9 @@ const crumbs = [
     <!-- Two-column layout -->
     <div class="layout-with-aside">
       <div class="layout-main">
+        {/* 更新紀錄在正文之前。schema 已保證最新一筆等於 frontmatter 的 updated，
+            所以這塊與頁首那個「更新於…」不會各說各話。 */}
+        <ArticleChangelog entries={post.data.changelog ?? []} />
         <div class="prose">
           <Content />
         </div>

@@ -2,6 +2,9 @@
 title: "Claude Code 的 session 現在可以互相傳話了：我讓兩個視窗一起跑完一次重構"
 date: 2026-08-24
 updated: 2026-09-18
+changelog:
+  - date: 2026-09-18
+    note: "補上原生 Windows 支援（v2.1.234 起）與相關差異"
 description: "Claude Code v2.1.224 起支援 cross-session messaging，原生 Windows 則要 v2.1.234。這篇是我用它跑完一次筆記庫重構的實際紀錄，含三個踩到的坑、跨機的限制，以及一個會讓同機訊息偷偷出門的官方已知 bug。"
 category: "tools"
 tags: ["claude-code"]

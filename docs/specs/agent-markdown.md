@@ -25,6 +25,11 @@ last_modified: 2026-09-01
   草稿文章不得產出 md。首頁另有專屬變體，契約見 R6；其餘頁面（關於、分類、標籤等）
   走另一條產出管線，見 R10。
 
+  正文之前唯一允許插入的內容是更新紀錄：文章 frontmatter 有 `changelog` 時，以一段
+  blockquote 置於正文最前面，位置與 HTML 版一致。它不進 frontmatter（R2 的白名單不變），
+  因為那是寫給人讀的內容而非描述文件的中介資料；也不用 `## 更新紀錄`，避免引用者以為
+  原文有這一節。產生它的是 `md-export.mjs` 的 `changelogToMarkdown()`。
+
 ### R2: frontmatter 契約
 - **Level**: MUST
 - **Description**: frontmatter 為白名單欄位：`title`、`description`、`date`、`updated`

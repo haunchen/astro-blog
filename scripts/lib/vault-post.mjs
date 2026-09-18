@@ -313,6 +313,12 @@ export function transformPost(data, body, options = {}) {
     warnings.push('content_status 是 ready，但排程落地一律標 draft: true（到期由 cron 翻牌）');
   }
 
+  // vault 的 `updated` 與 repo 的 `updated` 是兩個不同的東西：前者是「我最後一次動這則
+  // 筆記」，記的是寫作過程；後者是「已上線的文章被改過」，記的是讀者看到的版本變了。
+  // 沒上線的稿子沒有舊版本可以相對，所以落地成 draft 時一律不輸出——一篇跨半年寫完的稿
+  // created 與 updated 必然不同，只比對「是否同日」會把寫作歷程當成修訂紀錄搬上站。
+  const landsAsDraft = scheduled ? true : draft;
+
   return {
     slug,
     status: 'ok',
@@ -321,8 +327,11 @@ export function transformPost(data, body, options = {}) {
     frontmatter: {
       title,
       date,
-      // updated 與 created 同日時不輸出：schema 是選填，寫一個與 date 相同的值沒有資訊量。
-      ...(updated && date && updated.getTime() !== date.getTime() ? { updated } : {}),
+      // 除了上面那條「草稿不帶 updated」，同日也不輸出：schema 是選填，
+      // 寫一個與 date 相同的值沒有資訊量。
+      ...(!landsAsDraft && updated && date && updated.getTime() !== date.getTime()
+        ? { updated }
+        : {}),
       description,
       category,
       tags,

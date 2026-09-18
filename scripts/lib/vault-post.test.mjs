@@ -119,7 +119,6 @@ test('transformPost：合規的 draft 轉出完整 frontmatter 與 draft: true',
   assert.deepEqual(r.frontmatter, {
     title: 'UPS 電池選購指南',
     date: new Date('2026-03-06T00:00:00Z'),
-    updated: new Date('2026-08-16T00:00:00Z'),
     description: VALID_DESCRIPTION,
     category: 'hardware',
     tags: ['ups', 'hardware'],
@@ -135,10 +134,29 @@ test('transformPost：ready 轉成 draft: false', () => {
   assert.equal(r.frontmatter.draft, false);
 });
 
-test('transformPost：updated 與 created 同日時不輸出 updated', () => {
-  const same = new Date('2026-03-06T00:00:00Z');
-  const r = transformPost(validData({ updated: same }), '正文');
+// vault 的 updated 是「最後一次動這則筆記」，repo 的 updated 是「已上線的文章被改過」。
+// 兩者同名不同義，原本被原樣搬過來——UPS 系列兩篇因此帶著寫作歷程上站（2026-09-18 修）。
+// 這三條把分界線釘住：只有落地即發布的稿子才輸出 updated。
+test('transformPost：落地成草稿時不輸出 updated（寫作歷程不是修訂紀錄）', () => {
+  const r = transformPost(validData({ content_status: 'draft' }), '正文');
   assert.equal('updated' in r.frontmatter, false);
+});
+
+test('transformPost：排程落地不輸出 updated，即使來源是 ready', () => {
+  const r = transformPost(validData({ content_status: 'ready' }), '正文', {
+    publishAt: new Date('2026-09-24T00:00:00Z'),
+  });
+  assert.equal(r.frontmatter.draft, true);
+  assert.equal('updated' in r.frontmatter, false);
+});
+
+test('transformPost：落地即發布時輸出 updated，但與 created 同日不輸出', () => {
+  const ready = transformPost(validData({ content_status: 'ready' }), '正文');
+  assert.deepEqual(ready.frontmatter.updated, new Date('2026-08-16T00:00:00Z'));
+
+  const same = new Date('2026-03-06T00:00:00Z');
+  const sameDay = transformPost(validData({ content_status: 'ready', updated: same }), '正文');
+  assert.equal('updated' in sameDay.frontmatter, false);
 });
 
 test('transformPost：published 判為 skipped 而不是不合規', () => {

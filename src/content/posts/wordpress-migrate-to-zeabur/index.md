@@ -2,6 +2,9 @@
 title: "網站搬家超簡單：WordPress 無痛轉移 Zeabur 完整教學（新手友善）"
 date: 2025-07-15
 updated: 2026-09-01
+changelog:
+  - date: 2026-09-01
+    note: "加上指回 Zeabur 資安事件一文的警語"
 description: "把自架 WordPress 搬到 PaaS 平台 Zeabur 的完整步驟：用 All-in-One WP Migration 外掛備份成 .wpress 檔、開通開發者方案、選用 WordPress 模板部署，再匯入備份資料並綁定網域，新手也能照著完成。"
 category: "devops"
 tags: ["WordPress", "Zeabur"]

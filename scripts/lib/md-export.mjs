@@ -93,3 +93,25 @@ export function rewriteImagePaths(body, imageUrls, origin) {
     return origin + resolved;
   });
 }
+
+/**
+ * 把 frontmatter 的 changelog 轉成正文最前面那段更新紀錄。
+ *
+ * 為什麼進正文而不是進 frontmatter：md 變體的 frontmatter 是白名單契約
+ * （agent-markdown.md R2），多一個巢狀欄位就要改契約、改 verify-seo、改 AGENTS.md。
+ * 而且更新紀錄本來就是寫給人讀的內容，不是描述這份文件的中介資料。
+ *
+ * 用 blockquote 而不是 `## 更新紀錄`：md 變體的標題階層要跟 HTML 版一致，
+ * 憑空多一個 h2 會讓引用者以為原文有這一節。
+ *
+ * @param {{ date: Date, note: string }[] | undefined} entries 新到舊，由 schema 保證
+ * @returns {string} 沒有紀錄時回空字串
+ */
+export function changelogToMarkdown(entries) {
+  if (!entries || entries.length === 0) return '';
+  const lines = ['> **更新紀錄**', '>'];
+  for (const { date, note } of entries) {
+    lines.push(`> - ${date.toISOString().slice(0, 10)}：${note}`);
+  }
+  return lines.join('\n');
+}

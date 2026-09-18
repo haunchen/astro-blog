@@ -1,6 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { toYamlFrontmatter, buildImageUrlMap, rewriteImagePaths } from './md-export.mjs';
+import {
+  toYamlFrontmatter,
+  buildImageUrlMap,
+  rewriteImagePaths,
+  changelogToMarkdown,
+} from './md-export.mjs';
 
 test('toYamlFrontmatter：字串以 JSON 逃逸輸出，全形冒號不破壞 YAML', () => {
   const yaml = toYamlFrontmatter({
@@ -107,4 +112,32 @@ test('rewriteImagePaths：帶子目錄的引用永遠對不上對照表，拋錯
     () => rewriteImagePaths('![x](./images/sub/x.webp)', map, 'https://frankchen.tw'),
     /sub\/x/,
   );
+});
+
+test('changelogToMarkdown：輸出 blockquote，順序原樣保留', () => {
+  const md = changelogToMarkdown([
+    { date: new Date('2026-09-18'), note: '補上原生 Windows 支援' },
+    { date: new Date('2026-09-01'), note: '修正指令名稱' },
+  ]);
+  assert.equal(
+    md,
+    '> **更新紀錄**\n' +
+      '>\n' +
+      '> - 2026-09-18：補上原生 Windows 支援\n' +
+      '> - 2026-09-01：修正指令名稱',
+  );
+});
+
+// 沒有更新紀錄的文章佔絕大多數，回空字串讓呼叫端用 filter(Boolean) 接掉，
+// 不會在正文前面留一行孤兒空白。
+test('changelogToMarkdown：沒有紀錄時回空字串', () => {
+  assert.equal(changelogToMarkdown(undefined), '');
+  assert.equal(changelogToMarkdown([]), '');
+});
+
+// 這裡刻意不轉時區：Astro 把 YAML 的裸日期解析成 UTC 午夜，
+// 用本地時區格式化會讓 UTC+8 以東的地區整批少一天。
+test('changelogToMarkdown：日期以 UTC 日期輸出，不受本地時區影響', () => {
+  const md = changelogToMarkdown([{ date: new Date('2026-09-18T00:00:00.000Z'), note: 'x' }]);
+  assert.match(md, /2026-09-18/);
 });
