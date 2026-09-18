@@ -93,6 +93,7 @@ jobs:
       #
       # 這一步會等 Cloudflare Pages 把剛 push 的內容部署完成，花上幾分鐘是正常的。
       - name: 送出 IndexNow
+        id: indexnow
         if: steps.changes.outputs.changed == 'true'
         run: node scripts/submit-indexnow.mjs --base HEAD~1
 
@@ -102,11 +103,18 @@ jobs:
           # 失敗時（build 或 verify:seo 紅燈）steps.changes.outputs.changed 仍可能是
           # true，但沒有 push——只看 changed 會印出「有文章發布」這種沒發生的事，
           # 人唯一會看的就是這塊摘要，講錯話等於這條檢查白裝。job.status 優先判斷。
+          #
+          # 「送出 IndexNow」只排在 Commit 並 push 之後，且沒有 continue-on-error，
+          # 所以它的 outcome 會是 failure 時，前面的 commit 與 push 必定已經成功——
+          # 文章其實上線了，壞的只是索引通知。這個分支得排在 job.status 判斷之前，
+          # 否則會被籠統地併進「失敗，未 push」，講的話跟實際發生的事相反。
           {
             echo "## 排程發布"
             echo "- 觸發：${{ github.event_name }}"
             echo "- 模式：${{ inputs.dry_run == true && 'dry-run' || 'apply' }}"
-            if [ "${{ job.status }}" != "success" ]; then
+            if [ "${{ steps.indexnow.outcome }}" = "failure" ]; then
+              echo "- 結果：文章已發布並 push 成功，但 IndexNow 索引通知送出失敗，需重跑補送"
+            elif [ "${{ job.status }}" != "success" ]; then
               echo "- 結果：失敗，未 push"
             elif [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
               echo "- 結果：有文章發布"
