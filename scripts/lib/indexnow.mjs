@@ -8,32 +8,21 @@
  */
 
 import { XMLParser } from 'fast-xml-parser';
+import { postIdFromPath } from './post-id.mjs';
 
 /**
  * 文章檔案路徑 → 正規網址。
  *
- * id 的推導規則與 astro.config.mjs 的 POST_LASTMOD 逐字一致（去 base、去 /index.md 或 .md
- * 後綴）。兩邊若漂移，症狀是輪詢一個永遠不會出現在 sitemap 的網址而逾時——失敗方向安全，
- * 但仍然是白等十分鐘，所以規則刻意抄成一樣。
- *
- * 「逐字一致」也包含不替 `src/content/posts/index.md` 這種扁平檔加特例：那個形狀在 Astro
- * 眼中就是 id 為 `index` 的文章，不是首頁。站上 43 篇全是 `<slug>/index.md`，沒有這種檔，
- * 為它加一條規則只會讓兩邊的推導開始分岔。
+ * id 的推導規則抽在 `post-id.mjs`，與 astro.config.mjs 的 POST_LASTMOD 共用同一份實作，
+ * 理由與「不替 `src/content/posts/index.md` 這種扁平檔加特例」的細節見該檔案頭。
  *
  * @param {string} file 相對於專案根的路徑，例如 `src/content/posts/my-post/index.md`
  * @param {string} origin 例如 `https://frankchen.tw`
  * @returns {string | null} 非文章檔案回 null
  */
 export function postPathToUrl(file, origin) {
-  if (typeof file !== 'string') return null;
-  const normalized = file.replace(/\\/g, '/');
-  if (!normalized.startsWith('src/content/posts/')) return null;
-  if (!normalized.endsWith('.md')) return null;
-  const id = normalized
-    .replace(/^src\/content\/posts\//, '')
-    .replace(/\/index\.md$/, '')
-    .replace(/\.md$/, '');
-  if (id === '') return null;
+  const id = postIdFromPath(file);
+  if (id === null) return null;
   return `${origin}/${id}/`;
 }
 

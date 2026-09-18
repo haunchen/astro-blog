@@ -18,13 +18,14 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 206 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 211 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export incl. changelog blockquote + DNS-AID parsing/evaluation +
                     # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
                     # publish-scheduled.mjs 排程發布判定/frontmatter 改寫 +
                     # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證 +
-                    # indexnow.mjs 該送的判定/網址換算/sitemap lastmod 解析/payload 組裝)
+                    # indexnow.mjs 該送的判定/網址換算/sitemap lastmod 解析/payload 組裝 +
+                    # post-id.mjs 文章路徑→id 推導，astro.config.mjs 與 indexnow.mjs 共用)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
