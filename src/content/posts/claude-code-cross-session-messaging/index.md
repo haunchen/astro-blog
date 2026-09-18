@@ -1,7 +1,8 @@
 ---
 title: "Claude Code 的 session 現在可以互相傳話了：我讓兩個視窗一起跑完一次重構"
 date: 2026-08-24
-description: "Claude Code v2.1.224 起支援 cross-session messaging，session 之間可以互傳訊息。這篇是我用它跑完一次筆記庫重構的實際紀錄，含三個踩到的坑、跨機的限制，以及一個會讓同機訊息偷偷出門的官方已知 bug。"
+updated: 2026-09-18
+description: "Claude Code v2.1.224 起支援 cross-session messaging，原生 Windows 則要 v2.1.234。這篇是我用它跑完一次筆記庫重構的實際紀錄，含三個踩到的坑、跨機的限制，以及一個會讓同機訊息偷偷出門的官方已知 bug。"
 category: "tools"
 tags: ["claude-code"]
 cover: "./images/cover.webp"
@@ -30,10 +31,11 @@ cover: "./images/cover.webp"
 
 環境條件我列一下，因為這條件比想像中窄：
 
-- Claude Code v2.1.224 以上，我當時跑的是 2.1.226。
-- 只有 macOS 和 Linux。WSL 2 裡面的 Linux 算，原生 Windows 不算，這點等一下會變成一整段故事。
-- Bedrock、AWS 上的 Claude Platform、Google Cloud Agent Platform、Microsoft Foundry 這幾個 provider 沒有。
-- 如果你設過 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`、`DISABLE_TELEMETRY`、`DO_NOT_TRACK`、`DISABLE_GROWTHBOOK` 這幾個環境變數，功能會整個關掉，因為它依賴的 feature flag 評估被你關了。
+- macOS、Linux（含 WSL 2 裡面的 Linux）要 Claude Code v2.1.224 以上，我當時跑的是 2.1.226。
+- 原生 Windows 要 v2.1.234 以上。我寫這篇的當下還沒有，所以後面案例二那段跨機的故事是在「Windows 完全沒有這功能」的前提下發生的，現在升上去就不是那樣了。
+- 同一台電腦上的 WSL 2 session 跟原生 Windows session 互相看不到，因為兩邊註冊在不同的家目錄、監聽的東西也不同（一邊是 unix socket，一邊是 named pipe）。
+- Bedrock、AWS 上的 Claude Platform、Google Cloud Agent Platform、Microsoft Foundry 這幾個 provider，以及關掉 feature flag 取得的 session，同機傳訊要 v2.1.248 以上；跨機那條路則是真的沒有。
+- 如果你設過 `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC`、`DISABLE_TELEMETRY`、`DO_NOT_TRACK`、`DISABLE_GROWTHBOOK` 這幾個環境變數，我當時的版本會整個關掉，因為它依賴的 feature flag 評估被你關了；v2.1.248 之後同機那條路不再受影響，跨機還是要不到。
 
 要確認自己這台有沒有，最快是打 `/list-agents`（也可以打 `/peers`）。指令不存在就是沒有，先去看 `claude --version`。但指令存在只代表功能在，不代表你收得到訊息，這兩件事是分開的。
 
@@ -134,7 +136,9 @@ tasks: 126 筆
 
 同一輪重構還有一台機器要處理：另一台 Windows。那台也有一份 Claude Code 設定要跟著調，是下午才動的。
 
-前面提過，原生 Windows 沒有這個功能。所以情況變成：我這邊送得過去，它送不回來。
+以下這段是 2026 年 8 月的實況，當時原生 Windows 還沒有這個功能。所以情況變成：我這邊送得過去，它送不回來。
+
+（這個限制現在沒了，官方在 **v2.1.234** 補上原生 Windows 支援，細節我寫在這一節最後。）
 
 送過去是走 Remote Control。列出來的時候那一列會標著 `Remote Control`：
 
@@ -163,6 +167,16 @@ Peer sessions (2):
 後來的解法很土：我傳訊息回去要求對方之後輸出這類內容不要用 code fence，直接縮排或用純文字列。
 
 這件事的教訓其實不是「Claude Code 有 bug」，是**只要中間插了人工轉貼，就會有損耗，而且損耗是靜默的**。同機的那條路完全沒有這個問題，因為訊息沒有經過我的剪貼簿。
+
+### 補記：原生 Windows 從 v2.1.234 起支援了
+
+上面整段人肉轉貼的苦工，現在不用做了。官方文件已經改成「macOS、Linux、WSL 2 要 v2.1.224 以上，原生 Windows 要 v2.1.234 以上」，那台 Windows 升上去就是雙向的，不再是我單向送過去。
+
+有三個 Windows 專屬的差別值得先知道：
+
+- **同機走的是 named pipe，不是 unix socket。** macOS 和 Linux 上那個 `/tmp/cc-socks-<uid>/<pid>.sock` 在 Windows 上不存在，換成每個 session 一支 named pipe。「同機不經過 Anthropic 伺服器」這個性質兩邊都成立。
+- **權限是用金鑰擋的，不是檔案權限。** macOS 和 Linux 是把 socket 限制在你這個作業系統使用者底下；Windows 改成每條連線都要先用一把只有你讀得到的金鑰認證。結論一樣：共用機器上別人的 session 投不進來。
+- **同一台電腦上的 WSL 2 跟原生 Windows 還是通不了。** 兩邊註冊在不同的家目錄、監聽的東西也不同，所以彼此看不見。這跟容器那個限制是同一個道理：同機能通的前提是兩邊看得到同一份檔案。
 
 ---
 
@@ -371,7 +385,11 @@ Another Claude session sent a message:
 
 要注意 deny 掉 `SendMessage` 是連同 session 內部跟 subagent、agent team 的通訊一起關掉，因為那是同一個工具。
 
-最後一個冷知識：每個 session 的收件 socket 路徑會以 `CLAUDE_CODE_MESSAGING_SOCKET` 這個環境變數丟給 hook 跟 Bash 指令用，而且是在任何 hook 跑之前就 export 好了，`SessionStart` 也拿得到。想寫個腳本往自己的 session 丟訊息是可以的。另外，容器有自己的檔案系統，所以容器裡的 session 跟宿主機的 session 互相看不到。同機能通的前提是兩邊看得到同一份檔案。
+最後一個冷知識：每個 session 的收件 socket 路徑會以 `CLAUDE_CODE_MESSAGING_SOCKET` 這個環境變數丟給 hook 跟 Bash 指令用，而且是在任何 hook 跑之前就 export 好了，`SessionStart` 也拿得到。想寫個腳本往自己的 session 丟訊息是可以的。
+
+要寫這種腳本的話，Windows 這邊多一個必要步驟。同機一起 export 的還有 `CLAUDE_CODE_MESSAGING_TOKEN`，連線的第一行送 `{"type":"auth","token":"<token>"}` 就能證明自己是這個 session 的子行程。macOS 和 Linux 上這行是選配（不帶也收），**原生 Windows 上是必填**——第一行不是合法的 auth line，整條連線會被直接關掉，什麼都不會送達。原因是 Windows 那邊拿不到行程層級的證據，token 是唯一的識別方式。
+
+另外，容器有自己的檔案系統，所以容器裡的 session 跟宿主機的 session 互相看不到。同機能通的前提是兩邊看得到同一份檔案。
 
 ---
 
