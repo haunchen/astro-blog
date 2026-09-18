@@ -133,14 +133,26 @@ async function fetchSitemap() {
  *
  * 判據不用「網址回 200」：更新既有文章時舊版本同樣回 200，判不出新版上線沒。lastmod 一條
  * 規則同時涵蓋新文章與更新兩種情況。
+ *
+ * 單次抓取失敗（Cloudflare 邊緣偶發 5xx、連線逾時）不視為部署失敗——那只是這一次輪詢沒抓
+ * 到，跟「部署真的沒完成」是兩回事。整趟等待為此中止，前面已經等過的時間就白費了。抓不到
+ * 就跳過這一輪、繼續下一次輪詢；`deadline` 沒變，真的一直抓不到照樣逾時 throw。
  */
 async function waitForDeployment(targets) {
   const deadline = Date.now() + POLL_TIMEOUT_MS;
   let pending = targets;
   for (;;) {
-    const lastmods = parseSitemapLastmods(await fetchSitemap());
-    pending = pending.filter((t) => lastmods.get(t.url) !== t.lastmod);
-    if (pending.length === 0) return;
+    let sitemap;
+    try {
+      sitemap = await fetchSitemap();
+    } catch (err) {
+      console.warn(`抓取 sitemap 失敗，稍後重試：${err.message}`);
+    }
+    if (sitemap !== undefined) {
+      const lastmods = parseSitemapLastmods(sitemap);
+      pending = pending.filter((t) => lastmods.get(t.url) !== t.lastmod);
+      if (pending.length === 0) return;
+    }
     if (Date.now() >= deadline) {
       const lines = pending.map((t) => `  ! ${t.url}　預期 lastmod ${t.lastmod}`).join('\n');
       throw new Error(`等待部署逾時（${POLL_TIMEOUT_MS / 60_000} 分鐘），未送出：\n${lines}`);
