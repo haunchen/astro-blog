@@ -29,6 +29,9 @@ Design: `docs/plans/2026-09-18-index-submission-design.md`
 - IndexNow 的 key 是公開值，直接寫在 repo，不得放進 GitHub Secrets。
 - 本次選定的 key：`a7f3c9e2b8d4416fa0c5e7d92b1f6403`（32 位 hex，符合 IndexNow 的 8–128 字元要求）。
   key 檔名與檔案內容都是這個值，兩者不一致會讓提交回 403。
+- spec 的 R7（Google 端不主動提交）**不需要任何程式碼**，滿足方式是整個功能不呼叫任何 Google
+  API、不引入任何 GCP 憑證。沒有 task 引用它是正確的，理由見 design doc 的 D1。任何 task 若
+  出現 Google Indexing API、Search Console API 或 service account 金鑰，即為違反本約束。
 
 ---
 
@@ -86,7 +89,6 @@ test('postPathToUrl：非文章路徑與非 md 檔回 null', () => {
   assert.equal(postPathToUrl('src/pages/about.astro', ORIGIN), null);
   assert.equal(postPathToUrl('src/content/posts/my-post/cover.png', ORIGIN), null);
   assert.equal(postPathToUrl('docs/specs/index-submission.md', ORIGIN), null);
-  assert.equal(postPathToUrl('src/content/posts/index.md', ORIGIN), null);
 });
 
 // 規則必須與 astro.config.mjs 的 POST_LASTMOD 一致：updated 優先，缺席才用 date。
@@ -185,6 +187,10 @@ Step 3: 寫最小實作讓測試通過
  * id 的推導規則與 astro.config.mjs 的 POST_LASTMOD 逐字一致（去 base、去 /index.md 或 .md
  * 後綴）。兩邊若漂移，症狀是輪詢一個永遠不會出現在 sitemap 的網址而逾時——失敗方向安全，
  * 但仍然是白等十分鐘，所以規則刻意抄成一樣。
+ *
+ * 「逐字一致」也包含不替 `src/content/posts/index.md` 這種扁平檔加特例：那個形狀在 Astro
+ * 眼中就是 id 為 `index` 的文章，不是首頁。站上 43 篇全是 `<slug>/index.md`，沒有這種檔，
+ * 為它加一條規則只會讓兩邊的推導開始分岔。
  *
  * @param {string} file 相對於專案根的路徑，例如 `src/content/posts/my-post/index.md`
  * @param {string} origin 例如 `https://frankchen.tw`
@@ -415,6 +421,10 @@ Step 4: 跑測試確認通過
 Run: `node --test scripts/lib/indexnow.test.mjs`
 Expected: PASS，21 tests
 
+測試裡的 lastmod 字面值不是編的：2026-09-18 對線上 `https://frankchen.tw/sitemap.xml` 實跑過
+這份解析，54 筆全部解得出，而且值的形狀確實是 `2026-09-18T00:00:00.000Z` 的字串——與
+`expectedLastmod()` 的產出逐字相同。部署判據成立這件事在寫 CLI 之前就已驗證過。
+
 Step 5: Commit
 
 ```bash
@@ -438,6 +448,11 @@ Interfaces:
   `expectedLastmod(data)`、`shouldSubmit(before, after)`、`parseSitemapLastmods(xml)`、
   `buildIndexNowPayload({ host, key, urls })`
 - Produces: `node scripts/submit-indexnow.mjs --base <ref>` 這支 CLI，供 Task 4、5 的 workflow 呼叫
+
+Out of scope（這個 task 刻意不做）：
+- 不呼叫任何 Google API、不引入 GCP 憑證（Global Constraints 的 R7 約束）
+- 不為這支 CLI 寫測試——git 與網路留在 CLI 層是刻意的分界，可測的邏輯都已在 Task 1、2
+- 不抽 reusable workflow、不加 feature flag、不加 `--force` 之類的繞過開關
 
 Step 1: 建立 key 檔
 
@@ -805,7 +820,8 @@ git commit -m "ci(indexnow): push 到 main 時送出索引提交"
 Implements: `index-submission.md` #R4
 
 Files:
-- Modify: `.github/workflows/publish-scheduled.yml:27`（checkout 加 fetch-depth）與第 81 行之後（加提交步驟）
+- Modify: `.github/workflows/publish-scheduled.yml`（`actions/checkout` 步驟加 `fetch-depth`；
+  「Commit 並 push」步驟之後插入提交步驟）
 - Modify: `CLAUDE.md`（Commands、Scripts、CI 三處）
 
 Interfaces:
@@ -814,7 +830,7 @@ Interfaces:
 
 Step 1: 讓排程 workflow 拿得到父節點
 
-`.github/workflows/publish-scheduled.yml` 目前第 27 行是：
+`.github/workflows/publish-scheduled.yml` 裡「安裝依賴」之前的 checkout 步驟目前是：
 
 ```yaml
       - uses: actions/checkout@v7
@@ -824,9 +840,9 @@ Step 1: 讓排程 workflow 拿得到父節點
 
 ```yaml
       # fetch-depth: 2 是為了最後一步的 IndexNow 提交——它要 `git show HEAD~1:<file>` 取
-      # 翻牌前的 frontmatter。預設 depth 1 在本地 commit 之後 HEAD~1 雖然存在，但那是
-      # shallow 邊界上的 grafted commit，取檔案的行為沒有保證。多抓一個 commit 的成本
-      # 遠低於「排程文章靜靜地沒送出」。
+      # 翻牌前的 frontmatter。depth 1 其實也行得通（HEAD~1 正是這一步 checkout 出來、
+      # blob 完整在本機的那顆 commit），但那要靠 shallow clone 的實作細節成立；明寫 2 把
+      # 「讀得到父節點的檔案」變成顯式保證，多抓一顆 commit 的成本可忽略。
       - uses: actions/checkout@v7
         with:
           fetch-depth: 2
@@ -834,8 +850,8 @@ Step 1: 讓排程 workflow 拿得到父節點
 
 Step 2: 在 push 之後加提交步驟
 
-`.github/workflows/publish-scheduled.yml` 的「Commit 並 push」步驟（第 74–81 行）之後、
-「寫入 Job Summary」之前，插入：
+`.github/workflows/publish-scheduled.yml` 的「Commit 並 push」步驟之後、「寫入 Job Summary」
+步驟之前，插入：
 
 ```yaml
       # 必須在這裡呼叫，不能靠 indexnow.yml 的 push 事件接力：Actions 以預設 GITHUB_TOKEN
