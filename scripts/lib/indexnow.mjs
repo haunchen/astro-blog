@@ -7,6 +7,8 @@
  * 設計文件：docs/plans/2026-09-18-index-submission-design.md
  */
 
+import { XMLParser } from 'fast-xml-parser';
+
 /**
  * 文章檔案路徑 → 正規網址。
  *
@@ -80,4 +82,47 @@ export function shouldSubmit(before, after) {
   if (before.draft === true) return true;
   // 型別正規化後再比：Date 與等價字串混用時直接比值會誤判成有改動。
   return toIso(before.updated) !== toIso(after.updated);
+}
+
+/**
+ * 解析 sitemap.xml，取出 loc → lastmod 的對照。
+ *
+ * `parseTagValue: false` 讓所有值維持字串：預設會嘗試把標籤內容轉成數字，而 lastmod 的
+ * 比對是字串相等，型別一飄就永遠對不上。
+ *
+ * 缺 lastmod 的節點給 null 而非 undefined——呼叫端靠 `undefined` 分辨「這個網址還沒出現在
+ * sitemap 裡」，兩者混在一起就判不出部署到底完成了沒。
+ *
+ * @param {string} xml
+ * @returns {Map<string, string | null>}
+ */
+export function parseSitemapLastmods(xml) {
+  const parsed = new XMLParser({ parseTagValue: false }).parse(xml);
+  const nodes = parsed?.urlset?.url;
+  // fast-xml-parser 對單一節點給物件而非陣列，全站只有一篇文章時會踩到。
+  const list = Array.isArray(nodes) ? nodes : nodes ? [nodes] : [];
+  const map = new Map();
+  for (const node of list) {
+    if (typeof node?.loc !== 'string') continue;
+    map.set(node.loc, node.lastmod === undefined ? null : String(node.lastmod));
+  }
+  return map;
+}
+
+/**
+ * 組出 IndexNow 的提交 body。
+ *
+ * keyLocation 明確給出而不是讓對方去猜：雖然放在根目錄時可以省略，寫出來才能在回 403 時
+ * 一眼看出腳本以為金鑰在哪裡。
+ *
+ * @param {{ host: string, key: string, urls: string[] }} input
+ * @returns {{ host: string, key: string, keyLocation: string, urlList: string[] }}
+ */
+export function buildIndexNowPayload({ host, key, urls }) {
+  return {
+    host,
+    key,
+    keyLocation: `https://${host}/${key}.txt`,
+    urlList: urls,
+  };
 }

@@ -1,6 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { postPathToUrl, expectedLastmod, shouldSubmit } from './indexnow.mjs';
+import {
+  postPathToUrl,
+  expectedLastmod,
+  shouldSubmit,
+  parseSitemapLastmods,
+  buildIndexNowPayload,
+} from './indexnow.mjs';
 
 const ORIGIN = 'https://frankchen.tw';
 
@@ -102,4 +108,55 @@ test('shouldSubmit：updated 值等價但型別不同時不算改動', () => {
     shouldSubmit({ updated: '2026-09-10', date: '2026-09-01' }, { updated: new Date('2026-09-10'), date: '2026-09-01' }),
     false,
   );
+});
+
+const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://frankchen.tw/</loc></url>
+<url><loc>https://frankchen.tw/my-post/</loc><lastmod>2026-09-18T00:00:00.000Z</lastmod></url>
+<url><loc>https://frankchen.tw/other-post/</loc><lastmod>2026-09-01T00:00:00.000Z</lastmod></url>
+</urlset>`;
+
+test('parseSitemapLastmods：取出每個網址的 lastmod', () => {
+  const map = parseSitemapLastmods(SITEMAP_XML);
+  assert.equal(map.get('https://frankchen.tw/my-post/'), '2026-09-18T00:00:00.000Z');
+  assert.equal(map.get('https://frankchen.tw/other-post/'), '2026-09-01T00:00:00.000Z');
+});
+
+// 沒有 lastmod 的節點要拿得到 null 而不是 undefined——呼叫端拿 undefined 分不出
+// 「這個網址不在 sitemap 裡」與「在但沒有 lastmod」。
+test('parseSitemapLastmods：缺 lastmod 的節點回 null', () => {
+  assert.equal(parseSitemapLastmods(SITEMAP_XML).get('https://frankchen.tw/'), null);
+});
+
+test('parseSitemapLastmods：不存在的網址回 undefined', () => {
+  assert.equal(parseSitemapLastmods(SITEMAP_XML).get('https://frankchen.tw/nope/'), undefined);
+});
+
+// fast-xml-parser 對單一節點不給陣列而給物件，不處理的話首篇文章上線那天會整個解析不到。
+test('parseSitemapLastmods：只有一個 url 節點時仍解析得出', () => {
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://frankchen.tw/only/</loc><lastmod>2026-09-18T00:00:00.000Z</lastmod></url>
+</urlset>`;
+  assert.equal(parseSitemapLastmods(xml).get('https://frankchen.tw/only/'), '2026-09-18T00:00:00.000Z');
+});
+
+test('parseSitemapLastmods：空 urlset 回空 Map', () => {
+  const xml = '<?xml version="1.0" encoding="UTF-8"?><urlset></urlset>';
+  assert.equal(parseSitemapLastmods(xml).size, 0);
+});
+
+test('buildIndexNowPayload：keyLocation 指向站台根目錄的 key 檔', () => {
+  const payload = buildIndexNowPayload({
+    host: 'frankchen.tw',
+    key: 'a7f3c9e2b8d4416fa0c5e7d92b1f6403',
+    urls: ['https://frankchen.tw/my-post/'],
+  });
+  assert.deepEqual(payload, {
+    host: 'frankchen.tw',
+    key: 'a7f3c9e2b8d4416fa0c5e7d92b1f6403',
+    keyLocation: 'https://frankchen.tw/a7f3c9e2b8d4416fa0c5e7d92b1f6403.txt',
+    urlList: ['https://frankchen.tw/my-post/'],
+  });
 });
