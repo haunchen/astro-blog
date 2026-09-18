@@ -24,7 +24,14 @@ jobs:
 
     steps:
       # 官方 action 追大版本 tag 的理由見 seo-pr.yml 檔頭，不在這裡重複。
+      #
+      # fetch-depth: 2 是為了最後一步的 IndexNow 提交——它要 `git show HEAD~1:<file>` 取
+      # 翻牌前的 frontmatter。depth 1 其實也行得通（HEAD~1 正是這一步 checkout 出來、
+      # blob 完整在本機的那顆 commit），但那要靠 shallow clone 的實作細節成立；明寫 2 把
+      # 「讀得到父節點的檔案」變成顯式保證，多抓一顆 commit 的成本可忽略。
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: actions/setup-node@v7
         with:
@@ -80,17 +87,45 @@ jobs:
           git commit -m "chore(publish): 排程發布到期文章"
           git push
 
+      # 必須在這裡呼叫，不能靠 indexnow.yml 的 push 事件接力：Actions 以預設 GITHUB_TOKEN
+      # push 出去的 commit 不會觸發其他 workflow（GitHub 的防遞迴設計），只接 push 事件的話
+      # 排程文章永遠送不出去。
+      #
+      # 這一步會等 Cloudflare Pages 把剛 push 的內容部署完成，花上幾分鐘是正常的。
+      - name: 送出 IndexNow
+        id: indexnow
+        if: steps.changes.outputs.changed == 'true'
+        run: node scripts/submit-indexnow.mjs --base HEAD~1
+
       - name: 寫入 Job Summary
         if: always()
         run: |
           # 失敗時（build 或 verify:seo 紅燈）steps.changes.outputs.changed 仍可能是
           # true，但沒有 push——只看 changed 會印出「有文章發布」這種沒發生的事，
           # 人唯一會看的就是這塊摘要，講錯話等於這條檢查白裝。job.status 優先判斷。
+          #
+          # 「送出 IndexNow」只排在 Commit 並 push 之後，且沒有 continue-on-error，
+          # 所以它的 outcome 會是 failure 時，前面的 commit 與 push 必定已經成功——
+          # 文章其實上線了，壞的只是索引通知。這個分支得排在 job.status 判斷之前，
+          # 否則會被籠統地併進「失敗，未 push」，講的話跟實際發生的事相反。
+          #
+          # 「重跑這支 workflow」不是有效補救：重跑時 checkout 拿到的是已經翻牌的 main，
+          # publish-scheduled.mjs 判不到到期文章，changed=false，「送出 IndexNow」被 if:
+          # 跳過，摘要反而印「今天沒有到期文章」——綠燈，但那批網址永遠沒送。indexnow.yml
+          # 的 push 事件也接不走：它的 event.before 是這次 push 的 commit 本身，之後任何
+          # push 的 diff 區間都不含它。唯一有效的補救是手動觸發 indexnow.yml 的
+          # workflow_dispatch，base 填本次的 ${{ github.sha }}（cron 觸發時的 main HEAD，
+          # 正是翻牌 commit 的父節點，也就是 CLI 需要的比對起點）。
           {
             echo "## 排程發布"
             echo "- 觸發：${{ github.event_name }}"
             echo "- 模式：${{ inputs.dry_run == true && 'dry-run' || 'apply' }}"
-            if [ "${{ job.status }}" != "success" ]; then
+            if [ "${{ steps.indexnow.outcome }}" = "failure" ]; then
+              echo "- 結果：文章已發布並 push 成功，但 IndexNow 索引通知送出失敗"
+              echo "- 補送方式：**不要重跑本 workflow**（會判不到到期文章，什麼都不會送）"
+              echo "  請到 Actions 手動觸發「IndexNow 提交」workflow（indexnow.yml 的 workflow_dispatch），base 填：\`${{ github.sha }}\`"
+              echo "  等同指令：gh workflow run indexnow.yml -f base=${{ github.sha }}"
+            elif [ "${{ job.status }}" != "success" ]; then
               echo "- 結果：失敗，未 push"
             elif [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
               echo "- 結果：有文章發布"

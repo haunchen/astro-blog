@@ -1,0 +1,57 @@
+name: IndexNow 提交
+
+# paths 限文章目錄：元件、樣式、設定的改動不會改變任何文章的 lastmod，送出去只會消耗
+# 提交端的信任度。branches 限 main 是因為只有 main 會部署到線上，而這支腳本會去比對線上
+# sitemap——在別的分支跑必然逾時。
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/posts/**'
+  # 補送用：排程翻牌那條路徑（publish-scheduled.yml）若在 IndexNow 這一步失敗，重跑該 workflow
+  # 不會重新送出——翻牌邏輯已判不到到期文章，push 事件也接不走（見下面 base 的取值順序）。
+  # 手動觸發這裡、指定 base，才是唯一能補送的路徑。
+  workflow_dispatch:
+    inputs:
+      base:
+        description: '要比對的起點 commit（即 <base>..HEAD 的 base；排程翻牌路徑補送時填當次 publish-scheduled.yml 的 github.sha）'
+        required: true
+        type: string
+
+# GitHub 對同一個 concurrency group 只保證兩件事：同時只有一個 run 在跑，而且「cancel-in-progress:
+# false」只保住正在跑的那一個不被取消。排隊中（pending）的 run 不受這個旗標保護——同群組裡任何
+# 時候都只留最新一個 pending run，較舊的會被直接取消而非繼續排隊。10 分鐘內連推三次文章，排隊中
+# 的第二批就會被第三個 run 取代而靜默消失，那批網址不會被送（下一個 run 的 event.before 已跨過
+# 它們）。機率低，但真的發生時就是需要人補送的情況，走上面 workflow_dispatch 的 base 手動補送。
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # 官方 action 追大版本 tag 的理由見 seo-pr.yml 檔頭，不在這裡重複。
+      #
+      # fetch-depth: 0 是必要的——預設只抓一個 commit，`git show <before>:<file>` 會直接
+      # 失敗，於是每一篇都被當成新增而全部送出。
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: 安裝依賴
+        run: npm ci
+
+      # 刻意沒有 continue-on-error：逾時或提交被拒都需要人知道。失敗不影響已上線的文章，
+      # 重跑這支 workflow 就能補送（一般 push 觸發時）；base 優先取 workflow_dispatch 的
+      # input，沒有（即一般 push 觸發）才落回 github.event.before。
+      - name: 送出 IndexNow
+        run: node scripts/submit-indexnow.mjs --base "${{ inputs.base || github.event.before }}"

@@ -1,0 +1,117 @@
+/**
+ * IndexNow 提交的純函式：判定哪篇該送、換算網址、算預期 lastmod。
+ *
+ * 與 publish-scheduled.mjs、vault-post.mjs 同一個形狀——git 與網路留在 CLI，這裡只做資料
+ * 轉換，才測得動。
+ *
+ * 設計文件：docs/plans/2026-09-18-index-submission-design.md
+ */
+
+import { XMLParser } from 'fast-xml-parser';
+import { postIdFromPath } from './post-id.mjs';
+
+/**
+ * 文章檔案路徑 → 正規網址。
+ *
+ * id 的推導規則抽在 `post-id.mjs`，與 astro.config.mjs 的 POST_LASTMOD 共用同一份實作，
+ * 理由與「不替 `src/content/posts/index.md` 這種扁平檔加特例」的細節見該檔案頭。
+ *
+ * @param {string} file 相對於專案根的路徑，例如 `src/content/posts/my-post/index.md`
+ * @param {string} origin 例如 `https://frankchen.tw`
+ * @returns {string | null} 非文章檔案回 null
+ */
+export function postPathToUrl(file, origin) {
+  const id = postIdFromPath(file);
+  if (id === null) return null;
+  return `${origin}/${id}/`;
+}
+
+/**
+ * 把一個 frontmatter 日期值正規化成 ISO 字串。
+ *
+ * gray-matter 對裸日期給 Date、對加引號的值給字串，兩種都會出現在既有 43 篇裡。
+ *
+ * @param {unknown} raw
+ * @returns {string | null}
+ */
+function toIso(raw) {
+  if (raw === undefined || raw === null) return null;
+  if (!(raw instanceof Date) && typeof raw !== 'string') return null;
+  const d = raw instanceof Date ? raw : new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+/**
+ * 這篇在 sitemap 裡應該長什麼樣的 lastmod。
+ *
+ * 規則就是 astro.config.mjs 的 `new Date(data.updated ?? data.date)`。這個值是「部署完成了
+ * 沒」的判據——比對線上 sitemap 的同名欄位。
+ *
+ * @param {Record<string, unknown>} data frontmatter 物件
+ * @returns {string | null}
+ */
+export function expectedLastmod(data) {
+  return toIso(data?.updated ?? data?.date);
+}
+
+/**
+ * 這篇該不該送出索引提交。
+ *
+ * 判準是 frontmatter 而不是檔案 diff：錯字與排版修正本來就不該動 `updated`（見 CLAUDE.md
+ * 的 changelog 紀律），也就不該告訴搜尋引擎內容變了。
+ *
+ * @param {Record<string, unknown> | null} before 上一版 frontmatter，新檔為 null
+ * @param {Record<string, unknown> | null} after 現況 frontmatter，已刪除為 null
+ * @returns {boolean}
+ */
+export function shouldSubmit(before, after) {
+  if (after === null || after === undefined) return false;
+  if (after.draft === true) return false;
+  if (before === null || before === undefined) return true;
+  if (before.draft === true) return true;
+  // 型別正規化後再比：Date 與等價字串混用時直接比值會誤判成有改動。
+  return toIso(before.updated) !== toIso(after.updated);
+}
+
+/**
+ * 解析 sitemap.xml，取出 loc → lastmod 的對照。
+ *
+ * `parseTagValue: false` 讓所有值維持字串：預設會嘗試把標籤內容轉成數字，而 lastmod 的
+ * 比對是字串相等，型別一飄就永遠對不上。
+ *
+ * 缺 lastmod 的節點給 null 而非 undefined——呼叫端靠 `undefined` 分辨「這個網址還沒出現在
+ * sitemap 裡」，兩者混在一起就判不出部署到底完成了沒。
+ *
+ * @param {string} xml
+ * @returns {Map<string, string | null>}
+ */
+export function parseSitemapLastmods(xml) {
+  const parsed = new XMLParser({ parseTagValue: false }).parse(xml);
+  const nodes = parsed?.urlset?.url;
+  // fast-xml-parser 對單一節點給物件而非陣列，全站只有一篇文章時會踩到。
+  const list = Array.isArray(nodes) ? nodes : nodes ? [nodes] : [];
+  const map = new Map();
+  for (const node of list) {
+    if (typeof node?.loc !== 'string') continue;
+    map.set(node.loc, node.lastmod === undefined ? null : String(node.lastmod));
+  }
+  return map;
+}
+
+/**
+ * 組出 IndexNow 的提交 body。
+ *
+ * keyLocation 明確給出而不是讓對方去猜：雖然放在根目錄時可以省略，寫出來才能在回 403 時
+ * 一眼看出腳本以為金鑰在哪裡。
+ *
+ * @param {{ host: string, key: string, urls: string[] }} input
+ * @returns {{ host: string, key: string, keyLocation: string, urlList: string[] }}
+ */
+export function buildIndexNowPayload({ host, key, urls }) {
+  return {
+    host,
+    key,
+    keyLocation: `https://${host}/${key}.txt`,
+    urlList: urls,
+  };
+}

@@ -14,6 +14,7 @@
     "fonts": "node scripts/build-font-css.mjs",
     "verify:seo": "node scripts/verify-seo.mjs",
     "publish:scheduled": "node scripts/publish-scheduled.mjs",
+    "submit:indexnow": "node scripts/submit-indexnow.mjs",
     "prepare": "git config core.hooksPath .githooks",
     "verify:headers": "node scripts/verify-headers.mjs",
     "verify:robots": "node scripts/verify-robots.mjs",

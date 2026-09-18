@@ -9,6 +9,7 @@ import matter from 'gray-matter';
 import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
 import { pagePathToMdPath } from './scripts/lib/md-path.mjs';
 import { buildPageMarkdown } from './scripts/lib/page-md.mjs';
+import { postIdFromPath } from './scripts/lib/post-id.mjs';
 
 // 正規主機。defineConfig 的 site 與 pageMarkdownVariants 用的必須是同一個值——後者寫進
 // 每份頁面 md 的絕對連結，兩處各寫一份字面值就會在改站台網域時漏掉其中一邊，而漏掉的那邊
@@ -17,15 +18,11 @@ const SITE_URL = 'https://frankchen.tw';
 
 // sitemap serialize callback 只拿得到 URL，先從文章 frontmatter 建 pathname → lastmod 對照。
 // astro.config 內無法使用 astro:content，直接以 gray-matter 讀 frontmatter；
-// id 規則與 content loader 一致（去 base、去 /index.md 或 .md 後綴）。
+// id 規則用 post-id.mjs，與 scripts/lib/indexnow.mjs 共用同一份實作，理由見該檔案頭。
 const POST_LASTMOD = new Map(
   globSync('src/content/posts/**/*.md').map((file) => {
     const { data } = matter(readFileSync(file, 'utf8'));
-    const id = file
-      .replace(/\\/g, '/')
-      .replace(/^src\/content\/posts\//, '')
-      .replace(/\/index\.md$/, '')
-      .replace(/\.md$/, '');
+    const id = postIdFromPath(file);
     return [`/${id}/`, new Date(data.updated ?? data.date)];
   }),
 );
