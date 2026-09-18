@@ -108,12 +108,23 @@ jobs:
           # 所以它的 outcome 會是 failure 時，前面的 commit 與 push 必定已經成功——
           # 文章其實上線了，壞的只是索引通知。這個分支得排在 job.status 判斷之前，
           # 否則會被籠統地併進「失敗，未 push」，講的話跟實際發生的事相反。
+          #
+          # 「重跑這支 workflow」不是有效補救：重跑時 checkout 拿到的是已經翻牌的 main，
+          # publish-scheduled.mjs 判不到到期文章，changed=false，「送出 IndexNow」被 if:
+          # 跳過，摘要反而印「今天沒有到期文章」——綠燈，但那批網址永遠沒送。indexnow.yml
+          # 的 push 事件也接不走：它的 event.before 是這次 push 的 commit 本身，之後任何
+          # push 的 diff 區間都不含它。唯一有效的補救是手動觸發 indexnow.yml 的
+          # workflow_dispatch，base 填本次的 ${{ github.sha }}（cron 觸發時的 main HEAD，
+          # 正是翻牌 commit 的父節點，也就是 CLI 需要的比對起點）。
           {
             echo "## 排程發布"
             echo "- 觸發：${{ github.event_name }}"
             echo "- 模式：${{ inputs.dry_run == true && 'dry-run' || 'apply' }}"
             if [ "${{ steps.indexnow.outcome }}" = "failure" ]; then
-              echo "- 結果：文章已發布並 push 成功，但 IndexNow 索引通知送出失敗，需重跑補送"
+              echo "- 結果：文章已發布並 push 成功，但 IndexNow 索引通知送出失敗"
+              echo "- 補送方式：**不要重跑本 workflow**（會判不到到期文章，什麼都不會送）"
+              echo "  請到 Actions 手動觸發「IndexNow 提交」workflow（indexnow.yml 的 workflow_dispatch），base 填：\`${{ github.sha }}\`"
+              echo "  等同指令：gh workflow run indexnow.yml -f base=${{ github.sha }}"
             elif [ "${{ job.status }}" != "success" ]; then
               echo "- 結果：失敗，未 push"
             elif [ "${{ steps.changes.outputs.changed }}" = "true" ]; then
