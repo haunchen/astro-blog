@@ -24,7 +24,14 @@ jobs:
 
     steps:
       # 官方 action 追大版本 tag 的理由見 seo-pr.yml 檔頭，不在這裡重複。
+      #
+      # fetch-depth: 2 是為了最後一步的 IndexNow 提交——它要 `git show HEAD~1:<file>` 取
+      # 翻牌前的 frontmatter。depth 1 其實也行得通（HEAD~1 正是這一步 checkout 出來、
+      # blob 完整在本機的那顆 commit），但那要靠 shallow clone 的實作細節成立；明寫 2 把
+      # 「讀得到父節點的檔案」變成顯式保證，多抓一顆 commit 的成本可忽略。
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
 
       - uses: actions/setup-node@v7
         with:
@@ -79,6 +86,15 @@ jobs:
           git add src/content/posts
           git commit -m "chore(publish): 排程發布到期文章"
           git push
+
+      # 必須在這裡呼叫，不能靠 indexnow.yml 的 push 事件接力：Actions 以預設 GITHUB_TOKEN
+      # push 出去的 commit 不會觸發其他 workflow（GitHub 的防遞迴設計），只接 push 事件的話
+      # 排程文章永遠送不出去。
+      #
+      # 這一步會等 Cloudflare Pages 把剛 push 的內容部署完成，花上幾分鐘是正常的。
+      - name: 送出 IndexNow
+        if: steps.changes.outputs.changed == 'true'
+        run: node scripts/submit-indexnow.mjs --base HEAD~1
 
       - name: 寫入 Job Summary
         if: always()

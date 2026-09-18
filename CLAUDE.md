@@ -18,12 +18,13 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 185 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 206 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export incl. changelog blockquote + DNS-AID parsing/evaluation +
                     # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
                     # publish-scheduled.mjs 排程發布判定/frontmatter 改寫 +
-                    # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證)
+                    # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證 +
+                    # indexnow.mjs 該送的判定/網址換算/sitemap lastmod 解析/payload 組裝)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -155,7 +156,12 @@ dates, and forces `draft: true` regardless of the vault's `content_status`, beca
 refine demands `publishAt` and `draft: true` come as a pair. The vault's `updated` is dropped for
 anything landing as a draft — it means "last edited in Obsidian", not "revised after publication"
 (see **Updating a published post**). Transform logic is in
-`scripts/lib/vault-post.mjs`, pure functions under test), `build-manifest`, `verify-*`.
+`scripts/lib/vault-post.mjs`, pure functions under test),
+`submit-indexnow`（CLI — 把這次新上線或 `updated` 有變的文章網址送出 IndexNow；判定與換算邏輯
+在 `scripts/lib/indexnow.mjs`，純函式、under test。送出前會輪詢線上 sitemap 確認 Cloudflare
+Pages 部署完成——判據是該網址的 `lastmod` 等於 `updated ?? date`，與 `astro.config.mjs` 的
+`POST_LASTMOD` 同一條規則。IndexNow 的 key 放在 `public/<key>.txt`，是公開值不是 secret），`build-manifest`,
+`verify-*`.
 
 **Redirects:** `public/_redirects` holds path-level 301s (old WP slugs, sitemap filenames, subdomain
 handoffs). The www → non-www redirect lives in **Cloudflare zone config, not in this repo**. Same for
@@ -168,7 +174,11 @@ Lighthouse + `verify:agent-ua` (the last against a `wrangler pages dev` instance
 job, since agent UA detection lives in Pages Functions, which `astro preview` doesn't execute)
 on every PR;
 `seo-daily.yml` runs a scheduled squirrelscan audit; `publish-scheduled.yml` runs daily to flip due
-scheduled posts from draft and push the commit. `.githooks/pre-commit` (enabled by `npm install`
+scheduled posts from draft and push the commit.
+`indexnow.yml` 在文章推上 main 時送出索引提交，`publish-scheduled.yml` 翻牌後也會自己呼叫同一
+支腳本（Actions 用 `GITHUB_TOKEN` push 的 commit 不會觸發 `on: push`）。Google 端刻意不做主動
+提交——它沒有給一般文章的官方路徑，理由見 `docs/specs/index-submission.md` D1。
+`.githooks/pre-commit` (enabled by `npm install`
 via the `prepare` script) validates frontmatter on staged posts only — seconds-fast, no build.
 
 **Docs:** `docs/specs/` (feature specs), `docs/plans/` (dated design + implementation pairs),
