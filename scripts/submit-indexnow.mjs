@@ -55,7 +55,14 @@ function parseArgs(argv) {
 }
 
 function git(args) {
-  return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 32 * 1024 * 1024 });
+  // core.quotepath=false：預設值下，git 指令輸出裡含非 ASCII 字元的路徑會被跳脫成加引號的
+  // 字串（例如 "src/content/posts/\346\226\207.../index.md"），使 changedPostFiles() 的
+  // line.endsWith('.md') 判不出來而靜默略過那篇。目前站上 43 篇 slug 全是 ASCII，還沒踩到，
+  // 但只要一個旗標就能根除，不必等它變成真的漏送再修。
+  return execFileSync('git', ['-c', 'core.quotepath=false', ...args], {
+    encoding: 'utf8',
+    maxBuffer: 32 * 1024 * 1024,
+  });
 }
 
 /**
