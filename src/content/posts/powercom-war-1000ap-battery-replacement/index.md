@@ -1,12 +1,10 @@
 ---
 title: "科風 WAR-1000AP 電池更換教學 - 拆整台外殼才能換，還發現電池膨脹"
-date: 2026-03-06
+date: 2026-09-21
 description: "科風 WAR-1000AP（PCM POWERCOM）電池更換圖文教學。這台要把整個上蓋拆掉才能碰到電池，是三台 UPS 裡最麻煩的，而且拆開就看到舊電池已經膨脹鼓包。本文附實拍照片與完整步驟，替換電池選 YUASA REW45-12，並提醒蓋回去前要先撥開排線，避免夾到短路。"
 category: "hardware"
 tags: []
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-09-21
 ---
 > 拆開 UPS 看到電池膨脹鼓包的瞬間，我只有一個念頭：還好今天有換。
 
