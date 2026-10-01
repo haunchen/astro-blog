@@ -346,6 +346,7 @@ export const FOOTER_COLS = [
     { href: `/tag/${encodeURIComponent(tagSlug('模板'))}/`, label: 'n8n 模板' },
     { href: '/category/devops/', label: 'WordPress 架站' },
     { href: '/category/flutter/', label: 'App 應用開發' },
+    { href: '/category/tech-news/', label: '科技新聞' },
     { href: 'https://medical-news.frankchen.tw/', label: 'Frank 的醫材週報' },
   ],
   [
