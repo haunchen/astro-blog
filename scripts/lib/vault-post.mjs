@@ -29,6 +29,9 @@ const DESCRIPTION_MIN = 120;
  *
  * `硬體維護` → `hardware` 是 2026-08-19 新增的分類（設計文件 D8），
  * 對應 UPS 系列 4 篇；連動改動在 content.config.ts、site-meta.ts 兩處與 subset-fonts.mjs。
+ *
+ * `科技新聞` → `tech-news` 是 2026-10-01 新增的分類，第一篇是 Gemini 4 Argon 發布文；
+ * 連動改動同上四處。
  */
 const CATEGORY_MAP = new Map([
   ['n8n', 'n8n'],
@@ -42,6 +45,8 @@ const CATEGORY_MAP = new Map([
   ['flutter', 'flutter'],
   ['硬體維護', 'hardware'],
   ['hardware', 'hardware'],
+  ['科技新聞', 'tech-news'],
+  ['tech-news', 'tech-news'],
 ]);
 
 /**

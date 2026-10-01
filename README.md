@@ -62,7 +62,7 @@ docs/                 # specs、plans、部署與 SEO 文件
 ```
 
 文章 frontmatter 受 Zod schema 約束，違反會讓 build 失敗而非只是警告：標題 ≤ 60 字、
-描述 ≤ 160 字、`category` 限 n8n / flutter / devops / raspberry-pi / tools、封面圖必填。
+描述 ≤ 160 字、`category` 限 n8n / flutter / devops / raspberry-pi / tools / hardware / tech-news、封面圖必填。
 
 ## Design
 
