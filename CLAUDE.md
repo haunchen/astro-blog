@@ -18,7 +18,7 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 211 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 212 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export incl. changelog blockquote + DNS-AID parsing/evaluation +
                     # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
@@ -64,7 +64,7 @@ Astro v5 blog with Tailwind CSS v4, TypeScript strict mode, deployed to Cloudfla
 **Content Collections:** Single "posts" collection (`src/content/posts/`), Markdown via the glob loader,
 Zod-validated. Schema enforces SEO limits that will fail the build, not warn:
 `title` ≤ 60 chars, `description` ≤ 160 chars, `category` enum (n8n, flutter, devops, raspberry-pi, tools,
-hardware), `cover` is a required `image()`. Optional: `updated`, `tags`, `draft`, `publishAt` (scheduled
+hardware, tech-news), `cover` is a required `image()`. Optional: `updated`, `tags`, `draft`, `publishAt` (scheduled
 publish date — when set, `draft` must also be `true`, enforced by a schema `.refine()`; on the day it's
 due, `publish-scheduled` flips `draft` off and rewrites `date` to this value), `changelog` (see
 **Updating a published post** below — three `.refine()`s tie it to `updated` and `date`).

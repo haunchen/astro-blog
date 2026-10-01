@@ -123,7 +123,7 @@ title: string        # 必填，不可超過 60 字（zod schema 擋，見 src/c
 date: date            # 必填
 updated: date         # 選填，有修訂時填
 description: string   # 必填，120–160 字元 —— 這是硬性要求
-category: enum        # 必填，n8n | flutter | devops | raspberry-pi | tools
+category: enum        # 必填，n8n | flutter | devops | raspberry-pi | tools | hardware | tech-news
 tags: string[]         # 選填，預設空陣列
 cover: image           # 必填（image() helper）
 draft: boolean         # 選填，預設 false

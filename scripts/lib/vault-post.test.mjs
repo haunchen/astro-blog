@@ -31,6 +31,11 @@ test('mapCategory：硬體維護對應到 2026-08-19 新增的 hardware', () => 
   assert.equal(mapCategory('硬體維護'), 'hardware');
 });
 
+test('mapCategory：科技新聞對應到 2026-10-01 新增的 tech-news', () => {
+  assert.equal(mapCategory('科技新聞'), 'tech-news');
+  assert.equal(mapCategory('tech-news'), 'tech-news');
+});
+
 test('mapCategory：認不得的值與非字串一律回 null', () => {
   assert.equal(mapCategory('醫療知識'), null);
   assert.equal(mapCategory(undefined), null);
