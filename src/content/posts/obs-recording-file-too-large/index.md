@@ -5,8 +5,6 @@ description: "OBS 錄了兩個半小時的講座，檔案 11.6 GB。這篇從 ff
 category: "tools"
 tags: ["performance"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-05
 ---
 ## 前言：兩個半小時的錄影，11.6 GB
 
