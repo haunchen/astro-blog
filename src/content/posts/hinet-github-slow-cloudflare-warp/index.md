@@ -5,8 +5,6 @@ description: "用中華電信 HiNet 下載 GitHub release 大檔，單一連線�
 category: "tools"
 tags: ["Cloudflare", "esp32", "arduino", "performance"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-07
 ---
 ## 前言：裝個 ESP32 開發套件，卡了半小時
 
