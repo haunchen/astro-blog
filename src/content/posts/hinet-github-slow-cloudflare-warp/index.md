@@ -5,6 +5,10 @@ description: "用中華電信 HiNet 下載 GitHub release 大檔，單一連線�
 category: "tools"
 tags: ["Cloudflare", "esp32", "arduino", "performance"]
 cover: "./images/cover.webp"
+updated: 2026-10-09
+changelog:
+  - date: 2026-10-09
+    note: "補充 PyPI 也走 Fastly，大型套件同樣會變慢"
 ---
 ## 前言：裝個 ESP32 開發套件，卡了半小時
 
@@ -227,7 +231,9 @@ $fs.Close()
 
 如果你跟我一樣，只是急著讓 ESP32 先跑起來，還有一條路：不用 Arduino，改燒 MicroPython。
 
-MicroPython 的 ESP32 韌體只有 1.7 MB，從 micropython.org 下載；燒錄工具 `esptool` 和傳檔工具 `mpremote` 都用 pip 裝，走的是 PyPI，不經過 Fastly 那段慢路。我從下載到燒好、程式跑起來，前後不到十分鐘。
+MicroPython 的 ESP32 韌體只有 1.7 MB，從 micropython.org 下載；燒錄工具 `esptool` 和傳檔工具 `mpremote` 都用 pip 裝。PyPI 的檔案其實也是 Fastly 送的，但這兩個套件都很小，慢路的影響感覺不出來。我從下載到燒好、程式跑起來，前後不到十分鐘。
+
+> 要用 pip 裝 torch 這種上百 MB 的套件就會中，我在中華電信的網路上裝 torch 2.14，127 MB 的檔案只剩每秒 50 到 70 KB。
 
 ```powershell
 pip install esptool mpremote
@@ -241,7 +247,7 @@ esptool --port COM6 --baud 460800 write-flash 0x1000 ESP32_GENERIC-20260824-v1.2
 
 ### 只有 GitHub 慢嗎？
 
-走 Fastly CDN 的服務都可能受影響，包括 Twitter 的圖片影片、raw.githubusercontent.com，以及這篇測到的 GitHub release 下載。
+走 Fastly CDN 的服務都可能受影響，包括 Twitter 的圖片影片、raw.githubusercontent.com、PyPI 的大型套件，以及這篇測到的 GitHub release 下載。
 
 ### Cloudflare WARP 要付費嗎？
 
