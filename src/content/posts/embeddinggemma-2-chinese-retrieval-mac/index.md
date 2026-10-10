@@ -1,12 +1,10 @@
 ---
 title: "EmbeddingGemma 2 在 Mac 上跑中文檢索：五個官方沒寫清楚的坑"
-date: 2026-10-09
+date: 2026-10-10
 description: "在 Mac mini M2 16GB 上實測 EmbeddingGemma 2 的中文檢索：文字跟 bge-m3 同級、讀得到投影片上的字，但會議錄音直接搜只有 0.21。整理音訊預設只吃 30 秒、fp16 壞在多模態、任務前綴、影片記憶體上限、切太長會稀釋五個官方沒寫清楚的坑。"
 category: "tools"
 tags: ["LLM", "on-device-ai"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-10
 ---
 ## 前言：音訊也能 embed，那錄音是不是不用轉逐字稿了
 
