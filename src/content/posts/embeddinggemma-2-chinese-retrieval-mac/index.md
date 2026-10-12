@@ -5,6 +5,10 @@ description: "在 Mac mini M2 16GB 上實測 EmbeddingGemma 2 的中文檢索：
 category: "tools"
 tags: ["LLM", "on-device-ai"]
 cover: "./images/cover.webp"
+updated: 2026-10-12
+changelog:
+  - date: 2026-10-12
+    note: "補測官方評測的方向：用語音當查詢去搜文字"
 ---
 ## 前言：音訊也能 embed，那錄音是不是不用轉逐字稿了
 
@@ -18,7 +22,7 @@ Google DeepMind 在 2026 年 10 月 6 日發表 EmbeddingGemma 2。740M 參數�
 
 - 中文文字檢索很強，跟 bge-m3 同級
 - 用文字找投影片可以用，而且它讀得到投影片上的字
-- 中文會議錄音直接拿音訊去搜，不管用
+- 中文會議錄音直接拿音訊去搜，不管用；反過來用講的去查文字，也一樣輸給先轉文字
 
 中間踩到五個官方文件沒寫清楚、或寫了但很容易漏看的坑，每個都附實測數字。
 
@@ -296,6 +300,26 @@ say -v Meijia -o seg.aiff "這段的逐字稿內容"
 
 我原本還想過，Whisper 聽錯的術語，能不能靠音訊 embedding 補回來。實測不行：專挑逐字稿有錯字的題目，文字仍有 0.95，音訊只有 0.25。把文字和音訊的分數加起來，會議 B 從 0.56 升到 0.64，會議 A 反而從 0.95 掉到 0.89，沒有穩定的好處。
 
+### 換成官方測的方向：用講的去查文字
+
+寫完這篇之後回頭翻官方跑分，才發現我測的方向跟官方相反。模型卡上的音訊檢索分數來自 Google 的 [MSEB](https://arxiv.org/abs/2602.07143)，題目是「用語音查文字」：查詢是一句 5 秒左右的口語提問，被搜的是文字段落，模擬的是語音搜尋。上面那個 0.21 是「打字去搜一段 30 秒的多人錄音」，官方沒評過這個方向。
+
+所以我把同一批查詢句念成語音，反過來搜原本的逐字稿。TED 的題目用 Gemini 3.8 Flash TTS 的兩種聲音和 `say` 的美佳、婷婷各念一次，會議 A、B 的題目內容不方便送外部 API，只用本機的 `say`。查詢長度中位數 4 到 5 秒，跟 MSEB 差不多。每種語音查詢分兩條路比：直接做音訊 embedding，或先用 Whisper 轉成文字再做文字 embedding。
+
+| 素材 | 打字查詢 | 語音直接 embed | 語音先轉文字 |
+|---|---|---|---|
+| TEDxTaipei | 0.98 | 0.68–0.78 | 0.97–0.98 |
+| 會議 A | 0.95 | 0.34–0.40 | 0.94–0.98 |
+| 會議 B | 0.56 | 0.21–0.22 | 0.52–0.54 |
+
+範圍是不同聲音之間的差距。結果跟前面一樣：
+
+- 換成官方的方向，會議 A 從 0.21 升到 0.3 到 0.4，有好一點，但還是差打字查詢一大截
+- Whisper 轉一句 5 秒的短句幾乎不會錯，轉完再搜跟打字一樣準
+- Gemini 念得比 `say` 自然，分數卻在同一個範圍（0.71–0.78 對 0.68–0.76），不是 TTS 念得太死板
+
+所以就算是語音搜尋，在中文上也是先轉文字划算。音訊編碼器聽不懂術語這件事，不管錄音放在被搜的那邊，還是查詢那邊，結果都一樣。
+
 ## 實際怎麼用
 
 以會議錄音為例，我會這樣接：
@@ -351,6 +375,10 @@ for start, score in search("國民所得從五十美元成長到快三萬美元"
 
 不建議。術語多、多人討論的會議實測只有 0.21，先用 Whisper 轉逐字稿再做文字 embedding，可以到 0.95。
 
+### 可以直接用語音當查詢嗎？
+
+可以跑，但中文不划算。一句 5 秒左右的語音直接 embed，TED 有 0.68 到 0.78，術語多的會議只有 0.2 到 0.4；先用 Whisper 轉成文字再搜，跟打字一樣準。
+
 ### 音訊最長可以放多久？
 
 預設只吃前 30 秒且不報錯，傳 `max_length` 可以吃到約 327 秒，但在 16GB 的 Mac 上建議切成 30 秒一段。
@@ -367,7 +395,7 @@ for start, score in search("國民所得從五十美元成長到快三萬美元"
 
 測完之後，我對 EmbeddingGemma 2 的定位很清楚：把它當成一個中文表現很好的文字 embedding，外加「用文字找圖」的能力。它的多模態是真的能用，只是用法跟我一開始想的不一樣。
 
-一開始我以為多模態可以讓我省掉轉逐字稿那一步，結果繞了一圈，最有用的建議反而是：語音先轉文字。這一步省不掉，要投資就投資在 ASR 和術語校正上，檢索品質會跟著上來。
+一開始我以為多模態可以讓我省掉轉逐字稿那一步，結果繞了一圈，最有用的建議反而是：語音先轉文字。不管語音是被搜的錄音，還是用講的查詢，這一步都省不掉，要投資就投資在 ASR 和術語校正上，檢索品質會跟著上來。
 
 五個坑裡面，我覺得最該記住的是共通點：音訊的 30 秒、影片的 32 幀、fp16 的 NaN、高解析度截圖在 MPS 上算歪，全部都不報錯。用之前，自己量一次 processor 實際產出了什麼。
 
@@ -376,6 +404,7 @@ for start, score in search("國民所得從五十美元成長到快三萬美元"
 - [Hugging Face：google/embeddinggemma-2 模型卡](https://huggingface.co/google/embeddinggemma-2)
 - [Google Developers Blog：EmbeddingGemma 2 開發者指南](https://developers.googleblog.com/embeddinggemma-2-the-developer-guide/)
 - [Google 官方發表](https://blog.google/innovation-and-ai/technology/developers-tools/embeddinggemma-2/)
+- [Massive Sound Embedding Benchmark（MSEB）論文](https://arxiv.org/abs/2602.07143)
 - 測試素材：[TEDxTaipei 簡立峰 X 志祺七七｜跨世代對談 第 1 集](https://www.youtube.com/watch?v=ef9qpOcw5MI)（CC BY-NC-ND 4.0）
 - 測試素材：[COSCUP 2026〈明明只是想遠端控制我的主機，結果一不小心就做出一套開源 USB / IP KVM 的這件事〉](https://www.youtube.com/watch?v=blxZI2KbgzI)（CC BY）
 - [中華電信下載 GitHub 速度超慢？實測開 Cloudflare WARP 快了上百倍](/hinet-github-slow-cloudflare-warp/)
