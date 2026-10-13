@@ -1,7 +1,11 @@
 ---
 title: "Gemini 4 Argon 發布：分數很驚豔，但它不是每一項都贏"
 date: 2026-10-01
-description: "Gemini 4 Argon 在 2026 年 9 月 30 日發布，DeepSWE 77.9% 拿下第一、輸出上限拉到 1M token，但終端機操作類 benchmark 仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字、價格、開放時程，以及和流出版的落差。"
+updated: 2026-10-14
+changelog:
+  - date: 2026-10-14
+    note: "補上 10 月 13 日開放付費用戶後各方案的可用範圍，以及介紹期價格的截止日"
+description: "Gemini 4 Argon 在 2026 年 9 月 30 日發布、10 月 13 日開放付費用戶，DeepSWE 77.9% 拿下第一、輸出上限拉到 1M token，但終端機操作類 benchmark 仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字、價格、各方案開放範圍，以及和流出版的落差。"
 category: "tech-news"
 tags: ["Gemini", "LLM", "AI"]
 cover: "./images/cover.webp"
@@ -19,7 +23,7 @@ draft: false
 
 不過把 19 項分數全部攤開來看，事情沒有標題那麼單純。它贏的和輸的，剛好分成很清楚的兩堆。這篇就來拆這兩堆，順便對一下流出版和官方版差了多少。
 
-> 先說清楚：Argon 目前只開放給特定資安單位，我還沒用到。這篇是整理官方公告和第三方整理的數字，加上我自己的判斷，沒有實測。
+> 先說清楚：這篇是整理官方公告和第三方整理的數字，加上我自己的判斷，沒有實測。10 月 13 日 Argon 已經開放給付費用戶，但我手上的 Pro 方案只能在 Gemini App 裡用，寫 code 的 Antigravity 和 Antigravity CLI 都還要 Ultra，所以 coding 能力的實測還得再等等。各方案能用到哪裡，見下面「10 月 13 日：開放付費用戶」那節。
 
 ## 先講事實：Google 這次發布了什麼
 
@@ -31,17 +35,17 @@ draft: false
 | 定位 | 新一代 frontier model，主打長流程的軟體工程、企業知識工作（法律、金融）、資安防禦 |
 | 輸出上限 | 1M token（前一代是 64K） |
 | 輸入 context | 公告沒有寫 |
-| 介紹期價格 | 輸入 $2／百萬 token、輸出 $10／百萬 token |
-| 介紹期後 | 輸入 $4、輸出 $20 |
+| 介紹期價格 | 輸入 $2／百萬 token、輸出 $10／百萬 token，到 2026 年 11 月 30 日 |
+| 介紹期後 | 12 月 1 日起輸入 $4、輸出 $20 |
 | 快取輸入 | 輸入價打 5% 計，介紹期約 $0.10／百萬 token |
-| 目前開放對象 | 只有 Fairwind 計畫裡的資安防禦單位 |
+| 首波開放對象 | 只有 Fairwind 計畫裡的資安防禦單位 |
 | 之後開放順序 | 先給付費 API 客戶與 Google AI Ultra 訂閱者，再擴大到開發者、企業、一般使用者 |
 
 最值得注意的數字是輸出上限：從 64K 一口氣拉到 1M，十幾倍。以前叫模型改一整個專案，常常寫到一半就被截斷，得拆成好幾輪。輸出能到 1M，代表一次吐出整批檔案的修改變得可行。
 
 Google 自己舉的例子也是往這個方向：內部團隊用 Argon 做大型 codebase 遷移，規模從數萬行到 80 萬行以上。
 
-介紹期多長，公告沒有寫。如果你打算拿它跑量，要預期價格之後會翻倍。
+介紹期在發布公告裡沒寫，10 月 13 日開放付費 API 時才講清楚：到 11 月 30 日為止，12 月 1 日起輸入輸出都翻倍。如果你打算拿它跑量，成本要用翻倍後的價格估。
 
 ## 它贏在哪：會讀、會規劃
 
@@ -116,17 +120,37 @@ Argon 這次沒有直接開放給大眾，而是先透過 Fairwind 計畫給「�
 
 公告也提到有參與美國政府自願性的模型發布前審查流程。
 
-> 對一般開發者來說，這段的實際意義是：**現在還用不到。** 要等 Fairwind 這一輪結束，付費 API 和 AI Ultra 才會開，時間點公告沒有給。
+Fairwind 這一輪只跑了兩週。
+
+## 10 月 13 日：開放付費用戶
+
+10 月 13 日 Google 開始對付費用戶推送 Argon，Sundar Pichai 在 X 上的說法是：全球付費 API 的開發者與企業、Antigravity 裡的 Ultra 訂閱者、Gemini App 和搜尋裡的 Ultra 與 Pro 訂閱者，從今天開始可以用。
+
+把各家報導對起來，各方案能用到的地方大概是這樣：
+
+| 使用管道 | AI Pro | AI Ultra | 備註 |
+|---------|--------|----------|------|
+| Gemini App | 可以 | 可以 | Pro 也能在 Canvas 裡請它產 code |
+| 搜尋的 AI Mode | 可以 | 可以 | 在「+」選單切換模型 |
+| Antigravity 桌面版 | 不行 | 可以 | 符合資格的 Gemini Enterprise 也有 |
+| Antigravity CLI | 不行 | 可以 | |
+| AI Studio | 不行 | 可以 | 依 Ars Technica 的整理 |
+| Gemini API | — | — | 付費層級就能用，跟訂閱方案無關；免費層不行 |
+
+Google AI Plus 和免費用戶目前都還用不到，Google 也沒說之後會不會開。Pro 什麼時候進得了 Antigravity，Google 同樣沒給答案。另外推送是分批的，Android Police 的作者是 Pro 訂閱者，寫稿當下 App 裡也還沒出現。
+
+第三方工具已經先接上了：Cursor 宣布可以選 Argon，價格照 API 的 $2／$10 計，它自家的 CursorBench 在預設 effort 下是 52.8%。
+
+> 對一般開發者來說，這段的實際意義是：**想在 coding agent 裡用 Argon，現在只有三條路。** 付費 API 自己接（或透過 Cursor 這類工具）、訂 Ultra 用 Antigravity，或公司有符合資格的 Gemini Enterprise。只訂 Pro 的話，能做的就是在 Gemini App 裡跟它對話、用 Canvas 產片段程式碼。
 
 ## 你現在可以做什麼
 
-現在能做的不多：
-
-- 有付費 Gemini API 帳號的話，留意 Google AI Studio 和公告更新，開放順序上你排在前面
-- 預估成本時用介紹期後的 $4／$20 來算，不要用 $2／$10，介紹期多長沒人知道
+- 有付費 Gemini API 帳號的話，現在就能接，介紹價到 11 月 30 日
+- 預估長期成本時用 12 月起的 $4／$20 來算，不要用 $2／$10
+- 只有 Pro 的話，可以先在 Gemini App 裡試長文件整理，那是它分數領先最多的地方，不需要等 Antigravity
 - 如果你主要是用 coding agent 在終端機裡工作，不用急著換，Terminal-bench 的差距擺在那裡
 
-我自己會等它在 agy（Google 的 Antigravity CLI）裡開放之後才去測。到時候我最想試的有兩件事：一是丟一整份長文件請它整理，看 GraphWalks 那個長文優勢在實際使用時有沒有感；二是請它一次規劃並產出一個跨檔案的重構，看 1M 輸出是不是真的能一輪做完。
+我手上是 Pro，所以 agy（Google 的 Antigravity CLI）裡還叫不到 Argon，coding 能力的實測得等它開放到 Pro 才做得了。到時候我最想試的有兩件事：一是丟一整份長文件請它整理，看 GraphWalks 那個長文優勢在實際使用時有沒有感；二是請它一次規劃並產出一個跨檔案的重構，看 1M 輸出是不是真的能一輪做完。
 
 ## 結語
 
@@ -139,4 +163,9 @@ Gemini 4 Argon 的分數確實驚豔，長文推理和法律、金融這類知�
 - [Gemini 4 Argon: our next era of frontier intelligence（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)
 - [Gemini 4 Argon: Benchmarks, Pricing, and Access（DataCamp）](https://www.datacamp.com/blog/gemini-4-argon)
 - [Google DeepMind Unveils Gemini 4 Argon with 1M Output Tokens（MarkTechPost）](https://www.marktechpost.com/2026/09/30/google-deepmind-unveils-gemini-4-argon-with-1m-output-tokens-for-coding-knowledge-work-and-cyber-defense/)
+- [Gemini 4 Argon in Google Antigravity（Google Antigravity 官方部落格）](https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/)
+- [Sundar Pichai 的開放公告（X）](https://x.com/sundarpichai/status/2110038898009407584)
+- [Gemini 4 Argon is here（Android Police）](https://www.androidpolice.com/gemini-4-argon-available-pro-ultra-subscribers/)
+- [Google Adds Gemini 4 Argon To AI Mode For Pro & Ultra Subscribers（Search Engine Journal）](https://www.searchenginejournal.com/google-gemini-4-argon-ai-mode/592806/)
+- [Google rolls out Gemini 4 Argon to paying users（Superpower Daily，整理自 Ars Technica）](https://superpowerdaily.com/posts/google-rolls-out-gemini-4-argon-to-paying-users-with-tighter-limits-for-coding-tools)
 - [Leaked Gemini 4 Pro benchmarks show it beating GPT-6 Astra and Claude（TechBriefly）](https://techbriefly.com/2026/09/21/gemini-4-pro-benchmarks-beat-gpt-6-astra-claude/)
