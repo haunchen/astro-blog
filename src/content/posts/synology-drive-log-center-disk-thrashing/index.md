@@ -1,12 +1,10 @@
 ---
 title: "Synology NAS 硬碟被讀滿查了一下午，原因是兩個各自合理的設定疊在一起"
-date: 2026-10-15
+date: 2026-10-16
 description: "Synology NAS 硬碟滿載、iowait 92%，停掉自己的程式也降不下來。這篇記錄用對照實驗縮小範圍、用 /proc 找出是誰在讀，最後查到 Synology Drive 一直在幫日誌中心的封存資料庫存版本，附可直接在 DSM 上跑的排查指令。"
 category: "devops"
 tags: ["nas", "performance"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-16
 ---
 ## 前言：跑了一個多小時，處理數還是 0
 
