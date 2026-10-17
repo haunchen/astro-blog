@@ -14,7 +14,7 @@ cover: "./images/cover.webp"
 draft: false
 ---
 
-> **2026 年 10 月 17 日更新：請不要再照這篇把網站搬上 Zeabur。** Zeabur 在 8 月 27 日與 10 月 14 日兩度遭入侵，並於 10 月 17 日宣布停止營運：12 月 1 日起共享叢集暫停服務，所有服務在 2026 年 12 月 31 日前關閉。如果你的 WordPress 目前還在 Zeabur 上，請先看〈[從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉裡「還在 Zeabur 上，先做這幾件」那一節，資料庫連線字串要當成已經外洩處理。這篇保留下來是為了紀錄，我自己的站已於 2026 年 7 月遷離 Zeabur。
+> **2026 年 10 月 17 日更新：請不要再照這篇把網站搬上 Zeabur。** Zeabur 在 8 月 27 日與 10 月 14 日兩度遭入侵，並於 10 月 17 日宣布停止營運：12 月 1 日起共享叢集暫停服務，所有服務在 2026 年 12 月 31 日前關閉。如果你的 WordPress 目前還在 Zeabur 上，請先看〈[從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉裡「還在 Zeabur 上，先做這幾件」那一節，資料庫連線字串要當成已經外洩處理；搬家步驟見〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉。這篇保留下來是為了紀錄，我自己的站已於 2026 年 7 月遷離 Zeabur。
 
 ## 告別傳統部署困境，擁抱雲端捷徑
 

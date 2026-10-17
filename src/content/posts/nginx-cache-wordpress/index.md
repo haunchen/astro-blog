@@ -1,6 +1,10 @@
 ---
 title: "Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線"
 date: 2025-12-17
+updated: 2026-10-17
+changelog:
+  - date: 2026-10-17
+    note: "Zeabur 範例段補上平台停止營運說明"
 description: "在 Cloudflare 之外替 WordPress 加上 Nginx 這道第二層快取：說明 Proxy Cache 與 FastCGI Cache 的適用架構與設定範例、後台與登入 Cookie 的排除規則，以及用 X-Cache-Status 驗證命中率的方法。"
 category: "devops"
 tags: ["Cache", "Nginx", "WordPress"]
@@ -180,6 +184,8 @@ location / {
 -   Cookie 中包含 `wordpress_logged_in` 時跳過快取（表示已登入）
 
 ## 實際範例：WordPress + Zeabur
+
+> **2026 年 10 月 17 日補充**：Zeabur 已宣布在 2026 年 12 月 31 日前停止營運。下面這份設定不綁平台，只要是 Nginx 擋在 WordPress 前面的架構都能用，把 `proxy_pass` 換成你自己的後端位址即可。還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉。
 
 如果你跟我一樣把 WordPress 部署在 Zeabur 上，以下是我實際使用的配置：
 
