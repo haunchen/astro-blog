@@ -1,11 +1,13 @@
 ---
 title: "Gemini 4 Argon 發布：分數很驚豔，但它不是每一項都贏"
 date: 2026-10-01
-updated: 2026-10-14
+updated: 2026-10-17
 changelog:
+  - date: 2026-10-17
+    note: "Pro 已能在 agy 使用 Argon，補上長文整理、code review、跨檔案重構實測"
   - date: 2026-10-14
     note: "補上 10 月 13 日開放付費用戶後各方案的可用範圍，以及介紹期價格的截止日"
-description: "Gemini 4 Argon 在 2026 年 9 月 30 日發布、10 月 13 日開放付費用戶，DeepSWE 77.9% 拿下第一、輸出上限拉到 1M token，但終端機操作類 benchmark 仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字、價格、各方案開放範圍，以及和流出版的落差。"
+description: "Gemini 4 Argon 9 月 30 日發布、10 月 13 日開放付費用戶，DeepSWE 77.9% 第一、輸出上限 1M token，終端機操作類 benchmark 仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字與開放範圍，並實測長文整理、code review、跨檔案重構。"
 category: "tech-news"
 tags: ["Gemini", "LLM", "AI"]
 cover: "./images/cover.webp"
@@ -23,7 +25,7 @@ draft: false
 
 不過把 19 項分數全部攤開來看，事情沒有標題那麼單純。它贏的和輸的，剛好分成很清楚的兩堆。這篇就來拆這兩堆，順便對一下流出版和官方版差了多少。
 
-> 先說清楚：這篇是整理官方公告和第三方整理的數字，加上我自己的判斷，沒有實測。10 月 13 日 Argon 已經開放給付費用戶，但我手上的 Pro 方案只能在 Gemini App 裡用，寫 code 的 Antigravity 和 Antigravity CLI 都還要 Ultra，所以 coding 能力的實測還得再等等。各方案能用到哪裡，見下面「10 月 13 日：開放付費用戶」那節。
+> 先說清楚：前半是整理官方公告和第三方整理的數字，加上我自己的判斷。10 月 16 日起我的 Pro 帳號在 Antigravity CLI 叫得到 Argon，長文整理、code review、跨檔案重構三項實測放在後面「實測：Pro 在 agy 叫得到之後」那節。
 
 ## 先講事實：Google 這次發布了什麼
 
@@ -133,30 +135,84 @@ Fairwind 這一輪只跑了兩週。
 | Gemini App | 可以 | 可以 | Pro 也能在 Canvas 裡請它產 code |
 | 搜尋的 AI Mode | 可以 | 可以 | 在「+」選單切換模型 |
 | Antigravity 桌面版 | 不行 | 可以 | 符合資格的 Gemini Enterprise 也有 |
-| Antigravity CLI | 不行 | 可以 | |
+| Antigravity CLI | 可以 | 可以 | 開放時只有 Ultra；10 月 16 日我的 Pro 帳號在 agy 1.4.0 已經叫得到 |
 | AI Studio | 不行 | 可以 | 依 Ars Technica 的整理 |
 | Gemini API | — | — | 付費層級就能用，跟訂閱方案無關；免費層不行 |
 
-Google AI Plus 和免費用戶目前都還用不到，Google 也沒說之後會不會開。Pro 什麼時候進得了 Antigravity，Google 同樣沒給答案。另外推送是分批的，Android Police 的作者是 Pro 訂閱者，寫稿當下 App 裡也還沒出現。
+Google AI Plus 和免費用戶目前都還用不到，Google 也沒說之後會不會開。Pro 進 Antigravity 這件事 Google 沒有另外公告，我是在 agy 更新到 1.4.0 後發現模型清單多了 Argon。另外推送是分批的，Android Police 的作者是 Pro 訂閱者，寫稿當下 App 裡也還沒出現。
 
 第三方工具已經先接上了：Cursor 宣布可以選 Argon，價格照 API 的 $2／$10 計，它自家的 CursorBench 在預設 effort 下是 52.8%。
 
-> 對一般開發者來說，這段的實際意義是：**想在 coding agent 裡用 Argon，現在只有三條路。** 付費 API 自己接（或透過 Cursor 這類工具）、訂 Ultra 用 Antigravity，或公司有符合資格的 Gemini Enterprise。只訂 Pro 的話，能做的就是在 Gemini App 裡跟它對話、用 Canvas 產片段程式碼。
+> 對一般開發者來說，這段的實際意義是：**想在 coding agent 裡用 Argon，現在有四條路。** 付費 API 自己接（或透過 Cursor 這類工具）、訂 Ultra 用 Antigravity、公司有符合資格的 Gemini Enterprise，或是用 Pro 帳號透過 Antigravity CLI（agy）叫。
+
+## 實測：Pro 在 agy 叫得到之後
+
+10 月 16 日，我的 Pro 帳號在 agy 1.4.0 已經可以選 `gemini-4-argon-low`／`medium`／`high`。原本想等開放再試的兩件事，一是長文件整理，二是一次規劃並產出跨檔案重構，這次都跑了，另外多測一項 code review。
+
+### 長文整理：24 萬 token 內和 Opus 打平
+
+拿一包工作上的產品調研資料，問一組有標準答案的問題，裡面埋了幾題陷阱。對照組是 Opus 5.5，走 Claude Code 自己的 CLI，避免兩邊都受 agy 的限制影響。
+
+| 輸入量 | Argon | Opus 5.5 |
+|--------|-------|----------|
+| 約 17 萬 token（62 個檔） | 17/17 | 17/17 |
+| 約 50 萬 token（216 個檔） | 全對 11、半對 5、錯 2，約 750 秒 | 18/18，約 128 秒 |
+
+17 萬那組打平，陷阱題兩邊都沒上當。寫法不太一樣：Argon 的綜整資訊密度比較高，Opus 的重點排序比較貼近實際要解的問題。
+
+50 萬那組 Argon 輸了，但主因不在模型：agy 在大約 24 萬 token 會自動壓縮前面的內容，細節就是在那裡掉的。所以 GraphWalks 那個 256K–1M 的優勢，透過 agy 驗證不了，要測得直接打 API。成本倒是很漂亮，同一題換算成 API 價，Argon 約 1 美元，Opus 是 3.64 美元。
+
+### Code review：比 Flash 安靜
+
+我維護的 Claude Code 外掛有一套 review 測試：在 diff 裡埋缺陷，算 reviewer 抓到幾成，另外也算它有沒有無中生有。
+
+| 設定 | 抓到比例（三輪合計） |
+|------|---------------------|
+| Gemini 3.8 Flash high | 70% |
+| Argon high | 45% |
+| Argon medium | 55% |
+| Argon high＋為它重寫的 prompt | 69% |
+
+四組都沒有捏造問題。Argon 的毛病是太快下結論，常常只報一兩條就說可以合併，每題花的思考 token 只有 Flash 的幾分之一。替它改了 prompt 之後追平 Flash，但在另一套專罰誤報的測試裡，它把一個看不出 Node 版本的 CI 設定報成三條「CI 會全掛」的高嚴重度問題。追平而已，還多了新毛病，review 我繼續用 Flash。
+
+### 跨檔案重構：先指出規格寫錯，再一次做完
+
+考題是我做過的一個真實重構：一個內部管理系統的 React 前端，把 700 行頁面裡的編輯視窗抽成獨立元件。issue 寫了驗收條件，既有測試一條都不准改。我當時的實作留著當標準答案，它附的測試當隱藏題。Argon 和 3.8 Flash 各自從重構前的版本開始，拿同一份 issue 做。
+
+Argon 第一輪沒有動手，先回報 issue 和程式碼有四處對不上：issue 指定的元件介面跟它要比照的另外兩頁實際寫法不同、一個 hook 的參數名寫錯、兩個共用函式該放哪、測試怎麼分工。每一點都附了建議，這幾處我當時實作時也撞到、照現況校正過，它的建議跟我最後的做法一致。
+
+把決策補進 issue 後，兩邊都一次做完：
+
+| | Argon | 3.8 Flash |
+|---|---|---|
+| 耗時 | 約 9 分鐘 | 約 11 分鐘 |
+| 頁面行數（我的版本 392 行） | 391 | 395 |
+| 既有測試 | 全過 | 全過 |
+| 隱藏題 16 條 | 16/16 | 16/16 |
+| 自己補的測試 | 19 條 | 14 條 |
+| 格式檢查 | 過 | 沒過 |
+
+Flash 是直接拿到補好決策的版本，所以「看出規格寫錯」這點只有 Argon 有機會表現。重構本身兩邊都做得到，差在動手之前。
+
+這跟前面 benchmark 的讀法對得起來：給它一份寫清楚的規格，它會先讀懂、找出矛盾，再一次產出。只有一題，不能當定論，但比我預期的好。
+
+順帶一個坑：Flash 前兩次一個檔都沒改。原因是我的 agy 設定有一支 hook 會提示模型優先用某個 MCP，Flash 照做，headless 模式下 MCP 權限被自動拒絕，整輪什麼都沒產出，exit code 卻是 0。Argon 不理那句提示，所以沒事。如果你也在 agy 設定裡掛了 MCP 提示，用 headless 跑之前要留意。
 
 ## 你現在可以做什麼
 
 - 有付費 Gemini API 帳號的話，現在就能接，介紹價到 11 月 30 日
 - 預估長期成本時用 12 月起的 $4／$20 來算，不要用 $2／$10
-- 只有 Pro 的話，可以先在 Gemini App 裡試長文件整理，那是它分數領先最多的地方，不需要等 Antigravity
+- 只有 Pro 的話，Gemini App 和 agy 都叫得到。長文件整理在 24 萬 token 內品質跟 Opus 差不多，超過就會被 agy 壓縮掉細節
+- 規格寫得清楚的重構、遷移，可以交給它一次規劃產出；要它挑 bug 的 code review，先別換
 - 如果你主要是用 coding agent 在終端機裡工作，不用急著換，Terminal-bench 的差距擺在那裡
-
-我手上是 Pro，所以 agy（Google 的 Antigravity CLI）裡還叫不到 Argon，coding 能力的實測得等它開放到 Pro 才做得了。到時候我最想試的有兩件事：一是丟一整份長文件請它整理，看 GraphWalks 那個長文優勢在實際使用時有沒有感；二是請它一次規劃並產出一個跨檔案的重構，看 1M 輸出是不是真的能一輪做完。
 
 ## 結語
 
 Gemini 4 Argon 的分數確實驚豔，長文推理和法律、金融這類知識工作的領先幅度都很明顯。但它不是全面輾壓：要在終端機裡一來一回操作的任務，Opus 5.5 和 GPT-6 Astra 還是領先一截。
 
-所以要不要等它，看你平常怎麼用 AI 寫 code：一次丟大量資料請它規劃產出的，值得等；整天讓 agent 在終端機裡跑的，現在手上的工具先用著就好。
+自己跑過之後，這個印象沒變，反而更具體：它擅長讀完再規劃，重構前會先抓出規格的矛盾；要它逐行挑錯，它反而太快放行。
+
+所以要不要用它，看你平常怎麼用 AI 寫 code：一次丟大量資料請它規劃產出的，值得試；整天讓 agent 在終端機裡跑的，現在手上的工具先用著就好。
 
 ## 參考資料
 
