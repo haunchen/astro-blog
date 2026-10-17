@@ -1,7 +1,7 @@
 ---
-title: "Zeabur 停止營運怎麼搬家：我用 Claude Code 把 8 個服務搬出 Zeabur 的實際流程"
+title: "Zeabur 結束營運搬家：我用 Claude Code 把 8 個服務搬出 Zeabur 的實際流程"
 date: 2026-10-17
-description: "Zeabur 宣布 2026 年底停止營運，共享叢集 12 月 1 日就暫停。這篇用我 7 月實際搬走 8 個服務的流程，講盤點、依服務類型選落點、資料庫與 n8n 備份、DNS 零空窗切換、批次驗收與網域轉出，以及哪些步驟可以交給 Claude Code，哪些一定要自己按。"
+description: "Zeabur 宣布 2026 年底結束營運，共享叢集 12 月 1 日就暫停。這篇用我 7 月實際搬走 8 個服務的流程，講盤點、依服務類型選落點、資料庫與 n8n 備份、DNS 零空窗切換、批次驗收與網域轉出，以及哪些步驟可以交給 Claude Code，哪些一定要自己按。"
 category: "devops"
 tags: ["deployment", "Cloudflare"]
 cover: "./images/cover.webp"

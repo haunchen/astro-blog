@@ -14,7 +14,7 @@ cover: "./images/cover.webp"
 draft: false
 ---
 
-> **2026 年 10 月 17 日更新**：Zeabur 在 8 月 27 日與 10 月 14 日兩度遭入侵，並於 10 月 17 日宣布停止營運，所有服務在 2026 年 12 月 31 日前關閉，這篇裡 Zeabur 專屬的操作（Internal／External URL、模板部署）已經沒有地方可以照做。用 Nginx 反向代理把子網域收成子目錄的思路，換到任何能跑 Nginx 的平台都還適用，但當年我完全沒提「密鑰該放在哪裡」，動手前請先看〈[從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉。還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉。我自己的網站已於 2026 年 7 月遷移到 Cloudflare Pages。
+> **2026 年 10 月 17 日更新**：Zeabur 在 8 月 27 日與 10 月 14 日兩度遭入侵，並於 10 月 17 日宣布停止營運，所有服務在 2026 年 12 月 31 日前關閉，這篇裡 Zeabur 專屬的操作（Internal／External URL、模板部署）已經沒有地方可以照做。用 Nginx 反向代理把子網域收成子目錄的思路，換到任何能跑 Nginx 的平台都還適用，但當年我完全沒提「密鑰該放在哪裡」，動手前請先看〈[從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉。還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。我自己的網站已於 2026 年 7 月遷移到 Cloudflare Pages。
 
 ## 前言：為什麼要用 Zeabur + Nginx 重構網站？
 

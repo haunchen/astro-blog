@@ -20,7 +20,7 @@ draft: false
 
 這篇文章將分享完整的問題分析過程、解決方案設計，以及實際的程式碼實作。
 
-> **Tips**：文中的部署環境 Zeabur 已在 2026 年 10 月宣布停止營運，所有服務會在 2026 年 12 月 31 日前關閉。geoip-lite 的記憶體問題與多層降級策略不綁平台，換到 Vercel、Cloudflare 或自架環境一樣適用，只有讀 `x-zeabur-ip-country` header 的那一層會失效，其他 CDN 的 header 照用。還有服務在 Zeabur 上的話，先看〈[從 Zeabur 兩次資安事件學到的事](/zeabur-incident-permission-blast-radius/)〉處理憑證，再照〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉搬出來。
+> **Tips**：文中的部署環境 Zeabur 已在 2026 年 10 月宣布停止營運，所有服務會在 2026 年 12 月 31 日前關閉。geoip-lite 的記憶體問題與多層降級策略不綁平台，換到 Vercel、Cloudflare 或自架環境一樣適用，只有讀 `x-zeabur-ip-country` header 的那一層會失效，其他 CDN 的 header 照用。還有服務在 Zeabur 上的話，先看〈[從 Zeabur 兩次資安事件學到的事](/zeabur-incident-permission-blast-radius/)〉處理憑證，再照〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉搬出來。
 
 ## 這篇文章適合你嗎？
 

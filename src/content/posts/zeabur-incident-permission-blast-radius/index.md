@@ -362,7 +362,7 @@ B 類全部進密碼庫就好。A 類除了進密碼庫，還要另外做一份�
 6. **網域**：在 Zeabur 買的網域已經開放自助轉出，排進搬家清單
 7. **賠償與退款分開申請**：帳戶餘額退款和資安事件的損失賠償是兩張不同的單，都走 Zeabur Support，信裡要寫明申請哪一項
 
-搬家的細節，我另外寫在〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉。
+搬家的細節，我另外寫在〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。
 
 ## 結語
 

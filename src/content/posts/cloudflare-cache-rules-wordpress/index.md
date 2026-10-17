@@ -342,4 +342,4 @@ Cloudflare Free 方案可以設定最多 10 條 Cache Rules，對於一般 WordP
 
 -   [Nginx Cache 設定教學：為 WordPress 網站打造第二道快取防線](/nginx-cache-wordpress/) - 加入 Nginx 作為第二層快取，讓網站更穩定
 -   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/) - 如果你想進一步優化網站架構，可以參考這篇
--   [Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/) - Zeabur 已宣布 2026 年底停止營運，還有服務在上面的話看這篇
+-   [Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/) - Zeabur 已宣布 2026 年底停止營運，還有服務在上面的話看這篇

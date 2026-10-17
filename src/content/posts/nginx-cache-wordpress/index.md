@@ -185,7 +185,7 @@ location / {
 
 ## 實際範例：WordPress + Zeabur
 
-> **2026 年 10 月 17 日補充**：Zeabur 已宣布在 2026 年 12 月 31 日前停止營運。下面這份設定不綁平台，只要是 Nginx 擋在 WordPress 前面的架構都能用，把 `proxy_pass` 換成你自己的後端位址即可。還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉。
+> **2026 年 10 月 17 日補充**：Zeabur 已宣布在 2026 年 12 月 31 日前停止營運。下面這份設定不綁平台，只要是 Nginx 擋在 WordPress 前面的架構都能用，把 `proxy_pass` 換成你自己的後端位址即可。還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。
 
 如果你跟我一樣把 WordPress 部署在 Zeabur 上，以下是我實際使用的配置：
 
