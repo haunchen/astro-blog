@@ -1,6 +1,10 @@
 ---
 title: "Node.js 記憶體優化實戰：用多層降級策略解決 geoip-lite 的 100MB 記憶體問題"
 date: 2025-12-29
+updated: 2026-10-17
+changelog:
+  - date: 2026-10-17
+    note: "前言後補 Zeabur 停止營運的 Tips，連到資安事件與搬家教學"
 description: "部署 Next.js 短網址專案到 Zeabur 後，閒置狀態記憶體就佔用超過 300MB。追查發現 geoip-lite 會把整個 MaxMind 資料庫載入記憶體，改以 CDN geolocation headers 為主的多層降級策略後省下約 100MB，PR 已合併進原專案。"
 category: "devops"
 tags: ["Node.js", "記憶體優化"]
@@ -15,6 +19,8 @@ draft: false
 經過分析，我找到了元兇：`geoip-lite` 套件。最終，我設計了一套多層降級策略來解決這個問題，成功減少約 100MB 的記憶體佔用。這個優化方案已經被合併到原始的開源專案中。
 
 這篇文章將分享完整的問題分析過程、解決方案設計，以及實際的程式碼實作。
+
+> **Tips**：文中的部署環境 Zeabur 已在 2026 年 10 月宣布停止營運，所有服務會在 2026 年 12 月 31 日前關閉。geoip-lite 的記憶體問題與多層降級策略不綁平台，換到 Vercel、Cloudflare 或自架環境一樣適用，只有讀 `x-zeabur-ip-country` header 的那一層會失效，其他 CDN 的 header 照用。還有服務在 Zeabur 上的話，先看〈[從 Zeabur 兩次資安事件學到的事](/zeabur-incident-permission-blast-radius/)〉處理憑證，再照〈[Zeabur 停止營運怎麼搬家](/zeabur-shutdown-migration-guide/)〉搬出來。
 
 ## 這篇文章適合你嗎？
 

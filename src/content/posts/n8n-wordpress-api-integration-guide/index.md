@@ -34,7 +34,7 @@ draft: false
 
 **自架 WordPress（Self-hosted）：**
 
--   部署在自己或是第三方雲端（Zeabur、Cloudways）的主機上
+-   部署在自己或是第三方雲端（例如 Cloudways）的主機上
 -   網址格式：自訂網域（如 `blog.example.com`）
 -   適合：想要完全掌控網站的進階用戶
 
@@ -377,7 +377,6 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 
 -   [WordPress.com](https://wordpress.com/) - WordPress 官方提供的部落格平台
 -   [WordPress Rest API](https://developer.wordpress.org/rest-api/) - WordPress 內建的 Rest API 文件
--   [Zeabur](https://zeabur.com/zh-TW/) - 自部署 WordPress 平台
 
 ### 延伸閱讀
 

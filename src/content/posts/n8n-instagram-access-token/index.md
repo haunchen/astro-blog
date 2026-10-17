@@ -23,7 +23,7 @@ draft: false
 -   Instagram 帳號：
     -   必須是「專業」帳號或是「創作者」帳號
     -   必須綁定 Facebook 粉絲專頁
--   一個 n8n 伺服器：部署在 n8n、Zeabur 或是 Self-hosting 都可以
+-   一個 n8n 伺服器：部署在 n8n Cloud、雲端主機或是 Self-hosting 都可以
 
 如何綁定粉絲專頁：
 

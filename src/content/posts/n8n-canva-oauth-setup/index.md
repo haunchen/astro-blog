@@ -32,7 +32,7 @@ draft: false
 
 -   Canva 帳號 (免費或付費方案皆可)
 -   n8n 帳號，且已完成部署
--   n8n 的完整網址 (例如: `https://n8n-test.zeabur.app/`)
+-   n8n 的完整網址 (例如: `https://n8n.example.com/`)
 -   智慧型手機及 [Google Authenticator](https://support.google.com/accounts/answer/1066447?hl=zh-Hant) App (iOS / Android 皆可)
 -   穩定的網路連線環境
 -   一顆快樂學習的心
@@ -209,8 +209,8 @@ Scope 決定了你的 integration 能夠存取哪些 Canva 資料和功能。
 2.  填入你的 n8n OAuth 回調網址，格式為：`https:///rest/oauth2-credential/callback`
 
 3.  實際範例：
-    -   如果你的 n8n 網址是 `https://n8n-test.zeabur.app/`
-    -   則填入 `https://n8n-test.zeabur.app/rest/oauth2-credential/callback`
+    -   如果你的 n8n 網址是 `https://n8n.example.com/`
+    -   則填入 `https://n8n.example.com/rest/oauth2-credential/callback`
 
 ![Canva integration Redirect URIs 欄位，填入 n8n OAuth 回調網址](./images/canva-integration-redirect-uri-setup.webp)
 

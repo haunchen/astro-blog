@@ -42,7 +42,7 @@ draft: false
 
 這個模板運作時需要串接多個服務，因此你需要準備以下憑證：
 
--   n8n 伺服器 - Zeabur 託管或本地部署都可以，版本需為 v1.113.2 以上
+-   n8n 伺服器 - 雲端託管或本地部署都可以，版本需為 v1.113.2 以上
 -   LINE 憑證 - [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)
 -   WordPress 憑證 - [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 -   Canva 憑證 - [n8n 整合 Canva 完整教學：OAuth 2.0 憑證設定與測試指南](/n8n-canva-oauth-setup/)
