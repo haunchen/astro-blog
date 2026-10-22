@@ -1,6 +1,10 @@
 ---
 title: "UPS 電池怎麼選？三台不同品牌 UPS 的選購、規格比對與更換經驗"
 date: 2026-09-24
+updated: 2026-10-22
+changelog:
+  - date: 2026-10-22
+    note: "新增其他 CyberPower 機型的原廠電池對照表"
 description: "UPS 開始嗶個不停、一斷電就秒關，通常就是電池到壽命了。本文從實際更換科風、CyberPower、APC 三台的經驗，整理電池該換的四個徵兆、怎麼從 UPS 型號找到對的 12V 鉛酸電池規格、原廠與副廠怎麼選，以及在蝦皮採購的實際價格區間。"
 category: "hardware"
 tags: []
@@ -44,6 +48,26 @@ UPS 的電池不會突然掛掉，在真正掛掉之前，通常會有幾個明�
 科風和 CyberPower 剛好是同一個規格，買電池的時候一次買兩顆，比較省運費。
 
 順帶一提，有些替換電池的規格標示不是用 AH（安培小時），而是用 W/Cell（每 Cell 瓦特數），像 YUASA REW45-12 標的是 45W/Cell。不用被搞混，這只是不同的標示方式，實際容量和尺寸都相容。買之前用型號去蝦皮搜，賣家通常會註明相容的 UPS 機型，對一下就好。
+
+### 其他 CyberPower 機型用什麼電池
+
+我只拆過 CP1000PFCLCDa 這一台，其他型號沒有實際換過。下表照 CyberPower 台灣與美國官網的產品規格頁整理，買之前還是以舊電池上的標籤為準。
+
+| UPS 型號 | 官方電池包 | 裡面的電池 | 資料來源 |
+|---------|-----------|-----------|---------|
+| CP1000PFCLCDa | RBP0007 | 12V 9AH × 1（我拆出來是 LEOCH DJW12-9.0） | [台灣官網](https://www.cyberpower.com/tw/zh/product/sku/cp1000pfclcda)＋實測 |
+| CP1000AVRLCDa | RB1290A | 12V × 1，官網沒寫容量 | [台灣官網](https://www.cyberpower.com/tw/zh/product/sku/cp1000avrlcda) |
+| CP1500PFCLCDa | RB1290X2 | 12V 9AH × 2 | [台灣官網](https://www.cyberpower.com/tw/zh/product/sku/cp1500pfclcda)、[RB1290X2](https://www.cyberpowersystems.com/product/ups/battery-cartridge/rb1290x2/) |
+| CP1000PFCLCD | RB1290 | 12V 9AH × 1 | [美國官網](https://www.cyberpowersystems.com/product/ups/pfc-sinewave/cp1000pfclcd/) |
+| CP1000AVRLCD | RB1290 | 12V 9AH × 1 | [美國官網](https://www.cyberpowersystems.com/product/ups/intelligent-lcd/cp1000avrlcd/) |
+| CP1500PFCLCD | RB1290X2 或 RB1280X2B，看序號 | 12V 9AH × 2 | [美國官網](https://www.cyberpowersystems.com/product/ups/pfc-sinewave/cp1500pfclcd/) |
+| CP1500AVRLCD | RB1290X2 或 RB1280X2A，看序號 | 12V 9AH × 2 | [美國官網](https://www.cyberpowersystems.com/product/ups/intelligent-lcd/cp1500avrlcd/) |
+| CP1350PFCLCD | RB1270X2A 或 RB1270X2C，看序號 | 12V 7AH × 2 | [美國官網](https://www.cyberpowersystems.com/product/ups/pfc-sinewave/cp1350pfclcd/) |
+
+結尾有 a 的是 CyberPower 台灣官網列的型號，沒有 a 的出自美國官網。看表時注意兩件事：
+
+- 美國官網的型號裡，同一個型號會因為序號不同，配不同的電池包。序號在 UPS 底部或背面的白色小標籤上。
+- 1500VA 和 1350VA 的機型是兩顆一組，要兩顆一起換，不要新舊混用。
 
 ### 端子規格
 

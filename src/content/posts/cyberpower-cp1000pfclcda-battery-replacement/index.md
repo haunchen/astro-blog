@@ -1,6 +1,10 @@
 ---
 title: "CyberPower CP1000PFCLCDa 電池更換教學 - 拆前面板抽屜式換電池"
 date: 2026-09-17
+updated: 2026-10-22
+changelog:
+  - date: 2026-10-22
+    note: "補其他 CyberPower 型號的電池差異與對照表連結"
 description: "公司 Server 用的 CyberPower CP1000PFCLCDa 正弦波 UPS 開始頻繁嗶叫，用三年該換電池了。這台要先拆底部螺絲、掀開前面板才能抽出抽屜式電池槽，比 APC 多一道工。本文附實拍步驟，並說明換完怎麼用 LCD 確認狀態、副廠 YUASA REW45-12 的規格比對。"
 category: "hardware"
 tags: []
@@ -20,6 +24,8 @@ cover: "./images/cover.webp"
 | 原廠電池 | LEOCH DJW12-9.0（12V 9AH） |
 
 CyberPower 和科風那台用的原廠電池剛好是同一款 LEOCH DJW12-9.0，所以替換電池我也買了一樣的 YUASA REW45-12，一次買兩顆。
+
+如果你的是其他 CyberPower 型號，像 CP1000AVRLCDa 或 CP1500PFCLCDa，用的電池不一定一樣，1500VA 的機型是兩顆一組。各型號的官方電池包整理在〈[UPS 電池怎麼選](/ups-battery-buying-guide/)〉的對照表。
 
 ## CyberPower CP1000PFCLCDa 電池更換步驟
 
