@@ -1,12 +1,10 @@
 ---
 title: "Claude Code 接上 KiCad MCP 畫 PCB：安裝、自動佈線到 DRC 歸零的踩坑紀錄"
-date: 2026-10-21
+date: 2026-10-22
 description: "在 Windows 用 Claude Code 串接 KiCad 10、KiCad MCP 與 Freerouting，把一塊 63 顆零件的類比板從原理圖畫到自動佈線、DRC 歸零。這篇整理安裝步驟、從網表建板的做法、鋪銅順序，以及 MCP 回報成功卻沒生效、原理圖被寫成 0 bytes 等實際踩到的坑。"
 category: "tools"
 tags: ["claude-code"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-22
 ---
 ## 前言：檢查全過，原理圖上卻沒有線
 
