@@ -1,8 +1,10 @@
 ---
 title: "從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？"
 date: 2026-09-01
-updated: 2026-10-17
+updated: 2026-10-22
 changelog:
+  - date: 2026-10-22
+    note: "停止營運時程改依官方公告，補搬家教學連結與「倒閉了嗎」問答"
   - date: 2026-10-17
     note: "補 8 月官方完整報告的六步攻擊路徑，新增 10 月 14 日第二次入侵分析與停止營運公告"
 description: "Zeabur 8 月環境變數外洩，官方報告揭露攻擊者從一個用戶部署的 NextChat 漏洞走了六步才到正式資料庫；10 月 14 日二度遭駭、波及用戶的專用伺服器，隨後宣布年底停止營運。這篇談兩次事件真正的形狀：權限半徑，以及止血、清冊、分層的順序，和還在 Zeabur 上的人該先做什麼。"
@@ -11,7 +13,7 @@ tags: ["security", "deployment"]
 cover: "./images/cover.webp"
 ---
 
-> **2026 年 10 月 17 日更新**：Zeabur 在 10 月 14 日第二次被入侵，10 月 17 日宣布將在 2026 年 12 月 31 日前停止營運。8 月事件的官方完整報告也在 9 月 7 日發布了，實際的攻擊路徑比我第一版寫的長。這次改寫了〈那條走廊〉，並新增〈七週後，同一條走廊又被走了一次〉。如果你還有服務在 Zeabur 上，直接跳到〈還在 Zeabur 上，先做這幾件〉。
+> **2026 年 10 月 17 日更新**：Zeabur 在 10 月 14 日第二次被入侵，10 月 17 日宣布停止營運：共享叢集 12 月 1 日起暫停所有服務，12 月 31 日全部停止。8 月事件的官方完整報告也在 9 月 7 日發布了，實際的攻擊路徑比我第一版寫的長。這次改寫了〈那條走廊〉，並新增〈七週後，同一條走廊又被走了一次〉。如果你還有服務在 Zeabur 上，直接跳到〈還在 Zeabur 上，先做這幾件〉；要直接動手搬家，看〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。
 
 ## 前言：Zeabur 資安事件爆發時，我差一個月
 
@@ -331,7 +333,7 @@ B 類全部進密碼庫就好。A 類除了進密碼庫，還要另外做一份�
 
 ### 然後，Zeabur 決定收攤
 
-10 月 17 日，創辦人林沅霖寄信給所有用戶，宣布逐步停止營運。我寫這段時官網 blog 還沒貼出全文，以下依用戶收到的信件內容（[論壇轉貼](https://linux.do/t/topic/3035894)）：
+10 月 17 日，創辦人林沅霖寄信給所有用戶，宣布逐步停止營運，官網同一天發布了〈[Zeabur 停止營運公告與服務遷移安排](https://zeabur.com/zh-TW/blogs/zeabur-is-shutting-down)〉。以下依官方公告整理：
 
 | 時間 | 安排 |
 |------|------|
@@ -382,7 +384,11 @@ B 類全部進密碼庫就好。A 類除了進密碼庫，還要另外做一份�
 
 **Zeabur 什麼時候停止營運？**
 
-12 月 1 日起共享叢集暫停、專用伺服器陸續到期關閉，12 月 31 日全部停止，資料刪除日另行公告。
+12 月 1 日起共享叢集暫停、專用伺服器陸續到期關閉，12 月 31 日全部停止，資料刪除日另行公告。搬家步驟見〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。
+
+**Zeabur 倒閉了嗎？服務會不會突然斷線？**
+
+官方的說法是「停止營運」，10 月 17 日公告，分階段在 12 月 31 日前關閉，給的理由是成長遇到瓶頸、AI 降低了部署門檻，以及系統的維護成本。不是當天斷線，但共享叢集 12 月 1 日就會暫停，資料要自己先備份帶走。
 
 **收到「你的服務未受影響」的通知，就可以不處理嗎？**
 
@@ -409,7 +415,8 @@ B 類全部進密碼庫就好。A 類除了進密碼庫，還要另外做一份�
 10 月事件與停止營運：
 
 - [Zeabur 官方 Status Page — Incident 1091243](https://status.zeabur.com/incident/1091243)：10 月事件的三則公告，包括四小時後的範圍更正
-- [Zeabur 停止營運通知信全文（LINUX DO 論壇轉貼）](https://linux.do/t/topic/3035894)：10 月 17 日寄給用戶的信，撰寫本段時官網尚未貼出
+- [Zeabur — 停止營運公告與服務遷移安排](https://zeabur.com/zh-TW/blogs/zeabur-is-shutting-down)：10 月 17 日的官方公告，停止營運時程出自這裡
+- [Zeabur — 官方遷移指南](https://zeabur.com/zh-TW/blogs/migrate-from-zeabur)
 - [動區 — Zeabur 二度遭駭！環境變數與 API Token 外流](https://www.blocktempo.com/zeabur-hacked-again-seven-weeks-shared-cluster-dedicated-servers-credentials/)：通知信與公告的落差、共享叢集汰除時程整理
 - [Zeabur — 重大安全升級：以更安全的方式管理敏感資訊和主機憑證](https://zeabur.com/zh-TW/changelogs/security-update)：9 月 7 日的修補，寫明只適用專用伺服器
 
@@ -431,5 +438,6 @@ B 類全部進密碼庫就好。A 類除了進密碼庫，還要另外做一份�
 
 我自己的相關文章：
 
+- [Zeabur 結束營運搬家：我用 Claude Code 把 8 個服務搬出 Zeabur 的實際流程](/zeabur-shutdown-migration-guide/)
 - [我是如何利用 Zeabur 和 Nginx，將分散的子網域整合成單一主網站](/zeabur-nginx-subdomain-to-subdirectory/)
 - [WordPress 無痛轉移 Zeabur 完整教學](/wordpress-migrate-to-zeabur/)
