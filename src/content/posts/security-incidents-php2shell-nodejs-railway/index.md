@@ -5,8 +5,6 @@ description: "2026 年 10 月 21 日同一天，Node.js 發布 4 個 High 的安
 category: "devops"
 tags: ["security", "deployment"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-10-22
 ---
 ## 前言：10 月 21 日這一天
 
