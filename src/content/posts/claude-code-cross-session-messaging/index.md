@@ -1,11 +1,13 @@
 ---
 title: "Claude Code 的 session 現在可以互相傳話了：我讓兩個視窗一起跑完一次重構"
 date: 2026-08-24
-updated: 2026-09-18
+updated: 2026-10-23
 changelog:
+  - date: 2026-10-23
+    note: "issue 84945 已被自動關閉未修；補雲端 session 與 notify_when_idle"
   - date: 2026-09-18
     note: "補上原生 Windows 支援（v2.1.234 起）與相關差異"
-description: "Claude Code v2.1.224 起支援 cross-session messaging，原生 Windows 則要 v2.1.234。這篇是我用它跑完一次筆記庫重構的實際紀錄，含三個踩到的坑、跨機的限制，以及一個會讓同機訊息偷偷出門的官方已知 bug。"
+description: "Claude Code v2.1.224 起支援 cross-session messaging，原生 Windows 則要 v2.1.234。這篇是我用它跑完一次筆記庫重構的實際紀錄，含三個踩到的坑、跨機的限制，以及一個會讓同機訊息偷偷出門、官方沒修的綁定問題。"
 category: "tools"
 tags: ["claude-code"]
 cover: "./images/cover.webp"
@@ -181,9 +183,19 @@ Peer sessions (2):
 - **權限是用金鑰擋的，不是檔案權限。** macOS 和 Linux 是把 socket 限制在你這個作業系統使用者底下；Windows 改成每條連線都要先用一把只有你讀得到的金鑰認證。結論一樣：共用機器上別人的 session 投不進來。
 - **同一台電腦上的 WSL 2 跟原生 Windows 還是通不了。** 兩邊註冊在不同的家目錄、監聽的東西也不同，所以彼此看不見。這跟容器那個限制是同一個道理：同機能通的前提是兩邊看得到同一份檔案。
 
+### 補記：claude.ai 上的雲端 session 也收得到，但回不了
+
+官方文件後來補了雲端 session（claude.ai/code）這條路，跟上面那台 Windows 當初的處境很像，是單向的：
+
+- 你這台連著 Remote Control 時，`/list-agents` 會多列出你在雲端的 session。
+- 訊息經 Anthropic 伺服器直接送到雲端 session，它收得到。
+- 但雲端 session 不能用 `SendMessage` 回給另一台機器，就算你的訊息帶了回覆地址也一樣。它的回應要到 claude.ai/code 打開那個 session 的 transcript 才看得到。
+
+另一個跨機的小改動：對方那台離線時，v2.1.261 之前 `SendMessage` 會回報成「已送達」，現在改成明講「排隊中，等那台重新連上才送到」。看到這個字樣就知道對方還沒讀到。
+
 ---
 
-## 同機不一定走本機：一個官方已知的 bug
+## 同機不一定走本機：一個官方沒修的 bug
 
 官方文件講得很篤定：同一台機器上的兩個 session，訊息走的是本機 socket，不會經過 Anthropic 的伺服器。我後來去翻那天兩邊的實際回傳，發現這句話有前提，而且那個前提會壞掉。
 
@@ -246,9 +258,11 @@ Peer sessions (4):
 
 收件的那個 session 工作目錄在我家目錄底下，跟我同一台 Mac、同一個使用者、同一個版本。Claude Code 還是把它當成「另一台機器」。
 
-### 這是官方已知的 bug
+### 官方 repo 有人回報過，但沒修
 
-搜了一輪官方 repo，找到 issue 84945，8 月 8 日開的，我寫這篇的時候還是 OPEN。標題直接就是「Local peer-messaging inbox socket fails to bind for one of two identical sessions」。
+搜了一輪官方 repo，找到 issue 84945，8 月 8 日開的。標題直接就是「Local peer-messaging inbox socket fails to bind for one of two identical sessions」。
+
+這支 issue 在 9 月 8 日被機器人以「太久沒有動靜」關掉，標記 not planned，不是修好了。從開到關，官方沒有任何人回覆過；到 v2.1.309 為止的 changelog 也沒有修這個綁定問題的項目。所以別把「issue 關了」當成「bug 沒了」，下面的判準還是要自己做。
 
 回報者的情境是同一台 Mac、同一個 binary、同樣的 flag、同樣的 cwd、前後差 28 秒開的兩個 session，一個綁了一個沒綁。他列的失敗特徵跟我這邊四項全中。
 
@@ -394,6 +408,12 @@ Another Claude session sent a message:
 
 另外，容器有自己的檔案系統，所以容器裡的 session 跟宿主機的 session 互相看不到。同機能通的前提是兩邊看得到同一份檔案。
 
+### 順手一個小技巧：請對方忙完通知你
+
+v2.1.236 起，`SendMessage` 多了 `notify_when_idle`：可以請同一台機器上的另一個 session，下一次閒下來（或結束）時回報你一次。只通知一次、不用輪詢，12 小時都沒等到就自動取消。限 macOS 和 Linux，兩邊的 session 都要 v2.1.236 以上。
+
+適合的情境是「對面在跑一個長任務，我這邊要等它跑完才能接著做」，不用每隔一陣子問一次「好了沒」。
+
 ---
 
 ## 什麼時候別用這個
@@ -420,7 +440,7 @@ Another Claude session sent a message:
 
 有意思的是，這件事跟訊息走本機還是繞外面完全無關。我那天以為自己在用本機通道，其實有一半流量出門了，但該發生的協作照樣發生。真正有價值的是兩邊各自帶著對方拿不到的實況去互相驗證，那跟走哪條路沒關係。
 
-要說缺點有兩個。小的是每次第一發都要因為沒帶 ref 失敗一次，這個在 v2.1.232 之後可以用 `@` 指定對象繞掉。大的是 socket 綁不起來那個 bug，它讓「同機不出門」這個你可能拿來當安全依據的性質變得不可靠，而且不會有任何提示。在 84945 修掉之前，需要的話就自己看一眼 `/status`，一秒的事。
+要說缺點有兩個。小的是每次第一發都要因為沒帶 ref 失敗一次，這個在 v2.1.232 之後可以用 `@` 指定對象繞掉。大的是 socket 綁不起來那個 bug，它讓「同機不出門」這個你可能拿來當安全依據的性質變得不可靠，而且不會有任何提示。84945 已經被自動關掉，官方沒修，所以這不是等一等就會消失的問題。需要的話就自己看一眼 `/status` 的 `Peer address`，一秒的事。
 
 ---
 
