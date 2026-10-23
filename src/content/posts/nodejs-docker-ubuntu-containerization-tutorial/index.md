@@ -1,6 +1,10 @@
 ---
 title: "讓你的 Node.js 專案無痛部署！Ubuntu 上手把手教你容器化 Node.js"
 date: 2025-06-15
+updated: 2026-10-23
+changelog:
+  - date: 2026-10-23
+    note: "Dockerfile 基底映像從已停止維護的 Node 20 改為 Node 26"
 description: "本篇文章介紹了如何在 Ubuntu 系統上使用 Docker 容器化 Node.js 應用程式，特別是 Next.js 專案。包括 Docker 的安裝步驟、設定 Dockefile、建置映像檔和運行容器的指令，還提到如何確保容器在崩潰後自動重啟和後台運行。"
 category: "devops"
 tags: ["Docker", "Node.js"]
@@ -76,7 +80,7 @@ cd your/project/folder
 
 ```docker
 # 使用一個輕量級的 Node.js 映像檔作為基礎
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
 
 # 設定工作目錄
 WORKDIR /app
@@ -103,7 +107,7 @@ RUN pnpm run build
 
 # --- 運行階段映像檔 ---
 # 使用一個更小的映像檔來運行應用程式，減少攻擊面
-FROM node:20-alpine AS runner
+FROM node:26-alpine AS runner
 
 WORKDIR /app
 
@@ -119,6 +123,8 @@ EXPOSE 3000
 # 運行 standalone 伺服器
 CMD ["node", "server.js"]
 ```
+
+兩個 `FROM` 的 Node 版本要一致，建置和執行才不會跑在不同版本上。版本請選偶數號的 LTS：Node 20 已在 2026-04-30 停止維護，之後的安全更新都不會再修；這裡用的 Node 26 在 2026-10-28 進入 LTS，支援到 2029-04-30。建議每季看一次 [Node.js 安全公告](https://nodejs.org/en/blog/vulnerability)，舊版 Dockerfile 沒換掉會出什麼事，可以參考[資安三連發那篇](/security-incidents-php2shell-nodejs-railway/)。
 
 **＊重要：為了使用 `output: "standalone"` 功能，需要在你的專案的 `next.config.mjs` 檔案中添加或修改配置：**
 
