@@ -1,7 +1,11 @@
 ---
-title: "【2025 最新】n8n 自動化 上傳 Instagram 完全指南：從取得 Token 到排程發文"
+title: "n8n 自動發 Instagram 教學：取得與延長 Access Token、排程發文（Graph API v25）"
 date: 2025-07-26
-description: "這篇教學旨在指導讀者如何使用 n8n 來獲取 Instagram Access Token，進而提高 Instagram 經營效率。文章詳述了從建立 Meta 應用程序、設定權限、創建測試用戶，到產生及延長 Access Token 的全過程，並介紹了自動發文的工作流程。"
+updated: 2026-10-25
+changelog:
+  - date: 2026-10-25
+    note: "Graph API 版本改為 v25.0，補 v22.0／v23.0 停用日"
+description: "用 n8n 自動發 Instagram 貼文的完整教學：建立 Meta 應用程式、設定權限、取得短期 Access Token 並延長成長期 Token，再用 Facebook Graph API 節點建立容器、發佈貼文與排程。已改用 Graph API v25.0，v22.0 將於 2027 年 5 月停用。"
 category: "n8n"
 tags: ["Automation", "Instagram", "n8n", "工作流程"]
 cover: "./images/cover.webp"
@@ -14,7 +18,7 @@ draft: false
 
 於是這篇教學文章就誕生了，依照文章步驟，你就能成功取得 Instagram Access Token，並透過 n8n 串接 Instagram 達到 自動化 發文。
 
-本篇教學適用的 Instagram API 版本為 `v23`，以及新介面的 [Meta for Developers](https://business.facebook.com/business/loginpage/?next=https%3A%2F%2Fdevelopers.facebook.com%2Fapps%2F%3Fshow_reminder%3Dtrue#)。
+本篇教學適用 Graph API `v25.0`（n8n 的 Facebook Graph API 節點目前能選的最高版本，可用到 2028 年 7 月 29 日），以及新介面的 [Meta for Developers](https://business.facebook.com/business/loginpage/?next=https%3A%2F%2Fdevelopers.facebook.com%2Fapps%2F%3Fshow_reminder%3Dtrue#)。
 
 ## 事前準備
 
@@ -34,7 +38,7 @@ draft: false
 
 ![Instagram 帳號已成功連結 Facebook 粉絲專頁的確認畫面](./images/instagram-linked-facebook-page.webp)
 
-## 手把手教學：取得 Instagram Access Token (2025 最新版)
+## 手把手教學：取得 Instagram Access Token
 
 ### 第一步：建立 Meta 應用程式
 
@@ -136,7 +140,7 @@ draft: false
 
 ![從圖形 API 測試工具上方工具選單開啟存取權杖偵錯工具](./images/meta-open-access-token-debugger.webp)
 
--   先確認版本為「v23.0」，之後把短期的 Access Token 填入欄位中，按下「偵錯」
+-   先確認版本為「v25.0」（下圖是 v23.0 時拍的，其餘步驟相同），之後把短期的 Access Token 填入欄位中，按下「偵錯」
 
 ![在存取權杖偵錯工具貼上短期 Access Token 並選擇 v23.0 版本後偵錯](./images/access-token-debugger-paste-token.webp)
 
@@ -192,7 +196,7 @@ draft: false
 
 -   第一個「Facebook Graph API」節點要先在 Meta 伺服器上建立一個容器，並把圖片及文字內容一併放在容器中。
     -   **HTTP Request Method**：選擇 `POST`。
-    -   **Graph API Version**：選擇 `v22.0` 或 `v23.0`。
+    -   **Graph API Version**：選擇 `v25.0`。v22.0 只能用到 2027 年 5 月 20 日、v23.0 到 2027 年 10 月 8 日，舊 workflow 用的是這兩版的話記得改。
     -   **Node**：將前一個節點的 `nodeID` 拖入即可。
     -   **Edge**：填入 `media`。
     -   「Options」→「Query Parameters」
@@ -207,7 +211,7 @@ draft: false
 
 -   第二個「Facebook Graph API」節點就是將建立好的容器發佈到你的動態牆上，讓大家都可以瀏覽。
     -   **HTTP Request Method**：選擇 `POST`。
-    -   **Graph API Version**：選擇 `v22.0` 或 `v23.0`。
+    -   **Graph API Version**：選擇 `v25.0`。v22.0 只能用到 2027 年 5 月 20 日、v23.0 到 2027 年 10 月 8 日，舊 workflow 用的是這兩版的話記得改。
     -   **Node**：將「Edit Fields」節點的 `nodeID` 拖入即可。
     -   **Edge**：填入 `media_publish`。
     -   「Options」→「Query Parameters」
@@ -233,9 +237,9 @@ Access Token 分為`短期`及`長期`，短期的 1 小時內就會過期，要
 
 -   Facebook Graph API 無法下載圖片怎麼辦？
 
-請先確認 Mate 伺服器是不是可以訪問你提供的圖片 URL，可以透過官方提供的[測試工具](https://developers.facebook.com/tools/debug/)測試看看。
+請先確認 Meta 伺服器是不是可以訪問你提供的圖片 URL，可以透過官方提供的[測試工具](https://developers.facebook.com/tools/debug/)測試看看。
 
-如果是從 WordPress 下載，或是有綁定 [Cloudflare](https://www.cloudflare.com/zh-tw/application-services/products/cdn/) 的 CND，請先檢查 `robots.txt` 有沒有阻擋 Meta 的爬蟲機器人，有的話請加入以下這段：
+如果是從 WordPress 下載，或是有綁定 [Cloudflare](https://www.cloudflare.com/zh-tw/application-services/products/cdn/) 的 CDN，請先檢查 `robots.txt` 有沒有阻擋 Meta 的爬蟲機器人，有的話請加入以下這段：
 
 ```xml
 User-agent: facebookexternalhit
