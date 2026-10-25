@@ -1,6 +1,10 @@
 ---
 title: "一天三起資安事件：Node.js 安全更新、PHP php2shell、Railway 環境變數外洩，怎麼預防與應變"
 date: 2026-10-22
+updated: 2026-10-25
+changelog:
+  - date: 2026-10-25
+    note: "n8n 已有修正版並補升級實測；補 Railway 初步報告與 Synology 公告"
 description: "2026 年 10 月 21 日同一天，Node.js 發布 4 個 High 的安全更新、PHP 的 php2shell 漏洞細節在修補前外洩、Railway 公告環境變數被存取。這篇拆解三起事件各自的形狀，附上我盤點 137 個 repo 與家用伺服器的實際過程，以及平常該做的預防和出事時的應變順序。"
 category: "devops"
 tags: ["security", "deployment"]
@@ -127,17 +131,15 @@ docker exec <容器名> node -v
 
 所以這類公告出來，有接 CD 的服務一樣要手動重建一次。這件事我記進了公司的維運紀錄，下次遇到同類公告不用再想一次。
 
-### 坑二：n8n 沒有修正版可以換
+### 坑二：n8n 要等官方出版（10 月 22 日已出）
 
 家裡伺服器上曝險最高的是 n8n。它對外公開，而且很多 workflow 會主動抓外部網址，Brotli 和 TLS 那幾個漏洞都碰得到。
 
-問題是，n8n 用的是官方映像，裡面的 Node 版本不是我能決定的。我用 registry API 讀了最新版映像的設定（沒有 pull）：n8n 最新的 2.45.1，內建 Node 26.10.0，還是比修正版 26.12.1 舊。
-
-也就是說，就算我現在把 n8n 從 2.31.3 一路升到最新版，扛一次跨 14 個 minor 的大版本升級，Node 的漏洞還是在。
+問題是，n8n 用的是官方映像，裡面的 Node 版本不是我能決定的。我用 registry API 讀了映像的設定（沒有 pull）：當時版本號最大的 2.45.1，內建 Node 26.10.0，還是比修正版 26.12.1 舊。
 
 這是用第三方映像最無力的地方：什麼時候能修，看的是 n8n 什麼時候發新版，不是我。
 
-能做的只有兩件：
+等官方出版之前，能做的只有兩件：
 
 1. 縮小暴露面：盤點會去抓不受信任網址的 workflow，能先停的就先停
 2. 確認哪些 CVE 真的適用：公告列的 8 個影響 24.x 的 CVE，不是每個都打得到 n8n
@@ -153,7 +155,19 @@ done'
 
 結果有兩個 node 行程，一個是 n8n 主程式，一個是 task runner（帶著 `--disallow-code-generation-from-strings` 這類旗標），都沒有 `--permission`，`NODE_OPTIONS` 也沒設。這兩個 CVE 確定不適用，剩下 6 個要等上游。
 
-等上游出修正版這件事，我交給一個每天跑的提醒去追，有新版就通知我。
+結果上游當天就出了。10 月 22 日下午，n8n 發了 2.44.6 和 2.45.2，官方映像內建的 Node 都是 26.12.1；10 月 23 日的 2.45.3 也是。還在 1.x 的人，1.123.87 內建的是 24.22.1，同樣是修正版。
+
+這裡我看錯了一件事：n8n 的 `latest`／`stable` 標籤才是正式版，2.45.x 是 `beta`／`next`。判斷「有沒有修正版可以升」要看 `stable` 指到哪一版，不是挑版本號最大的那個。照這個看法，2.44.6 一出來，`stable` 就已經是修好的版本了。
+
+我當晚就把家裡的 n8n 從 2.31.3 升到 2.44.6，跨了 13 個 minor。過程是這樣：
+
+1. 先備份：`pg_dump` 存一份 n8n 的資料庫，`.env` 也複製一份。n8n 的資料庫 migration 是單向的，要回退只能切回舊版映像再還原這份 dump
+2. 改 `.env` 裡的版本號，`docker compose pull` 再 `up -d`
+3. 驗收：`docker exec n8n node -v` 是 v26.12.1；容器 healthy、沒有重啟；log 裡 migration 全部跑完；workflow 和 credential 的數量跟升級前一樣；從外網打 `/healthz` 回 200
+
+升完 log 會多一條 Python task runner 起不來的警告，因為映像裡沒有 Python。我查過沒有 workflow 用到 Python 的 Code 節點，就沒處理。
+
+你自己的 n8n 升完，用 `docker exec n8n node -v` 確認，看到 26.12.1 或 24.22.1 才算數。
 
 ### 坑三：nvm 刪舊版，把 pm2 一起帶走
 
@@ -230,6 +244,26 @@ pm2 save
 
 另外一個要排進行事曆的：8.2 在 2026 年 12 月 31 日停止維護，這次的 8.2.35 是最後幾個安全更新之一。
 
+### Synology NAS 怎麼處理
+
+Synology 在 10 月 22 日發了 [Synology-SA-26:14](https://www.synology.com/en-us/security/advisory/Synology_SA_26_14)。NAS 上的 PHP 是從套件中心裝的，要在套件中心更新，修正版如下：
+
+- PHP 8.4：8.4.27-0051
+- PHP 8.3：8.3.36-0051
+- PHP 8.2：8.2.35-0171
+- PHP 8.1：8.1.34-0120
+- PHP 8.0：8.0.30-0122
+- PHP 7.4：7.4.33-0131
+- PHP 7.3：不修，已停止維護
+
+依 [Synology 的聲明](https://www.synology.com/en-global/company/news/article/php2shell)，受影響的是依賴 PHP 的套件：Web Station、WordPress、phpMyAdmin、Joomla、MediaWiki、Calendar、MailStation 等。幾個要注意的地方：
+
+- Calendar 要升到 3.0.4-21435 以上
+- MailStation 要到套件中心手動更新（30000002.3.19-20333 以上），不會自己跟著升
+- Web Station 裡還指定 PHP 7.3 的網站，要改用上面有修正版的版本
+- DSM 7.2 以前的系統，官方建議先停用受影響的套件，等裝好修正版再開
+- DSM 本身也有一份內建 PHP，但官方說它沒有對外開放的模組，風險很低，之後的 DSM 版本才會補，不用急
+
 ### 來不及更新：官方的緩解措施
 
 官方給了一組緩解措施，但講得很清楚：**這些只能降低特定攻擊路徑的風險，不會讓你的系統變安全。** 原話是：
@@ -303,7 +337,7 @@ Huntress 給的偵測方向很實用：注意 PHP 的 worker 行程（`php-fpm`�
 
 ## Railway：秘密在別人手上時，你能做的只有輪替
 
-### 截至 10 月 22 日已知的事
+### 截至 10 月 24 日已知的事
 
 依 [Railway 10 月 21 日的公告](https://blog.railway.com/p/security-disclosure-wednesday-october-21st)：
 
@@ -319,7 +353,15 @@ Huntress 給的偵測方向很實用：注意 PHP 的 worker 行程（`php-fpm`�
 
 給所有用戶的建議是：立刻輪替存在 Railway 上的所有環境變數（含 API key）、輪替私有 registry 的憑證、檢查這些服務的 log 有沒有異常。
 
-根本原因和受影響人數，公告都還沒說。
+10 月 22 日，Railway 發了[初步報告](https://blog.railway.com/p/preliminary-report-october-security-incident)，補上第一份公告沒說的事：
+
+- 入口：攻擊者可能在 Railway 的建置基礎設施裡提權，確切原因還在調查
+- 攻擊期間：台灣時間 10 月 20 日 21:58 到 10 月 22 日 11:32，後者是 Railway 確認攻擊者已經碰不到任何內部系統的時間
+- 目的：拿 AI 服務商的 API key，用來做模型蒸餾
+- 範圍：最多 1.85% 的 workspace（約 10 萬個）有環境變數可能外洩；上游服務商為了保險，重設了超過 10 萬名用戶的金鑰
+- 建議：10 月 21 日以前註冊的所有用戶，都把存在 Railway 上的金鑰輪替一次
+
+10 月 24 日（台灣時間 21:57），Railway 在[狀態頁](https://status.railway.com/incident/8E4V5WLD)補了一段：OpenAI、Anthropic 這些 AI 服務商預防性撤銷了一批 key，有些人事件後新換的 key 也被撤掉。這是預防措施，不是又外洩了一次。被撤了就重建一把，更新 Railway 上對應的環境變數，再重新部署用到它的服務；key 還能用的人，不必再輪替一次。
 
 ### 官方隔天補的那串文章，就是一份清冊
 
@@ -340,7 +382,7 @@ Huntress 給的偵測方向很實用：注意 PHP 的 worker 行程（`php-fpm`�
 2. **再撤銷**：到各服務商撤銷舊金鑰。在平台上改掉環境變數，不會讓舊的金鑰失效，這是兩件事
 3. **最後查持久化**：拿著你雲端憑證進去過的人，可能已經建了新的帳號、金鑰或排程。Railway 那幾篇 GCP、AWS、GitHub 的檢查文，就是在處理這一步
 
-Railway 這次的公告寫的是「may」，範圍「可能」有限。我的建議跟上次一樣：沒收到通知信，也照樣輪替。Zeabur 第二次事件的第一則公告，四個多小時後就擴大了範圍。
+Railway 第一份公告寫的是「may」，範圍「可能」有限。我的建議跟上次一樣：沒收到通知信，也照樣輪替。Zeabur 第二次事件的第一則公告，四個多小時後就擴大了範圍；Railway 這次也是，隔天的初步報告就改成建議 10 月 21 日前註冊的人全部輪替。
 
 ### 如果換成是我
 
@@ -398,10 +440,10 @@ PHP 這次從預告到發布不到 20 小時。如果你是看新聞才知道，
 
 1. **判斷是哪一種形狀**：預告過的更新、細節比修補先到、還是秘密在別人手上？這決定你接下來要搶時間還是按部就班
 2. **盤點受影響的地方**：看正在跑的版本，不是看程式碼或 Dockerfile。runtime 漏洞要每台機器、每個容器實際跑 `-v`
-3. **能修就修，不能修就緩解或暫停**：有修正版就重建或更新；沒有的（像 n8n）先縮小暴露面；細節已經外洩、修補還沒到的，停站是正當的選項
+3. **能修就修，不能修就緩解或暫停**：有修正版就重建或更新；第三方映像還沒出版的（像 n8n 頭一天）先縮小暴露面；細節已經外洩、修補還沒到的，停站是正當的選項
 4. **驗證實際結果**：看 `node -v`、`php -v` 的輸出，再打一次會走到資料庫的端點，不要看「重建成功」就算數
 5. **查有沒有被打過**：PHP 看 worker 有沒有異常子行程；平台外洩看雲端帳號有沒有不明的使用者、金鑰、排程
-6. **記錄並追蹤還沒修的**：今天修不了的（n8n 等上游、Uptime Kuma 等 2.x），要有一個會提醒你的東西，不然一定會忘
+6. **記錄並追蹤還沒修的**：今天修不了的（像 Uptime Kuma 要等 2.x），要有一個會提醒你的東西，不然一定會忘
 
 ## 常見問題
 
@@ -431,7 +473,11 @@ PHP 這次從預告到發布不到 20 小時。如果你是看新聞才知道，
 
 **用的第三方映像還沒出修正版怎麼辦？**
 
-先確認哪些 CVE 真的適用，再縮小對外暴露面，並設提醒追蹤上游發布，有修正版就升。
+先確認哪些 CVE 真的適用，再縮小對外暴露面，並設提醒追蹤上游發布，有修正版就升。n8n 這次是隔天就出了 2.44.6，看 `stable` 標籤指到哪一版最準。
+
+**Synology NAS 上的 PHP 要更新嗎？**
+
+有用 Web Station、WordPress、phpMyAdmin 這類依賴 PHP 的套件就要，到套件中心更新 PHP 套件；DSM 內建的 PHP 沒有對外開放，等之後的 DSM 更新即可。
 
 ## 結語
 
@@ -460,10 +506,17 @@ PHP：
 - [CERT-EU — Critical Vulnerabilities in PHP](https://cert.europa.eu/publications/security-advisories/2026-018/)
 - [高市早苗的 X 貼文](https://x.com/takaichi_sanae/status/2112890642590564386)：10 月 21 日台灣時間 20:55 發布
 - [ITmedia NEWS — 高市総理「大至急、PHPパッチ適用を」Xで異例の要請](https://www.itmedia.co.jp/news/article/2610/22/2000002483/)：日本企業當晚的緊急維護
+- [Synology-SA-26:14](https://www.synology.com/en-us/security/advisory/Synology_SA_26_14)、[Synology 官方聲明](https://www.synology.com/en-global/company/news/article/php2shell)：NAS 套件中心的 PHP 修正版與受影響套件
+
+n8n：
+
+- [n8n 2.44.6 release](https://github.com/n8n-io/n8n/releases/tag/n8n%402.44.6)、[Docker Hub n8nio/n8n 標籤](https://hub.docker.com/r/n8nio/n8n/tags)：內建 Node 26.12.1 的版本
 
 Railway：
 
 - [Railway — Security Disclosure: Wednesday October 21st](https://blog.railway.com/p/security-disclosure-wednesday-october-21st)
+- [Railway — Preliminary Report: October Security Incident](https://blog.railway.com/p/preliminary-report-october-security-incident)：10 月 22 日的初步報告
+- [Railway 狀態頁](https://status.railway.com/incident/8E4V5WLD)：10 月 24 日 AI 服務商撤銷金鑰的說明
 - [Railway Blog](https://blog.railway.com/)：10 月 22 日起的檢查與輪替建議系列
 
 我自己的相關文章：
