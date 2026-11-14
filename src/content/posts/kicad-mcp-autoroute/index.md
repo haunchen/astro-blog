@@ -1,11 +1,17 @@
 ---
 title: "Claude Code 接上 KiCad MCP 畫 PCB：安裝、自動佈線到 DRC 歸零的踩坑紀錄"
 date: 2026-10-22
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "安裝改釘 v2.8.2，補 KiCAD-MCP-Server 2.9.0 的網表同步、批次逾時與唯讀模式變動"
 description: "在 Windows 用 Claude Code 串接 KiCad 10、KiCad MCP 與 Freerouting，把一塊 63 顆零件的類比板從原理圖畫到自動佈線、DRC 歸零。這篇整理安裝步驟、從網表建板的做法、鋪銅順序，以及 MCP 回報成功卻沒生效、原理圖被寫成 0 bytes 等實際踩到的坑。"
 category: "tools"
 tags: ["claude-code"]
 cover: "./images/cover.webp"
 ---
+> 實測：KiCad 10.0.6、KiCAD-MCP-Server 2.8.2｜最後核對：2.9.0（2026-11-14）
+
 ## 前言：檢查全過，原理圖上卻沒有線
 
 AI 交回來的板子，ERC 0 違規，DRC 0 個未連接、0 個原理圖一致性問題。我打開原理圖，看了幾秒，只回了一句：
@@ -36,7 +42,7 @@ KiCad MCP 有好幾支，我選 [mixelpixx/KiCAD-MCP-Server](https://github.com/
 
 ## 環境安裝（Windows）
 
-我的環境：Windows 11、KiCad 10.0.6、KiCAD-MCP-Server 2.8.2（stable 分支）、Freerouting 2.5.0、Node 24。
+我的環境：Windows 11、KiCad 10.0.6、KiCAD-MCP-Server 2.8.2（本文實測 2.8.2；2.9.0 於 2026-11-12 發布，工具數變成 253 個）、Freerouting 2.5.0、Node 24。
 
 ### 安裝 KiCad 10
 
@@ -74,7 +80,7 @@ Copy-Item "$k\fp-lib-table", "$k\sym-lib-table" $dst
 MCP 的 README 和平台指南寫的都是 KiCad 9.0，路徑也寫死 `C:\Program Files\KiCad\9.0`。實測 10.0.6 可以用，不必退版，只要用 `KICAD_PYTHON` 環境變數指到 KiCad 10 的 Python。
 
 ```powershell
-git clone --depth 1 --branch stable https://github.com/mixelpixx/KiCAD-MCP-Server C:\Users\<你>\MCP\KiCAD-MCP-Server
+git clone --depth 1 --branch v2.8.2 https://github.com/mixelpixx/KiCAD-MCP-Server C:\Users\<你>\MCP\KiCAD-MCP-Server
 cd C:\Users\<你>\MCP\KiCAD-MCP-Server
 npm install
 npm run build
@@ -82,6 +88,10 @@ npm run build
 # 用 KiCad 自己的 Python 裝 MCP 需要的套件
 & "$env:LOCALAPPDATA\Programs\KiCad\10.0\bin\python.exe" -m pip install -r requirements.txt
 ```
+
+我實測時 clone 的是 `stable` 分支，當時就是 2.8.2。現在 `stable` 已經跟到 2.9.0，工具數和部分行為都跟本文不同，所以這裡改釘 `v2.8.2` 這個 tag，照著做才會得到跟我一樣的結果。想用新版就換成 `--branch v2.9.0`，差異我整理在後面「2.9.0 之後」那段。
+
+2.9.0 另外多了 `KICAD_MCP_OPERATING_MODE=readonly`，只留下不會改設計的工具。只想讓 Claude 看圖、做審查的話，可以用這個模式註冊。
 
 註冊到 Claude Code：
 
@@ -94,9 +104,9 @@ claude mcp add kicad --scope local `
 
 我用 `--scope local` 而不是寫進專案的 `.mcp.json`，因為那個資料夾會同步到我的 Mac，裡面寫 Windows 路徑，Mac 那邊就會壞。原始碼也刻意放在同步資料夾外面。local scope 只記在這台機器、只對這個專案目錄生效，有一個副作用要知道：設定綁的是實際路徑，如果你從 symlink 開 session，會看不到這支 MCP。
 
-註冊完要重開 session 或 `/reload-plugins` 才叫得到工具。在 Claude Code 裡打 `/mcp` 選 kicad，看到 connected 就是接上了，這版一共 244 個工具：
+註冊完要重開 session 或 `/reload-plugins` 才叫得到工具。在 Claude Code 裡打 `/mcp` 選 kicad，看到 connected 就是接上了。下面截圖是 2.8.2，一共 244 個工具；2.9.0 起是 253 個：
 
-![Claude Code 的 /mcp 面板顯示 KiCad MCP Server 狀態為 connected，共 244 個工具](./images/claude-code-kicad-mcp-freerouting-mcp-connected.webp)
+![Claude Code 的 /mcp 面板顯示 KiCad MCP Server 2.8.2 狀態為 connected，共 244 個工具](./images/claude-code-kicad-mcp-freerouting-mcp-connected.webp)
 
 叫得到之後，可以請 Claude 跑 `get_backend_state` 確認：我這台回的是 `backend: swig`、`ipcConnected: false`，也就是走 pcbnew 的 SWIG 綁定，不是 KiCad 10 的 IPC API。這點會影響後面哪些工具靠得住。
 
@@ -140,6 +150,12 @@ kicad-cli sch export netlist --format kicadxml -o board.net.xml board.kicad_sch
 "success": false,
 "errorDetails": "pcbnew.LoadBoard failed or returned a dehydrated SWIG proxy that could not be recovered"
 ```
+
+### 2.9.0 之後
+
+上面這個失敗，以及下面兩個「/」和 UUID 的坑，都是 2.8.2 的情況。依 [2.9.0 的 CHANGELOG](https://github.com/mixelpixx/KiCAD-MCP-Server/blob/v2.9.0/CHANGELOG.md)，`sync_schematic_to_board` 和 `create_board_from_schematic` 改成從 `kicad-cli sch export netlist` 取網表，用 symbol path 對應 footprint。照這個寫法，網路名稱和符號 UUID 理論上會由工具自己處理好。`create_board_from_schematic` 會先建一個新的 `.kicad_pcb` 再同步，也避開了「目標檔不存在就失敗」。要注意的是，機器上找不到 kicad-cli 時它會退回舊邏輯。
+
+我還沒用 2.9.0 重跑這塊 63 顆零件的板子，結果出來再更新這段。在那之前，下面的自寫建板腳本仍然是我驗證過的做法。
 
 自己寫建板腳本不難，核心就是讀網表裡每顆零件的 footprint 和每支腳的網路，用 pcbnew 放上去。但有兩個細節沒做好，DRC 的原理圖一致性檢查（`--schematic-parity`）會整片紅。
 
@@ -207,6 +223,8 @@ Command timeout after 30s: batch_connect
 重來的做法：刪掉空檔、重新放零件、先備份一份，再把連線切成 7 小批，每批十幾個，每批 10～20 秒，全部成功。
 
 > KiCad MCP 的批次工具有 30 秒逾時。每批控制在 10 個零件左右，動手前先備份 `.kicad_sch`。
+
+2.9.0 延長了批次指令的逾時，也可以用環境變數 `KICAD_MCP_COMMAND_TIMEOUT_MS` 把下限調高。另外，原理圖在 KiCad 裡開著的時候，2.9.0 會拒絕寫入（[#472](https://github.com/mixelpixx/KiCAD-MCP-Server/issues/472)）。逾時把檔案寫成 0 bytes 的問題在新版有沒有真的消失，我還沒實測，所以先備份這一步我會繼續留著。
 
 ## Freerouting 自動佈線與 DRC 收斂
 
