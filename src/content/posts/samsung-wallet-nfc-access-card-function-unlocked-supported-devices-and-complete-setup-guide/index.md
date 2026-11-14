@@ -1,8 +1,10 @@
 ---
 title: "三星錢包門禁卡設定教學：Samsung Wallet NFC 門禁卡支援機型與無法使用怎麼辦"
 date: 2025-06-30
-updated: 2026-10-22
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "支援機型改依三星台灣官方頁，補 S26、Z Fold7／Z Flip7 與 A56 5G"
   - date: 2026-10-22
     note: "改寫無法使用的排查段，依官方頁補安全元件設定、上鎖不能刷與八張上限"
 description: "三星錢包（Samsung Wallet）NFC 門禁卡設定教學：支援的 Galaxy 機型與 Android 15 系統需求、綁定與刷卡步驟，以及找不到「新增 NFC 門禁卡」選項、卡片加不進去、靠近讀卡機沒反應、系統更新後失效時，該依序檢查哪些設定。"
@@ -18,19 +20,15 @@ draft: false
 
 ## 哪些三星手機支援 NFC 門禁卡功能？
 
-根據[三星官方公告](https://www.samsung.com/hk/support/mobile-devices/nfc-access-card/?srsltid=AfmBOoo1r2T8vcuz7EZ5VQJxzaYMxaliVeke84q5FRzDnnHI9ACHQ24n)，裝置的系統版本必須是 Android 15 以上，最保險的做法就是更新到含有「6月的安全性更新」版本，才能使用「NFC 門禁卡」功能，目前以下裝置支援：
+根據[三星台灣官方說明頁](https://www.samsung.com/tw/support/mobile-devices/how-to-add-an-nfc-access-card-to-samsung-wallet)（最後更新 2026-07-24），系統要 Android 15（One UI 7.0）以上、Samsung Wallet 要 6.0.85 以上，才能使用「NFC 門禁卡」功能。官方頁列出的支援機型如下：
 
--   Galaxy Z 系列：
-    -   **Flip 系列**：Z Flip6、Z Flip5 5G、Z Flip4 5G、Z Flip3 5G
-    -   **Fold 系列**：Z Fold6、Z Fold5 5G、Z Fold4 5G、Z Fold3 5G
--   Galaxy S 系列：
-    -   **S25 全系列**：S25 Edge、S25 Ultra、S25+、S25
-    -   **S24 全系列**：S24 FE、S24 Ultra、S24+、S24
-    -   **S23 全系列**：S23 FE、S23 Ultra、S23+、S23
-    -   **S22 系列**：S22 Ultra、S22+、S22 (**FE 版本尚未支援**)
-    -   **S21 系列**：S21 Ultra、S21+、S21 (**FE 版本尚未支援**)
--   Galaxy A 系列：
-    -   A36 (**唯一支援的A系列**)
+-   Galaxy S 系列：S26 系列、S25 系列、S24 系列、S23 系列、S22 系列、S21 系列
+-   Galaxy Z Fold 系列：Z Fold7、Z Fold6、Z Fold5 5G、Z Fold4 5G、Z Fold3 5G
+-   Galaxy Z Flip 系列：Z Flip7、Z Flip6、Z Flip5 5G、Z Flip4 5G、Z Flip3 5G
+-   Galaxy A 系列：A36 5G、A56 5G
+-   未來新上市、NFC 有支援嵌入式安全元件的機型
+
+台灣頁是以「系列」列出，沒有逐一寫到 FE 機型。手上是 S21 FE、S22 FE 這類 FE 機型的話，請以 Wallet 裡有沒有出現新增門禁卡的選項為準。
 
 可支援裝置會持續更新，如果未支援到的使用者，請隨時關注三星官方公告，如果我有發現更新，也會在這裡一併更新。
 
