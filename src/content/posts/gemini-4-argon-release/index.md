@@ -1,8 +1,10 @@
 ---
 title: "Gemini 4 Argon 發布：分數很驚豔，但它不是每一項都贏"
 date: 2026-10-01
-updated: 2026-10-17
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "價格表補上 Batch／Flex 與 Priority 層級，並加上 Vertex 長輸出逾時仍計費的新規則"
   - date: 2026-10-17
     note: "Pro 已能在 agy 使用 Argon，補上長文整理、code review、跨檔案重構實測"
   - date: 2026-10-14
@@ -37,11 +39,18 @@ draft: false
 | 定位 | 新一代 frontier model，主打長流程的軟體工程、企業知識工作（法律、金融）、資安防禦 |
 | 輸出上限 | 1M token（前一代是 64K） |
 | 輸入 context | 公告沒有寫 |
-| 介紹期價格 | 輸入 $2／百萬 token、輸出 $10／百萬 token，到 2026 年 11 月 30 日 |
-| 介紹期後 | 12 月 1 日起輸入 $4、輸出 $20 |
+| 價格 | 介紹價到 2026 年 11 月 30 日，12 月 1 日起翻倍，各層級見下表 |
 | 快取輸入 | 輸入價打 5% 計，介紹期約 $0.10／百萬 token |
 | 首波開放對象 | 只有 Fairwind 計畫裡的資安防禦單位 |
 | 之後開放順序 | 先給付費 API 客戶與 Google AI Ultra 訂閱者，再擴大到開發者、企業、一般使用者 |
+
+Gemini API 的價格分三個層級，單位是美元／百萬 token，寫法是輸入／輸出（[官方價格頁](https://ai.google.dev/gemini-api/docs/pricing)）：
+
+| 層級 | 11 月 30 日前（介紹價） | 12 月 1 日起 |
+|------|----------------------|-------------|
+| Standard | $2.00／$10.00 | $4.00／$20.00 |
+| Batch、Flex | $1.00／$5.00 | $2.00／$10.00 |
+| Priority | $3.60／$18.00 | $7.20／$36.00 |
 
 最值得注意的數字是輸出上限：從 64K 一口氣拉到 1M，十幾倍。以前叫模型改一整個專案，常常寫到一半就被截斷，得拆成好幾輪。輸出能到 1M，代表一次吐出整批檔案的修改變得可行。
 
@@ -202,6 +211,8 @@ Flash 是直接拿到補好決策的版本，所以「看出規格寫錯」這�
 
 - 有付費 Gemini API 帳號的話，現在就能接，介紹價到 11 月 30 日
 - 預估長期成本時用 12 月起的 $4／$20 來算，不要用 $2／$10
+- 不急著拿結果的工作改走 Batch 或 Flex，12 月漲價後的單價是 $2／$10，等於現在 Standard 的介紹價
+- 走 Vertex AI 的話，2026 年 11 月 13 日起輸出超過 32K token 的請求，就算因為用戶端或伺服器逾時而失敗，可取回的 token 照樣計費（[Vertex 價格頁](https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing)）。Argon 一次能吐到 1M token，長輸出最好用串流接，或拆成幾個小任務，不要讓一個請求跑到逾時
 - 只有 Pro 的話，Gemini App 和 agy 都叫得到。長文件整理在 24 萬 token 內品質跟 Opus 差不多，超過就會被 agy 壓縮掉細節
 - 規格寫得清楚的重構、遷移，可以交給它一次規劃產出；要它挑 bug 的 code review，先別換
 - 如果你主要是用 coding agent 在終端機裡工作，不用急著換，Terminal-bench 的差距擺在那裡
@@ -217,6 +228,8 @@ Gemini 4 Argon 的分數確實驚豔，長文推理和法律、金融這類知�
 ## 參考資料
 
 - [Gemini 4 Argon: our next era of frontier intelligence（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)
+- [Gemini Developer API pricing（Google 官方價格頁）](https://ai.google.dev/gemini-api/docs/pricing)
+- [Generative AI pricing（Google Cloud Vertex 價格頁）](https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing)
 - [Gemini 4 Argon: Benchmarks, Pricing, and Access（DataCamp）](https://www.datacamp.com/blog/gemini-4-argon)
 - [Google DeepMind Unveils Gemini 4 Argon with 1M Output Tokens（MarkTechPost）](https://www.marktechpost.com/2026/09/30/google-deepmind-unveils-gemini-4-argon-with-1m-output-tokens-for-coding-knowledge-work-and-cyber-defense/)
 - [Gemini 4 Argon in Google Antigravity（Google Antigravity 官方部落格）](https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/)
