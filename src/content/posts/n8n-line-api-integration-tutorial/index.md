@@ -1,6 +1,10 @@
 ---
 title: "n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹"
 date: 2025-11-19
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "補 LINE 官方帳號 2026 年 11 月起的新月費級距，Reply Message 不計額度補官方出處"
 description: "完整教學如何在 n8n 中整合 Line Bot，從建立 Line Messaging API、設定憑證、安裝社群節點到實際測試互動功能。包含 Webhook 設定、Reply vs Push 差異解析、常見問題排查及實用應用情境,幫助你快速打造 Line 自動化工作流。"
 category: "n8n"
 tags: ["Automation", "LineBot", "n8n"]
@@ -146,6 +150,16 @@ Line Messaging 社群節點常用的功能有 Messaging Trigger、顯示載入�
 
 免費方案限制提醒：推送訊息（Push Message）功能要特別注意，Line 免費方案一個月每個 Line Bot 只能推送 200 次。如果你的應用需要大量推播（例如：每日通知給 100 位使用者），建議評估是否需要升級付費方案，或改用回應訊息（Reply Message）來節省額度。
 
+LINE 官方帳號從 2026 年 11 月 1 日起改用新月費（見[官方說明](https://tw.linebiz.com/column/LINEOA-2026-Price-Plan/)）：
+
+| 方案 | 月費 | 每月訊息則數 | 超過額度 |
+| --- | --- | --- | --- |
+| 輕用量 | 0 元 | 200 則 | 不能加購 |
+| 中用量 | 1,000 元 | 3,000 則 | 不能加購 |
+| 高用量 | 1,400 元 | 6,000 則 | 加購第 1–50,000 則每則 0.2 元，之後每則 0.15 元 |
+
+中用量不能加購這點要留意，每月超過 3,000 則就只能升級到高用量。LINE 跟 Discord、Telegram 在費用上的差異，可以參考 [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較](/n8n-line-discord-telegram-bot-comparison/)。
+
 #### Messaging Trigger
 
 節點名稱：`On Message`
@@ -184,7 +198,7 @@ UX 最佳適合使用時機：當你的工作流需要呼叫外部 API（如 Cha
 Reply Message 的技術限制與優勢：
 
 -   一次性使用：每個 reply token 只能使用一次，且有效期限為 60 秒，過期或重複使用都會失效
--   不計入額度：Reply Message 不會計入每月 200 次的免費額度，可以無限制使用
+-   不計入額度：Reply Message 不會計入每月的訊息額度，官方[計費說明](https://developers.line.biz/en/docs/messaging-api/pricing/)把 Reply messages 列在不計入的發送方式裡
 -   必須搭配事件：只能在收到 Webhook 事件後才能使用，無法主動發起
 -   適用情境：適合做即時回應，如聊天機器人、客服自動回覆、表單驗證回饋
 
@@ -343,7 +357,7 @@ Reply Token 有效期限只有 60 秒且只能使用一次。建議優化工作�
 
 **Q5：Push Message 額度用完**
 
-Line 免費方案每月只有 200 次 Push Message 額度。建議優先使用 Reply Message（不計額度），或將多則訊息整合成一則發送。若需求超過額度，可考慮升級付費方案。
+Line 免費方案每月只有 200 次 Push Message 額度。建議優先使用 Reply Message（不計額度），或將多則訊息整合成一則發送。若需求超過額度，可考慮升級付費方案：2026 年 11 月起中用量月費 1,000 元（3,000 則，不能加購）、高用量 1,400 元（6,000 則，可加購），完整級距見上方 2.3 節的表格。
 
 ## 使用情境與最佳實務
 
