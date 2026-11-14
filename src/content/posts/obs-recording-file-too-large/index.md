@@ -1,7 +1,11 @@
 ---
-title: "OBS 錄影檔太大怎麼辦？從一支超過 10 G 的錄影檔，實測搞懂 CBR、CQP、CRF 與 GPU 編碼"
+title: "OBS 錄影檔太大怎麼辦？實測 CBR、CQP 與 NVENC 設定"
 date: 2026-10-05
-description: "OBS 錄了兩個半小時的講座，檔案 11.6 GB。這篇從 ffprobe 看出元凶是 CBR 固定位元率，接著實測 NVENC 與 x264、H.264 與 HEVC，用 VMAF 在同畫質下比大小，最後整理出 OBS 錄影該怎麼設、已經錄好的大檔怎麼用 ffmpeg 救回來。"
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "收短標題、描述改為先講設定與實測大小，並補 OBS 32.0 起預設輸出格式改為 Hybrid MP4／MOV"
+description: "OBS 錄影檔太大，多半是錄影分頁沿用了串流的 CBR。把錄影編碼器改成 NVENC HEVC、目標畫質 30，兩個半小時的講座推估從 11.6 GB 降到約 2.8 GB；已經錄好的大檔用 ffmpeg 重壓，實測 1.04 GB。附 VMAF 同畫質下 NVENC 與 x264 的比較。"
 category: "tools"
 tags: ["performance"]
 cover: "./images/cover.webp"
@@ -225,6 +229,8 @@ NVENC HEVC 三項全贏：小了 25%、分數每段都高 2～3 分、時間少�
 - 用 HEVC：同畫質下比 H.264 小，近幾代 NVIDIA 顯示卡都支援。
 - 最高位元速率：在固定畫質模式下，它只是保險，避免畫面劇烈變動時位元率衝太高。平常錄講座根本碰不到。
 - 用 mkv：萬一 OBS 當掉或電腦斷電，已經錄下的部分還能用。mp4 沒寫完就整個打不開。
+
+補充一點：OBS 32.0 起，新建設定檔的預設輸出格式已經改成 Hybrid MP4／MOV（[32.0.0 release notes](https://github.com/obsproject/obs-studio/releases/tag/32.0.0)：「Hybrid MP4/MOV is now out of beta and has been made the default output format for new profiles」）。它錄到一半中斷時檔案還能不能開，我還沒實測，所以上表仍寫 mkv。
 
 以這支講座來推估，目標畫質 30 大約是 2.5 Mbps，兩個半小時約 2.8 GB；目標畫質 27 大約 4 Mbps，約 4.5 GB。跟原本的 11.6 GB 比，畫質還更好。
 
