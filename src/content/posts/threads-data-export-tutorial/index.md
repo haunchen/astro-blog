@@ -1,6 +1,10 @@
 ---
 title: "Threads 資料匯出教學 - 完整圖文步驟指南"
 date: 2025-12-31
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "回顧年份改為 2026，日期範圍改建議用自訂"
 description: "從 Instagram 帳號管理中心匯出 Threads 資料的完整圖文步驟：選擇自訂資料與日期範圍、格式選 JSON、設定影像畫質後開始匯出，再把下載的 ZIP 壓縮檔上傳到 Threads Wrapped 產生年度回顧統計圖，全程約 5 分鐘。"
 category: "tools"
 tags: ["threads", "教學", "資料匯出"]
@@ -8,7 +12,7 @@ cover: "./images/cover.webp"
 draft: false
 ---
 
-想要回顧你在 Threads 上的 2025 年嗎？在使用 [Threads Wrapped 年度回顧](https://threads-wrapped.frankchen.tw/) 之前，你需要先從 Instagram 匯出你的 Threads 資料。這篇教學將帶你一步步完成資料匯出，整個過程大約只需要 5 分鐘。
+想要回顧你在 Threads 上的 2026 年嗎？在使用 [Threads Wrapped 年度回顧](https://threads-wrapped.frankchen.tw/) 之前，你需要先從 Instagram 匯出你的 Threads 資料。這篇教學將帶你一步步完成資料匯出，整個過程大約只需要 5 分鐘。
 
 Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建議使用電腦進行操作。
 
@@ -33,10 +37,12 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 ## 第三步：設定匯出資料的內容
 
 9.  **自訂資料**：選擇「Threads」
-10.  **日期範圍**：選擇「去年」或「自訂」設定 2025/1/1~2025/12/31
+10.  **日期範圍**：建議選「自訂」，設定 2026/1/1～2026/12/31。如果是 12 月中就匯出，結束日設成當天即可
 11.  **格式**：選擇「JSON」
 
-![自訂資料選擇 Threads、日期範圍設定 2025 年、格式選擇 JSON 的三步驟設定畫面](./images/threads-date-format-selection.webp)
+選單裡也有「去年」之類的預設選項，但新版介面的選項名稱和涵蓋的期間我還沒確認，用自訂日期最不會出錯，實際以你看到的畫面為準。
+
+![自訂資料選擇 Threads、日期範圍設定 2025 年、格式選擇 JSON 的三步驟設定畫面（截圖為 2025 年版介面）](./images/threads-date-format-selection.webp)
 
 ## 第四步：匯出 Threads 資料
 
@@ -60,7 +66,7 @@ Threads Wrapped 最後有互動效果，為了獲得最佳的操作體驗，建�
 
 別忘了最後可以下載統計圖，分享到你的 Threads 或 Instagram 限時動態！
 
-![Threads Wrapped 產生的 2025 年度回顧統計圖，顯示發文數、互動數等數據](./images/threads-wrapped-annual-stats-result.webp)
+![Threads Wrapped 產生的 2025 年度回顧統計圖，顯示發文數、互動數等數據（截圖為 2025 年版介面）](./images/threads-wrapped-annual-stats-result.webp)
 
 ## 常見問題
 
