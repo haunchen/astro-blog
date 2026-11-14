@@ -1,8 +1,10 @@
 ---
 title: "n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議"
 date: 2026-01-15
-updated: 2026-10-23
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "更正三平台收訊息方式與 Discord 速率限制，LINE 普及率改用尼爾森調查"
   - date: 2026-10-23
     note: "更新 LINE 官方帳號 2026 年 11 月起的新月費與加購級距"
 description: "用 n8n 做自動化通知，該選 LINE、Discord 還是 Telegram？本文從設定難度、免費訊息額度、費用與 n8n 節點支援逐項比較，並更新 LINE 官方帳號 2026 年 11 月 1 日起的新月費（中用量 1,000 元、高用量 1,400 元），附四種實戰情境的選擇建議。"
@@ -35,7 +37,7 @@ n8n 工作流程跑完了，結果你不知道成功還是失敗，除非自己�
 | n8n 節點 | 社群節點 | 官方節點 | 官方節點 |
 | 免費訊息 | 200 則/月 | 無限制 | 無限制 |
 | 適合情境 | 台灣 B2C、客服 | 社群管理、團隊協作 | 個人通知、技術監控 |
-| 台灣普及率 | 極高（99%） | 中等 | 較低 |
+| 台灣普及率 | 極高（約 93%） | 中等 | 較低 |
 
 如果你趕時間，這裡是結論：
 
@@ -49,7 +51,7 @@ n8n 工作流程跑完了，結果你不知道成功還是失敗，除非自己�
 
 ### 為什麼選擇 LINE Bot？
 
-LINE 在台灣的使用率達到 99.4%，月活躍用戶超過 2200 萬。如果你的目標受眾是台灣一般民眾，LINE Bot 幾乎是唯一選擇。
+根據[尼爾森 2025 年的調查](https://www.nownews.com/news/6757935)，台灣 15–65 歲的人有 93% 在七天內用過 LINE，月活躍用戶超過 2200 萬。如果你的目標受眾是台灣一般民眾，LINE Bot 幾乎是唯一選擇。
 
 LINE Bot 的優勢：
 
@@ -156,15 +158,15 @@ Discord 是 n8n 官方支援的節點，功能完整且持續維護。不過設�
 
 ### 費用與限制
 
-Discord Bot API 完全免費，但為了防止濫用，[API 請求有頻率限制](https://discord.com/developers/docs/topics/rate-limits)：
+Discord Bot API 完全免費，但為了防止濫用，[API 請求有頻率限制](https://docs.discord.com/developers/topics/rate-limits)：
 
 | 限制類型 | 數值 |
 | --- | --- |
 | 全域請求 | 50 次/秒 |
-| 單一頻道訊息 | 5 則/秒 |
+| 個別路由（例如對單一頻道發訊息） | 官方不公布，以回應的 X-RateLimit 標頭為準 |
 | 無效請求限制 | 10,000 次/10 分鐘 |
 
-一般自動化通知不太會超過這些限制，但批次發送時建議加入延遲節點。
+Discord 只公布全域每秒 50 次這個數字，對單一頻道發訊息這類個別路由的上限不寫死，每次 API 回應會在 `X-RateLimit-*` 標頭告訴你還剩幾次、多久重置。一般自動化通知碰不到這些限制，批次發送時再加延遲節點就好。
 
 ### 適合情境
 
@@ -185,7 +187,7 @@ Telegram Bot 的優勢：
 -   設定門檻最低，跟 BotFather 聊天就能建立
 -   完全免費，無訊息數量限制
 -   API 開放且文件完整
--   支援 Long Polling 和 Webhook 兩種模式
+-   Bot API 支援 Long Polling 和 Webhook 兩種模式（但 n8n 的 Telegram Trigger 只用 Webhook，見下方 Trigger 比較）
 -   Local Bot API 可突破檔案限制（最大 2GB）
 -   技術族群接受度高
 
@@ -257,16 +259,19 @@ LINE 使用社群節點，更新速度取決於社群開發者。Discord 和 Tel
 
 ### Trigger 節點比較
 
-三個平台中，只有 Telegram 有官方 Trigger 節點，而且支援 Long Polling 模式，沒有固定 IP 或 SSL 憑證也能接收訊息。LINE 和 Discord 都需要社群節點，且必須透過 Webhook 接收訊息。
+三個平台中，只有 Telegram 有官方 Trigger 節點。Telegram Bot API 本身支援 Long Polling，但 n8n 的 Telegram Trigger 只會呼叫 `setWebhook`（見[節點原始碼](https://github.com/n8n-io/n8n/blob/master/packages/nodes-base/nodes/Telegram/TelegramTrigger.node.ts)），所以 n8n 一定要有公開的 HTTPS 網址。Telegram 對 Webhook 的要求是有效的 SSL 憑證，埠號只能用 443、80、88、8443（見 [Bot FAQ](https://core.telegram.org/bots/faq)）。
+
+LINE 要靠社群節點，透過 Webhook 接收訊息，一樣需要公開網址。Discord 也要裝社群節點，但它是讓 Bot 經由 Gateway 連線收訊息，不走 Webhook，也不需要公開網址，這點反而是三者中對自架環境最友善的。
 
 | 功能 | LINE | Discord | Telegram |
 | --- | --- | --- | --- |
 | 接收文字訊息 | ✅ | ✅\* | ✅ |
 | 接收圖片/檔案 | ✅ | ✅\* | ✅ |
-| Webhook 模式 | ✅ 必須 | ✅\* | ✅ 可選 |
-| Long Polling | ❌ | ❌ | ✅ |
+| Webhook 模式 | ✅ 必須 | ❌ 走 Gateway\* | ✅ 必須 |
+| Long Polling | ❌ | ❌ | ❌（Bot API 支援，n8n 節點沒用） |
+| 需要公開 HTTPS 網址 | ✅ | ❌ | ✅ |
 
-\*Discord 需安裝社群節點 [n8n-nodes-discord-trigger](https://github.com/katerlol/n8n-discord-trigger)
+\*Discord 需安裝社群節點 [n8n-nodes-discord-trigger](https://github.com/katerlol/n8n-discord-trigger)。這個節點不在 n8n 的已驗證清單裡，n8n 3.0 起 `N8N_UNVERIFIED_PACKAGES_ENABLED` 預設為 false，未驗證的社群節點不會載入，要自己把這個環境變數打開（見 [n8n 3.0 breaking changes](https://docs.n8n.io/changelog/v30-breaking-changes)）。
 
 ### 發送訊息功能比較
 
@@ -363,7 +368,7 @@ n8n 可以輕鬆實現多平台同步通知，讓不同受眾在自己習慣的�
 | 需求 | 推薦平台 | 原因 |
 | --- | --- | --- |
 | 最快上手 | Telegram | 5 分鐘完成設定 |
-| 台灣市場 | LINE | 99% 使用率 |
+| 台灣市場 | LINE | 約 93% 七天內用過 |
 | 社群經營 | Discord | 頻道管理強大 |
 | 完全免費 | Telegram / Discord | 無訊息限制 |
 | 企業行銷 | LINE | 官方帳號功能完整 |
