@@ -1,6 +1,10 @@
 ---
-title: "私密資料不上傳！將 v0.dev 生成的 Web 應用程式部署到你自己的 Ubuntu 伺服器"
+title: "私密資料不上傳！將 v0（原 v0.dev）生成的 Web 應用程式部署到自己的 Ubuntu 伺服器"
 date: 2025-06-14
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "v0.dev 連結改為 v0.app，修正 localhost 網址錯字，標註文中為 2025 年實測版本"
 description: "本篇文章介紹了如何在自己的伺服器上執行由 Vercel 的 v0.dev 生成的 Web 應用，特別針對 Ubuntu 系統提供安裝 Node.js 和 pnpm 的步驟，並指導用戶如何啟動本地開發及正式環境伺服器，以便私有資料不需上傳到網絡平台。"
 category: "devops"
 tags: ["Node.js", "Ubuntu", "v0.dev", "Vercel"]
@@ -10,9 +14,9 @@ draft: false
 
 ## 前言
 
-現在有很多 AI 相關的應用如雨後春筍般出現，[Vercel](https://vercel.com) 旗下的 [v0.dev](https://v0.dev/) 提供一個線上的環境供使用者可以透過自然語言設計自己的 Web 應用，且在建立完成後還可以一鍵發佈，縮減產品上線步驟。
+現在有很多 AI 相關的應用如雨後春筍般出現，[Vercel](https://vercel.com) 旗下的 [v0（原 v0.dev）](https://v0.app/) 提供一個線上的環境供使用者可以透過自然語言設計自己的 Web 應用，且在建立完成後還可以一鍵發佈，縮減產品上線步驟。
 
-接下來我將一步步帶你如何在自己的伺服器上執行 v0.dev 生成的 Web 應用程式，本篇教學以 `Ubuntu` 系統為主。
+接下來我將一步步帶你如何在自己的伺服器上執行 v0 生成的 Web 應用程式，本篇教學以 `Ubuntu` 系統為主。
 
 ## 系統環境
 
@@ -21,6 +25,8 @@ draft: false
 -   Ubuntu: 22.04 LTS
 -   Node.js: 22.16
 -   pnpm: 10.12.1
+
+本文為 2025 年實測版本，Node 22 已進入維護期。
 
 ## 安裝必要套件
 
@@ -63,7 +69,7 @@ pnpm install
 pnpm dev
 ```
 
-這將啟動一個本地開發伺服器，可以直接在瀏覽器輸入 `htpp://localhost:3000` 前往。
+這將啟動一個本地開發伺服器，可以直接在瀏覽器輸入 `http://localhost:3000` 前往。
 
 -   執行正式環境
 
@@ -72,10 +78,10 @@ pnpm build
 pnpm start
 ```
 
-這將啟動一個本地正式伺服器，可以直接在瀏覽器輸入 `htpp://localhost:3000` 前往。
+這將啟動一個本地正式伺服器，可以直接在瀏覽器輸入 `http://localhost:3000` 前往。
 
 ## 小結
 
-以上就是針對將 [v0.dev](https://v0.dev/) 產生的專案部署到自己的伺服器上，如果不想把私人的資料上傳到網站的話可以使用此方法。
+以上就是針對將 [v0（原 v0.dev）](https://v0.app/) 產生的專案部署到自己的伺服器上，如果不想把私人的資料上傳到網站的話可以使用此方法。
 
 伺服器跑起來後，通常還需要幾個後續步驟：申請免費 SSL 憑證可以參考 [使用 Certbot 建立免費 SSL 憑證](/create-free-ssl-domain-certificates-using-certbot/)；若專案規模增大、部署複雜度上升，也可以考慮 [將 Node.js 專案容器化（Docker）](/nodejs-docker-ubuntu-containerization-tutorial/) 來管理環境；在 Next.js 應用上線後如果遇到記憶體用量偏高，可以參考 [geoip-lite 記憶體優化實戰](/nextjs-geoip-memory-optimization/) 的降級策略思路。
