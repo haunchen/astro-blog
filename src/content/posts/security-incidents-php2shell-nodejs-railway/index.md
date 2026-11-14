@@ -1,8 +1,10 @@
 ---
 title: "一天三起資安事件：Node.js 安全更新、PHP php2shell、Railway 環境變數外洩，怎麼預防與應變"
 date: 2026-10-22
-updated: 2026-10-25
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "補 Node.js 11 月 11 日安全更新的修正版，n8n 映像截至 11/14 仍未跟上"
   - date: 2026-10-25
     note: "n8n 已有修正版並補升級實測；補 Railway 初步報告與 Synology 公告"
 description: "2026 年 10 月 21 日同一天，Node.js 發布 4 個 High 的安全更新、PHP 的 php2shell 漏洞細節在修補前外洩、Railway 公告環境變數被存取。這篇拆解三起事件各自的形狀，附上我盤點 137 個 repo 與家用伺服器的實際過程，以及平常該做的預防和出事時的應變順序。"
@@ -11,6 +13,8 @@ tags: ["security", "deployment"]
 cover: "./images/cover.webp"
 ---
 ## 前言：10 月 21 日這一天
+
+> 11 月更新：Node.js 在 2026 年 11 月 11 日又發布了一次安全更新，修正版是 22.23.5、24.22.3、26.13.1（見[官方公告](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases)）。下文的盤點與修補是 10 月那次的紀錄，版本號照當時寫；現在驗收請以最新公告的修正版為準。
 
 2026 年 10 月 21 日，以下時間都換成台灣時間，同一天發生了三件事：
 
@@ -117,7 +121,7 @@ docker compose build --pull && docker compose up -d
 docker exec <容器名> node -v
 ```
 
-`--pull` 不能省。沒加的話 Docker 會用本機快取的舊 base image，build 完還是舊版。官方的 `node:22-alpine` 在 10 月 21 日就已經換成 22.23.4 了。
+`--pull` 不能省。沒加的話 Docker 會用本機快取的舊 base image，build 完還是舊版。官方的 `node:22-alpine` 在 10 月 21 日就已經換成 22.23.4 了；11 月 11 日那次安全更新之後，重建要拿到的是 22.23.5。
 
 驗證要看的是 `node -v` 的輸出，不是「build 成功」那行字。我的記帳服務除了看版本，還另外打了一次會查資料庫的 health 端點，確認重建後服務真的活著。
 
@@ -167,7 +171,9 @@ done'
 
 升完 log 會多一條 Python task runner 起不來的警告，因為映像裡沒有 Python。我查過沒有 workflow 用到 Python 的 Code 節點，就沒處理。
 
-你自己的 n8n 升完，用 `docker exec n8n node -v` 確認，看到 26.12.1 或 24.22.1 才算數。
+你自己的 n8n 升完，用 `docker exec n8n node -v` 確認，版本以最新安全公告的修正版為準。截至 11 月 14 日，最新的是 11 月 11 日那次：22.23.5、24.22.3、26.13.1。
+
+不過我用同樣的方法讀了 n8n 官方映像的設定，11 月 14 日當下內建的還是 Node 26.13.0，沒跟上這次的修正版。情況跟 10 月 21 日那次一樣，得等 n8n 出新映像，期間可以在自己的主機跑 `docker exec n8n node -v` 確認目前的版本。
 
 ### 坑三：nvm 刪舊版，把 pm2 一起帶走
 
@@ -496,6 +502,7 @@ PHP 那件讓我想到，應變時間從來不是你決定的。這次細節外�
 Node.js：
 
 - [Node.js — October 2026 Security Releases](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases)：CVE 清單與修正版本
+- [Node.js — November 2026 Security Releases](https://nodejs.org/en/blog/vulnerability/november-2026-security-releases)：11 月 11 日的修正版本
 
 PHP：
 
