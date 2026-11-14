@@ -1,6 +1,10 @@
 ---
 title: "Zeabur 結束營運搬家：我用 Claude Code 把 8 個服務搬出 Zeabur 的實際流程"
 date: 2026-10-17
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "補上官方 10 月 22 日公布的遷移建議期限、退款申請截止與資料刪除時程"
 description: "Zeabur 宣布 2026 年底結束營運，共享叢集 12 月 1 日就暫停。這篇用我 7 月實際搬走 8 個服務的流程，講盤點、依服務類型選落點、資料庫與 n8n 備份、DNS 零空窗切換、批次驗收與網域轉出，以及哪些步驟可以交給 Claude Code，哪些一定要自己按。"
 category: "devops"
 tags: ["deployment", "Cloudflare"]
@@ -17,11 +21,12 @@ Zeabur 在 2026 年 10 月 17 日寄信宣布停止營運。信裡最該畫線�
 | 你用的是 | 死線 |
 |---------|------|
 | 共享叢集 | 12 月 1 日起所有服務暫停（可手動恢復來備份資料） |
-| 專用伺服器 | 12 月 1 日起停止續費，依各自到期日在 12 月陸續關閉 |
-| 全部 | 12 月 31 日停止 |
-| 資料刪除日、最晚匯出期限 | 還沒公布 |
+| 專用伺服器 | 12 月 1 日起停止續費，在各自到期日關閉並刪除資料，可能早於 12 月 31 日 |
+| 全部（官方建議） | 11 月 30 日前完成網站、應用程式、資料庫遷移 |
+| 退款工單、資安損失申請 | 11 月 30 日截止 |
+| 全部（最終） | 12 月 31 日所有服務停止，服務資料一併刪除 |
 
-如果你在共享叢集上，從公告那天算起只剩 45 天。
+上面的時程以 Zeabur 10 月 22 日的[官方說明](https://zeabur.com/blogs/migration-refunds-and-security-claims)為準，原文寫的是「Recommended deadline: complete all migration by November 30」。如果你在共享叢集上，從公告那天算起只剩 45 天。
 
 我 7 月剛好搬過一次。當時 Zeabur 上有 8 個服務：一個 nginx 反向代理、WordPress 加 MariaDB 加 Redis，以及 4 個用 Caddy 跑的靜態 landing page。搬家的原因跟後來的事件無關，是 WordPress 已經被我自己寫的 Astro 部落格取代，剩下的東西沒理由再放在那裡。
 
@@ -233,7 +238,7 @@ Zeabur 這次還有兩件事要申請，信裡寫明是**兩張不同的單**：
 - 帳戶餘額退款
 - 資安事件的損失賠償
 
-都走 Zeabur Support，申請時寫清楚是哪一項。
+都走 Zeabur Support，申請時寫清楚是哪一項。兩張單都在 11 月 30 日截止。
 
 ## 交給 AI 搬家，要注意什麼
 
@@ -257,11 +262,11 @@ Zeabur 在停止營運的信裡說，會提供給 Claude Code、Codex 這類 cod
 
 **共享叢集和專用伺服器的死線差在哪？**
 
-共享叢集 12 月 1 日起全部暫停，專用伺服器依各自到期日在 12 月陸續關閉，最晚 12 月 31 日。
+共享叢集 12 月 1 日起全部暫停。專用伺服器在各自到期日關閉並刪除資料，可能比 12 月 31 日早，要先查自己那台哪天到期。
 
 **12 月 1 日之後，共享叢集的資料還救得回來嗎？**
 
-官方說暫停後仍可手動恢復服務來備份，但資料刪除日還沒公布，建議現在就先備份一次。
+官方說暫停後仍可手動恢復服務來備份，但 12 月 31 日服務資料就會刪除，官方建議的遷移期限是 11 月 30 日。現在就先備份一次。
 
 **搬到新平台後，環境變數可以照抄嗎？**
 
@@ -274,7 +279,8 @@ Zeabur 在停止營運的信裡說，會提供給 Claude Code、Codex 這類 cod
 ## 參考資料
 
 - [從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)：搬家前的資安處理清單
-- [Zeabur 停止營運通知信全文（LINUX DO 論壇轉貼）](https://linux.do/t/topic/3035894)：時程與退款、賠償說明
+- [Migration, Refunds, and Security Claims（Zeabur 官方部落格，2026-10-22）](https://zeabur.com/blogs/migration-refunds-and-security-claims)：遷移建議期限、退款與資安損失申請、資料刪除時程
+- [Zeabur 停止營運通知信全文（LINUX DO 論壇轉貼）](https://linux.do/t/topic/3035894)：10 月 17 日通知信原文
 - [Zeabur Status — Incident 1091243](https://status.zeabur.com/incident/1091243)：10 月事件公告
 - [n8n CLI commands](https://docs.n8n.io/hosting/cli-commands/)：workflow 與 credentials 匯出匯入
 - [PostgreSQL pg_dump 文件](https://www.postgresql.org/docs/current/app-pgdump.html)
