@@ -1,22 +1,27 @@
 ---
-title: "Gemini CLI 安裝與常用指令教學（免費額度政策已異動）"
+title: "Gemini CLI 安裝與指令教學（個人帳號已停用，僅剩付費 API Key 與企業授權）"
 date: 2025-06-26
-updated: 2026-07-23
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "改寫警語：個人帳號自 2026-06-18 起停用，Node.js 需求改為 20 以上"
   - date: 2026-07-23
     note: "加註免費額度政策已異動，並修正 MCP 文件連結"
-description: "Google 開源的 Gemini CLI 安裝教學與常用指令整理：Node.js 環境需求、Google 帳號與 API Key 等三種登入方式，以及 /chat、/mcp、/tools 等指令用法。注意免費額度政策已於發文後調整，文中數字僅代表 2025-06 當時狀況。"
+description: "Gemini CLI 安裝與指令整理：Node.js 20 以上環境、三種登入方式，以及 /chat、/mcp、/tools 等指令用法。2026-06-18 起個人帳號已停用，只剩付費 API Key 與 Gemini Code Assist 企業授權可用，個人用戶建議改用 Antigravity CLI。"
 category: "tools"
 tags: ["AI", "Gemini"]
 cover: "./images/cover.webp"
 draft: false
 ---
 
-> **2026-07-23 更新**：本文發表於 2025-06，當時 Gemini CLI 提供相當寬鬆的免費額度。
-> 之後 Google 調整了額度政策，一般訂閱方案已不再適用文中所述的免費用量，
-> 下方「使用額度」一節的數字僅代表發文當時的狀況。實際可用額度請以
-> [官方 Github](https://github.com/google-gemini/gemini-cli) 的最新說明為準。
-> 本文的安裝步驟與指令用法仍然適用。
+> **個人帳號已無法使用 Gemini CLI。** 本文發表於 2025-06，當時用 Google 帳號登入就有相當寬鬆的免費額度。
+> 2026 年 6 月 18 日起，Gemini CLI 停止服務 Google AI Pro、AI Ultra 與免費個人帳號，
+> 只剩 Gemini Code Assist Standard／Enterprise 授權與付費 API key 可以用。
+> 個人用戶官方建議改用 Antigravity CLI（`agy`），說明見 Google 的
+> [轉移公告](https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/)與
+> [GitHub Discussion #28017](https://github.com/google-gemini/gemini-cli/discussions/28017)。
+> 下方「使用額度」一節的數字僅代表 2025-06 當時的狀況。Pro 帳號在 agy 上叫 Gemini 4 Argon 的實測，
+> 見〈[Gemini 4 Argon 發布](/gemini-4-argon-release/)〉。
 
 Google 推出了免費的 Gemini CLI 工具，看來 Claude Code 遇到對手了。安裝教學，指令列表。
 
@@ -26,7 +31,7 @@ Google 推出了免費的 Gemini CLI 工具，看來 Claude Code 遇到對手了
 
 ### 先決條件
 
-確保電腦已安裝 [Node.js 18](https://nodejs.org/en/download) 或是更高版本。
+確保電腦已安裝 [Node.js 20](https://nodejs.org/en/download) 或是更高版本。
 
 ### 執行 CLI 安裝
 
@@ -47,7 +52,7 @@ gemini
 
 這邊有三個選項可以選擇：
 
--   Login with Google: 透過你的 Google 帳戶直接登入
+-   Login with Google: 透過你的 Google 帳戶直接登入（2026-06-18 起個人帳號已不可用）
 
 -   Gemini API Key: 需前往 [Google AI Studio](https://aistudio.google.com) 申請 API Key
 
@@ -151,14 +156,14 @@ gemini
 
 ## Gemini CLI 使用額度
 
-> 這一節的數字是 2025-06 發文當時的狀況，Google 之後已調整額度政策，
-> 一般訂閱方案不再適用。保留原文供對照，實際額度請查閱官方最新說明。
+> 這一節的數字是 2025-06 發文當時的狀況。2026-06-18 起個人帳號已無法使用 Gemini CLI，
+> 這些免費額度都不存在了，保留原文只作紀錄。
 
 根據官方文件，一分鐘可調用 60 次模型，一天可調用 1000 次模型
 
 這對於一般使用者來說額度絕對夠用，而且還是使用最新的 `gemini-2.5-pro` 模型
 
-當時就在想免費使用不知道會持續多久——結果一年多後政策果然收緊了。
+當時就在想免費使用不知道會持續多久——結果先是額度收緊，一年後個人帳號直接停用。
 
 ---
 
