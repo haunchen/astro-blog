@@ -1,12 +1,14 @@
 ---
-title: "中華電信下載 GitHub 速度超慢？實測開 Cloudflare WARP 快了上百倍"
+title: "中華電信下載 GitHub 超慢？問題在 Fastly，實測開 Cloudflare WARP 快上百倍"
 date: 2026-10-07
-description: "用中華電信 HiNet 下載 GitHub release 大檔，單一連線只剩每秒 0.04 到 0.28 MB，Cloudflare 測速卻有 31 MB/s。這篇用三個指令確認問題出在 HiNet 往 Fastly 的路徑，實測開 WARP 後回到每秒 32.5 MB，並附不能開 WARP 時的分段下載法。"
+description: "中華電信 HiNet 下載 GitHub release 大檔，單一連線只剩每秒 0.04 到 0.28 MB，Cloudflare 測速卻有 31 MB/s。問題在往 Fastly 的路徑，X（Twitter）圖片影片、PyPI 也會一樣慢。實測開 WARP 回到每秒 32.5 MB，並附分段下載法。"
 category: "tools"
 tags: ["Cloudflare", "esp32", "arduino", "performance"]
 cover: "./images/cover.webp"
-updated: 2026-10-09
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "FAQ 補 IPv6 繞道的使用者回報與限制，標題與描述帶入 Fastly、X 與 PyPI"
   - date: 2026-10-09
     note: "補充 PyPI 也走 Fastly，大型套件同樣會變慢"
 ---
@@ -248,6 +250,10 @@ esptool --port COM6 --baud 460800 write-flash 0x1000 ESP32_GENERIC-20260824-v1.2
 ### 只有 GitHub 慢嗎？
 
 走 Fastly CDN 的服務都可能受影響，包括 Twitter 的圖片影片、raw.githubusercontent.com、PyPI 的大型套件，以及這篇測到的 GitHub release 下載。
+
+### 有 IPv6 的話能不能繞過？
+
+有使用者回報，出問題的只有 IPv4 那條 Fastly 往 HiNet 的路徑，所以在 DNS 手動補上 AAAA 紀錄、讓連線改走 IPv6，就能繞過去（[TimLiuDev 的 HackMD 筆記](https://hackmd.io/@TimLiuDev/rJInZmWsMg)）。不過原作者自己也註明，寫死的位址不在 GitHub 官方文件裡，隨時可能失效，失效時連線會默默退回 IPv4，你不會收到任何提示。目前只有少數用戶測過，我自己沒有實測，不建議當成正式解法。
 
 ### Cloudflare WARP 要付費嗎？
 
