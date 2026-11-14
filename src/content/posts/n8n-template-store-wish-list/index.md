@@ -1,6 +1,10 @@
 ---
 title: "【 n8n 模板分享 】探店心願助手"
 date: 2025-08-09
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "模板下載連結已失效，改為私訊索取"
 description: "分享一套「探店心願助手」n8n 模板：透過 LINE 上傳截圖或 IG、FB 連結，用 Gemini 分析圖片、SERP 查 Google Map 補齊店家資料並寫入 Google Sheet，支援新增、查詢、標記已踩點、刪除與重置等功能。"
 category: "n8n"
 tags: ["n8n", "工作流程", "模板"]
@@ -24,12 +28,12 @@ Facebook、Instagram 等社交平台時常看到創作者分享的美食、遊�
 
 ![探店心願助手 n8n 工作流全覽，包含 Line Bot 觸發、Gemini 圖片分析、SERP 查詢、Google Sheet 寫入等節點](./images/workflow-overview.webp)
 
-## 模板下載
+## 索取模板
 
-下載壓縮檔後解壓縮，壓縮檔裡面提供兩個檔案：
+模板包含兩個檔案，需要的話請透過[聯絡我](/contact-frank/)頁面的 Email 或 Threads 私訊我索取：
 
 -   工作流模板：n8n 工作流 JSON 檔
--   Excel 模板：會使用到的 Excel，下載後請上傳到 Google Drive
+-   Excel 模板：會使用到的 Excel，拿到模板檔後請上傳到 Google Drive
 
 ## 使用哪些第三方服務
 
@@ -82,7 +86,7 @@ Facebook、Instagram 等社交平台時常看到創作者分享的美食、遊�
 
 操作影片請前往 [Threads 文章](https://www.threads.com/@frank.dev.notes/post/DNHtXbcSzXy?xmt=AQF0Oq_XcQDogXV61rKMp5912T4MgCmySVO0q4ALep3vrA) 觀看。
 
-如果你執行上有問題，可以到 [Threads](https://www.threads.com/@frank.dev.notes) 或是 [IG](https://www.instagram.com/frank.dev.notes/) 直接私訊我～
+如果你執行上有問題，可以透過[聯絡我](/contact-frank/)頁面的 Email 或 Threads 私訊我～
 
 ## 延伸閱讀
 
