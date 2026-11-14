@@ -1,6 +1,10 @@
 ---
 title: "【 n8n 功能更新 】Data Table 終於支援 CSV 匯出匯入功能！模板分享更方便"
 date: 2025-12-09
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "Docker 改建議 stable 或明確版本，補 n8n 3.0 停止支援 npm 安裝與升級前注意事項"
 description: "n8n 1.122.2 起 Data Table 支援 CSV 匯出與匯入功能。說明匯出匯入的操作位置、匯入前必須刪除 id、createdAt、updatedAt 等系統欄位的踩雷經驗、資料型態自動辨識規則，以及這項更新對模板分享生態的實際幫助。"
 category: "n8n"
 tags: ["Automation", "DataTable", "n8n"]
@@ -20,8 +24,10 @@ draft: false
 
 如果你是自架 n8n，可以透過以下方式更新：
 
--   Docker：更新 image tag 至 `n8nio/n8n:1.122.2` 或 `n8nio/n8n:latest`
--   npm：執行 `npm update -g n8n`
+-   Docker：image tag 建議用 `n8nio/n8n:stable` 或寫死明確版本（例如 `n8nio/n8n:1.122.2`），不要用 `latest`
+-   npm：執行 `npm update -g n8n`（n8n 3.0 起不再支援 npm／npx 安裝，改用 Docker 或官方安裝方式，見 [n8n 3.0 breaking changes](https://docs.n8n.io/changelog/v30-breaking-changes)）
+
+不建議用 `latest` 的原因是 n8n 3.0 的 stable 預計 12 月初推出（見[官方公告](https://blog.n8n.io/introducing-n8n-v3/)），之後 `latest` 可能指向 3.x。升到 3.x 就無法退回 2.x，升級前先跑官方的 Migration Report 確認自己的工作流程有沒有受影響。
 
 ## 我的實測結果
 
