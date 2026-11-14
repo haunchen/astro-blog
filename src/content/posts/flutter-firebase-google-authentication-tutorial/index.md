@@ -1,6 +1,10 @@
 ---
 title: "Flutter x Firebase 身份驗證超簡單！手把手教你串接 Google 登入功能"
 date: 2025-06-13
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "補 google_sign_in 版本提醒：本文為 6.x 寫法，7.x 有 breaking change"
 description: "從建立 Firebase 專案、安裝 Firebase CLI 與執行 flutterfire configure，到開啟 Authentication、產生 Android SHA 指紋並實作 Google 登入的完整流程，附 main.dart 範例程式碼與原始碼連結。"
 category: "flutter"
 tags: ["Firebase", "Flutter", "google"]
@@ -113,6 +117,15 @@ keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
 ## 實作 Google 登入
 
 以下為 main.dart 的程式碼。本範例核心使用了 `StatefulWidget`，它負責管理登入狀態與使用者資訊的動態更新，若你對 `StatefulWidget` 與 `StatelessWidget` 的選擇不熟悉，可以先看[這篇 StatefulWidget vs StatelessWidget 學習筆記](/flutter-study-writing-statefulwidget-vs-statelesswidget/)。
+
+> 版本提醒：本文程式碼是 `google_sign_in` 6.x 的寫法，`pubspec.yaml` 請鎖在 6.x：
+>
+> ```yaml
+> dependencies:
+>   google_sign_in: ^6.2.1
+> ```
+>
+> `google_sign_in` 7.0.0（2025-06-24）是 breaking change：`GoogleSignIn` 改成 singleton（`GoogleSignIn.instance`），使用前要先 `await initialize()`；`signIn()` 改為 `authenticate()`；驗證與授權拆成兩步，access token 要另外取得。直接用 7.x 照貼下面的程式碼會編譯失敗。細節見官方 [changelog](https://pub.dev/packages/google_sign_in/changelog) 與 [MIGRATION.md](https://github.com/flutter/packages/blob/main/packages/google_sign_in/google_sign_in/MIGRATION.md)。7.x 的寫法我實測後會再補上。
 
 ```dart
 import 'package:flutter/material.dart';
