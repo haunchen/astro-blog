@@ -1,8 +1,10 @@
 ---
 title: "Claude Code 的 session 現在可以互相傳話了：我讓兩個視窗一起跑完一次重構"
 date: 2026-08-24
-updated: 2026-10-23
+updated: 2026-11-14
 changelog:
+  - date: 2026-11-14
+    note: "補 v2.1.323 放寬同機訊息上限對迴圈防線的影響、hold 扣住訊息的保留規則，並核對到 v2.1.325"
   - date: 2026-10-23
     note: "issue 84945 已被自動關閉未修；補雲端 session 與 notify_when_idle"
   - date: 2026-09-18
@@ -12,6 +14,8 @@ category: "tools"
 tags: ["claude-code"]
 cover: "./images/cover.webp"
 ---
+> 實測版本：v2.1.226（2026-08）｜最後核對：v2.1.325（2026-11-14）
+
 今天早上我在重構自己的 Obsidian 筆記庫，頂層資料夾整批重新分區、重新編號。
 
 起因很實際。這個庫累積到兩千七百多支 markdown 之後，原本的頂層分類已經分不動了：公司的事跟自己的 side project 混在同一區，要找東西得靠記憶而不是靠結構。所以這輪要做的是把專案照「誰開發、算誰的產出」拆成兩區，其他頂層資料夾跟著重編號。
@@ -262,7 +266,7 @@ Peer sessions (4):
 
 搜了一輪官方 repo，找到 issue 84945，8 月 8 日開的。標題直接就是「Local peer-messaging inbox socket fails to bind for one of two identical sessions」。
 
-這支 issue 在 9 月 8 日被機器人以「太久沒有動靜」關掉，標記 not planned，不是修好了。從開到關，官方沒有任何人回覆過；到 v2.1.309 為止的 changelog 也沒有修這個綁定問題的項目。所以別把「issue 關了」當成「bug 沒了」，下面的判準還是要自己做。
+這支 issue 在 9 月 8 日被機器人以「太久沒有動靜」關掉，標記 not planned，不是修好了。從開到關，官方沒有任何人回覆過；截至 2026-11-14（v2.1.325）的 changelog 仍沒有修這個綁定問題的項目。這支 issue 在 11 月 8 日也被鎖定了，之後沒辦法再留言補充。所以別把「issue 關了」當成「bug 沒了」，下面的判準還是要自己做。
 
 回報者的情境是同一台 Mac、同一個 binary、同樣的 flag、同樣的 cwd、前後差 28 秒開的兩個 session，一個綁了一個沒綁。他列的失敗特徵跟我這邊四項全中。
 
@@ -360,6 +364,8 @@ e.g. {\"to\": \"bot-refactor [a1b2c3]\", ...}"}
 
 還有一條防呆是給無限迴圈準備的：同一個寄件者的重複訊息會被限流，短時間內一模一樣的重複訊息直接丟掉，等待讀取的訊息上限 50 則。所以兩個 session 互相回話回到天荒地老這種事，它自己會停。
 
+這道防線現在要打點折扣。官方文件目前仍寫迴圈會被限流而停下，但 [v2.1.323 的 changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md) 把同機 session 在你打字之前能傳給其他 session 的訊息數，從約 20 則放寬到 100,000 則，Desktop 的 Code 分頁也是 20 改成 100,000。人不在電腦前的時候，別只靠限流擋迴圈。要讓兩個 session 長時間無人看管地互傳，收信端設 `crossSessionInbound: hold`，或在派工訊息裡寫清楚做到哪裡就停。
+
 ---
 
 ## 幾個你該先知道的設定
@@ -386,6 +392,8 @@ Another Claude session sent a message:
 那天我兩邊都是 bypass，所以十幾則來回一次都沒被攔，我甚至沒意識到有這道關卡。要是當時只有我這邊開 bypass、對面是一般模式，那每一則進來我都得手動批准一次，整輪會難過很多。
 
 被扣住的時候會跳一個對話框給你看寄件者跟預覽。這個框有時效，預設五分鐘，超過沒理它就自動關掉、訊息丟掉。`dialogExpiry` 這個值我建議你先去看一眼，畢竟訊息被靜靜丟掉這種事，你不會當下發現。
+
+五分鐘逾時只套在預設規則扣住的訊息上。你明確設成 `hold` 扣住的訊息不會過期，會一直等你處理；但扣住的訊息最多 100 則，超過就丟最舊的（[官方文件](https://code.claude.com/docs/en/cross-session-messaging)）。
 
 `isolatePeerMachines` 設 `true` 的話，任何要離開這台機器的訊息都要你明確批准，連 bypass 模式也擋。這條只要任何一層設定檔設了 true 就生效，專案層的設定檔可以打開它但不能關掉它。
 
