@@ -1,7 +1,11 @@
 ---
-title: "用 n8n 打造 Discord Bot：不用寫程式的完整設定教學"
+title: "Discord Bot 教學：不用寫程式，用 n8n 從零製作自己的機器人"
 date: 2026-01-07
-description: "不用寫程式也能建立 Discord Bot。教學涵蓋在 Discord Developer Portal 建立應用程式、OAuth 2.0 授權與 Bot 權限設定、在 n8n 發送第一則訊息，並比較 Discord Bot 與 Webhook 的適用情境。"
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "更正收訊息要裝社群節點走 Gateway、n8n 3.0 未驗證節點預設不載入，速率限制改依官方文件"
+description: "Discord Bot 怎麼做？跟著這篇從零製作，不用寫程式也能完成。教學涵蓋在 Discord Developer Portal 建立應用程式、OAuth 2.0 授權與 Bot 權限設定、用 n8n 發送第一則訊息，並比較 Discord Bot 與 Webhook 的適用情境，以及收訊息該裝哪個社群節點。"
 category: "n8n"
 tags: ["Automation", "discord", "n8n"]
 cover: "./images/cover.webp"
@@ -397,11 +401,11 @@ Webhook 的限制：
 
 **Q4: 如何讓 Bot 回應用戶的訊息？**
 
-需使用 Webhook Trigger 或 Polling 方式監聽訊息，屬於進階功能。
+n8n 沒有官方的 Discord Trigger，官方節點只能發訊息。要收訊息得另外安裝社群節點，例如 [n8n-nodes-discord-trigger](https://github.com/katerlol/n8n-discord-trigger)，它讓 Bot 經由 Discord Gateway 連線收訊息，不走 Webhook，也不需要公開網址。要注意這個節點不在 n8n 的已驗證清單裡，n8n 3.0 起 `N8N_UNVERIFIED_PACKAGES_ENABLED` 預設為 false，未驗證的社群節點不會載入，要自己開啟（見 [n8n 3.0 breaking changes](https://docs.n8n.io/changelog/v30-breaking-changes)）。三個平台收訊息的方式差異，我整理在 [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較](/n8n-line-discord-telegram-bot-comparison/)。
 
 **Q5: Discord Bot 有速率限制嗎？**
 
-有，每個頻道每秒最多 5 則訊息。超過會收到 429 錯誤，建議在工作流中加入延遲節點。
+有。Discord 官方只公布全域每秒 50 次請求，對單一頻道發訊息這類個別路由的上限不公布，實際以 API 回應的 `X-RateLimit-*` 標頭為準（見[官方文件](https://docs.discord.com/developers/topics/rate-limits)）。超過會收到 429 錯誤，批次發送時建議在工作流中加入延遲節點。
 
 ### 總結與下一步
 
