@@ -1,7 +1,11 @@
 ---
-title: "n8n x Telegram Bot 打造專屬通知機器人：從 BotFather 到互動指令完全教學"
+title: "Telegram Bot 教學：從 BotFather 建立到互動指令，用 n8n 打造專屬通知機器人"
 date: 2026-01-04
-description: "從與 BotFather 對話建立 Telegram Bot、取得 Token 與 Chat ID，到在 n8n 完成憑證設定並實作即時通知與互動指令，並比較 Telegram、LINE、Discord 三種 Bot 的設定難度與費用限制。"
+updated: 2026-11-14
+changelog:
+  - date: 2026-11-14
+    note: "速率限制更正為官方 FAQ 的數字：單一聊天室每秒 1 則、群組每分鐘 20 則、群發約每秒 30 則"
+description: "Telegram Bot 教學：從與 BotFather 對話建立 Bot、取得 Token 與 Chat ID 開始，到在 n8n 完成憑證設定並實作即時通知與互動指令，最後比較 Telegram、LINE、Discord 三種 Bot 的設定難度、速率與費用限制。"
 category: "n8n"
 tags: ["n8n", "Telegram", "教學", "自動化"]
 cover: "./images/cover.webp"
@@ -386,7 +390,7 @@ __底線文字__
 
 **Q3: Telegram Bot 有訊息數量限制嗎？**
 
-Telegram Bot API 有速率限制：個人對話每秒最多 30 則，群組每分鐘最多 20 則。一般自動化通知不太會超過限制，批次發送時建議加入延遲節點。
+Telegram Bot API 有速率限制（見 [Bot FAQ](https://core.telegram.org/bots/faq)）：同一個聊天室避免每秒超過 1 則，同一個群組每分鐘不超過 20 則，群發到多個聊天室時整體約每秒 30 則。一般自動化通知碰不到這些限制，批次發送時建議加入延遲節點。
 
 **Q4: 如何讓 Bot 加入群組並發送訊息？**
 
