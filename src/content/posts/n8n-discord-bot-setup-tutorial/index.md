@@ -1,8 +1,10 @@
 ---
 title: "Discord Bot 教學：不用寫程式，用 n8n 從零製作自己的機器人"
 date: 2026-01-07
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "補 Discord 11 月 16 日起的頻道隱藏：權限加 View Channels、私人頻道設定"
   - date: 2026-11-14
     note: "更正收訊息要裝社群節點走 Gateway、n8n 3.0 未驗證節點預設不載入，速率限制改依官方文件"
 description: "Discord Bot 怎麼做？跟著這篇從零製作，不用寫程式也能完成。教學涵蓋在 Discord Developer Portal 建立應用程式、OAuth 2.0 授權與 Bot 權限設定、用 n8n 發送第一則訊息，並比較 Discord Bot 與 Webhook 的適用情境，以及收訊息該裝哪個社群節點。"
@@ -177,6 +179,7 @@ https://your-n8n-domain.com/rest/oauth2-credential/callback
 
 **進階方式：只勾選需要的權限（最小權限原則）**
 
+-   View Channels（檢視頻道）：2026 年 11 月 16 日起，Discord 不再把 Bot 看不到的頻道回傳給 API，沒勾這項，n8n 的頻道清單會少東西
 -   Send Messages（發送訊息）
 -   Embed Links（嵌入連結）
 -   Attach Files（附加檔案）
@@ -196,6 +199,8 @@ https://your-n8n-domain.com/rest/oauth2-credential/callback
 5.  完成人機驗證
 
 Bot 現在已經加入你的 Discord 伺服器了！你可以在成員列表中看到它（通常會顯示為離線狀態，因為還沒有啟動）。
+
+**私人頻道要另外把 Bot 加進去。** 私人頻道預設不讓 @everyone 檢視，Bot 加入伺服器後還是看不到。到該頻道的「編輯頻道 → 權限」把 Bot（或它的身分組）加進去，並開啟「檢視頻道」。勾 Administrator 的 Bot 不受頻道權限限制，不用另外加。這件事從 2026 年 11 月 16 日起變得更明顯：Discord 對所有 Bot 啟用頻道隱藏，Bot 沒有檢視權限的頻道，會直接從 API 回傳的頻道清單裡消失（見 [Discord 開發者 changelog](https://docs.discord.com/developers/change-log)）。
 
 ## 步驟三：取得 Client ID、Secret 與 Bot Token
 
@@ -391,19 +396,23 @@ Webhook 的限制：
 
 通常是權限問題。請確認 Bot 已加入伺服器、擁有發送訊息權限、頻道允許發言，以及頻道 ID 正確。
 
-**Q2: 如何讓 Bot 在多個伺服器運作？**
+**Q2: Channel 選「From list」找不到我的頻道？**
+
+n8n 是用 Bot Token 呼叫 Discord 的 `GET /guilds/{id}/channels` 取得頻道清單。2026 年 11 月 16 日起，Bot 沒有「檢視頻道」權限的頻道不會出現在回傳結果裡，最常見的是私人頻道。改用 By ID 填頻道 ID 也一樣發不出去，要先照〈2.4〉的說明把 Bot 加進該頻道的權限。
+
+**Q3: 如何讓 Bot 在多個伺服器運作？**
 
 使用 Generated URL 為每個伺服器執行授權流程，並在 n8n 中使用對應的頻道 ID 即可。
 
-**Q3: OAuth 授權失敗怎麼辦？**
+**Q4: OAuth 授權失敗怎麼辦？**
 
 常見原因包括 Redirect URL 設定錯誤、憑證複製錯誤、權限不正確等。建議重新檢查設定並重新產生金鑰。
 
-**Q4: 如何讓 Bot 回應用戶的訊息？**
+**Q5: 如何讓 Bot 回應用戶的訊息？**
 
 n8n 沒有官方的 Discord Trigger，官方節點只能發訊息。要收訊息得另外安裝社群節點，例如 [n8n-nodes-discord-trigger](https://github.com/katerlol/n8n-discord-trigger)，它讓 Bot 經由 Discord Gateway 連線收訊息，不走 Webhook，也不需要公開網址。要注意這個節點不在 n8n 的已驗證清單裡，n8n 3.0 起 `N8N_UNVERIFIED_PACKAGES_ENABLED` 預設為 false，未驗證的社群節點不會載入，要自己開啟（見 [n8n 3.0 breaking changes](https://docs.n8n.io/changelog/v30-breaking-changes)）。三個平台收訊息的方式差異，我整理在 [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較](/n8n-line-discord-telegram-bot-comparison/)。
 
-**Q5: Discord Bot 有速率限制嗎？**
+**Q6: Discord Bot 有速率限制嗎？**
 
 有。Discord 官方只公布全域每秒 50 次請求，對單一頻道發訊息這類個別路由的上限不公布，實際以 API 回應的 `X-RateLimit-*` 標頭為準（見[官方文件](https://docs.discord.com/developers/topics/rate-limits)）。超過會收到 429 錯誤，批次發送時建議在工作流中加入延遲節點。
 
