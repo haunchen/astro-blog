@@ -1,8 +1,10 @@
 ---
 title: "Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰"
 date: 2025-10-20
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "文首補一句 Cloudflare Workers 的子目錄替代做法"
   - date: 2026-11-14
     note: "文首標注 Zeabur 已停止營運、本篇僅作紀錄，不再作為設定參考"
   - date: 2026-10-17
@@ -17,6 +19,8 @@ draft: false
 ---
 
 > **Zeabur 官方已停止營運，本篇僅作為紀錄，不具任何設定上的參考價值。** Zeabur 在 2026 年 8 月 27 日與 10 月 14 日兩度遭入侵，並於 10 月 17 日宣布停止營運，所有服務在 2026 年 12 月 31 日前關閉。資安事件的經過與該怎麼處理，見〈[從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)〉；還有服務在 Zeabur 上的話，搬家步驟見〈[Zeabur 結束營運搬家](/zeabur-shutdown-migration-guide/)〉。我自己的網站已於 2026 年 7 月遷移到 Cloudflare Pages。
+>
+> 如果你想在 Cloudflare 上重現子目錄架構，靜態站可以用 Workers Static Assets 的 `assets.base_path`（需要 Wrangler 4.148.0 以上），route 設成 `你的網域/blog/*`，做法見 Cloudflare 的〈[Serving a subdirectory](https://developers.cloudflare.com/workers/static-assets/routing/advanced/serving-a-subdirectory/)〉。這是 Workers 的功能，不是 Cloudflare Pages 的，我自己沒有實測。
 
 ## 前言：為什麼要用 Zeabur + Nginx 重構網站？
 
