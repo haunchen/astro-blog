@@ -1,6 +1,10 @@
 ---
 title: "n8n 整合 Notion 完整教學：API 設定、Database 操作、實戰案例"
 date: 2025-12-21
+updated: 2026-11-19
+changelog:
+  - date: 2026-11-19
+    note: "節點操作清單改依 n8n 2.31.0 起的 Notion 節點第 3 版"
 description: "從建立 Notion Integration、取得 Internal Integration Secret 到把頁面授權給 Integration，完整說明 n8n 串接 Notion API 的設定步驟，以及 Database 與 Block 可執行的操作與自動化應用情境。"
 category: "n8n"
 tags: ["API", "Automation", "n8n", "Notion"]
@@ -295,22 +299,31 @@ Notion Database 的每筆記錄都有多個屬性（欄位），常見的屬性�
 
 ### n8n 中的 Notion 節點操作
 
-在 n8n 的 Notion 節點中，你可以進行以下操作：
+n8n 2.31.0 起，新拉進工作流的 Notion 節點是第 3 版，改用 Notion API 2026-03-11 版，操作單位從 Database 改成 Data Source（Notion 在 2025-09-03 版 API 引入的概念，一個 Database 底下可以有多個 Data Source）。新版節點可以進行以下操作：
 
--   **Database 操作：**
+-   **Database：**
     -   **Get a database**：取得單一 Database 的資訊
-    -   **Get many databases**：取得所有已授權的 Database
-    -   **Get a database page**：取得單一 Database Page 中的所有 Block
-    -   **Get many database pages**：取得 Database 中的所有記錄
-    -   **Create a database page**：新增記錄到 Database
-    -   **Update database page**：更新現有記錄
--   **Page 操作：**
-    -   **Archive**：封存 Page
-    -   **Create**：建立新的 Page
-    -   **Search**：搜尋 Page
--   **Block 操作：**
-    -   **Append a Blocks**：在 Page 中新增 Block
+-   **Data Source：**
+    -   **Get a data source**：取得單一 Data Source 的資訊
+    -   **Search data sources**：搜尋已授權的 Data Source
+-   **Database Page（資料庫裡的每一筆記錄）：**
+    -   **Create a database page**：新增記錄，要選的是 Data Source，不是 Database
+    -   **Get a database page**：取得單一筆記錄
+    -   **Get many database pages**：取得 Data Source 中的所有記錄
+    -   **Update a database page**：更新現有記錄
+-   **Page：**
+    -   **Archive a page**：封存 Page
+    -   **Create a page**：建立新的 Page
+    -   **Search a page**：搜尋 Page
+    -   **Get page markdown**／**Update page markdown**：以 Markdown 讀取或修改頁面內容
+-   **Block：**
+    -   **Append a block**：在 Page 中新增 Block
+    -   **Get block markdown**：以 Markdown 讀取 Block 內容
     -   **Get many child blocks**：取得 Block 中的所有子 Block
+-   **User：**
+    -   **Get a user**／**Get many users**：取得工作區成員
+
+舊版本的「Get many databases」和 Database 的「Search」在第 3 版已經移除，改用 Data Source 的 Search。2.31.0 之前建立的工作流，裡面的 Notion 節點會維持舊版本照常運作，不會自動升級；要換成新版，得重新拉一個 Notion 節點進來，並把 Database ID 改成 Data Source ID（建議直接用 From list 選）。本文的截圖是舊版節點畫面，選單文字可能和你看到的不同。
 
 ## 實戰應用案例
 
@@ -364,7 +377,7 @@ Notion Database 的每筆記錄都有多個屬性（欄位），常見的屬性�
 
 **Q1: 為什麼我的 n8n 無法讀取 Notion Database？**
 
-最常見的原因是「沒有授權頁面給 Integration」。請確認你已經在 Notion Database 的「連結」設定中連結了你的 Integration、Integration Secret 正確無誤，以及 Database ID 正確（從 URL 複製的 32 個字元）。
+最常見的原因是「沒有授權頁面給 Integration」。請確認你已經在 Notion Database 的「連結」設定中連結了你的 Integration、Integration Secret 正確無誤，以及 Database ID 正確（從 URL 複製的 32 個字元）。如果用的是 n8n 2.31.0 起的新版 Notion 節點，新增或查詢記錄時要填的是 Data Source ID，不是 Database URL 裡那串，建議直接用 From list 選。
 
 **Q2: 如何處理 Notion 的 Relation 欄位？**
 
