@@ -1,8 +1,10 @@
 ---
 title: "Telegram Bot 教學：從 BotFather 建立到互動指令，用 n8n 打造專屬通知機器人"
 date: 2026-01-04
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "補 Bot API 的 Rich Message 與 n8n 內建的串流回覆操作"
   - date: 2026-11-14
     note: "速率限制更正為官方 FAQ 的數字：單一聊天室每秒 1 則、群組每分鐘 20 則、群發約每秒 30 則"
 description: "Telegram Bot 教學：從與 BotFather 對話建立 Bot、取得 Token 與 Chat ID 開始，到在 n8n 完成憑證設定並實作即時通知與互動指令，最後比較 Telegram、LINE、Discord 三種 Bot 的設定難度、速率與費用限制。"
@@ -336,6 +338,12 @@ __底線文字__
 ```
 
 使用 MarkdownV2 時要注意：訊息中的特殊字元（如 `.`、`!`、`-`、`(`、`)` 等）需要用反斜線 `\` 跳脫，否則會出現解析錯誤。例如 `Hello!` 要寫成 `Hello\!`。如果你的訊息包含動態內容，建議改用 HTML 格式會比較省事。
+
+### Rich Message 與串流回覆
+
+Telegram Bot API 10.1（2026 年 6 月 11 日）新增了 Rich Message，可以送標題、清單這類結構化內容，之後的 10.2、10.3 又陸續加了更多區塊類型。n8n 2.28.0 起，Telegram 節點內建「Send a rich message」和「Send a rich message draft」兩個操作。
+
+Draft 適合 AI 邊生成邊顯示的回覆，但有兩個限制要先知道：它只能用在一對一的私人聊天，而且只是約 30 秒的暫時預覽。內容生成完，一定要再用「Send a rich message」送出完整訊息，才會留在聊天紀錄裡（見 [Telegram Bot API 文件](https://core.telegram.org/bots/api#sendrichmessagedraft)）。這篇的通知情境多半是推到群組，用一般的 Send a message 就夠了。
 
 ## 實戰應用案例
 
