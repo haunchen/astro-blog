@@ -1,8 +1,10 @@
 ---
 title: "私密資料不上傳！將 v0（原 v0.dev）生成的 Web 應用程式部署到自己的 Ubuntu 伺服器"
 date: 2025-06-14
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "Node.js 安裝腳本改用 26 LTS，pnpm 改為安裝當下最新版"
   - date: 2026-11-14
     note: "v0.dev 連結改為 v0.app，修正 localhost 網址錯字，標註文中為 2025 年實測版本"
 description: "本篇文章介紹了如何在自己的伺服器上執行由 Vercel 的 v0.dev 生成的 Web 應用，特別針對 Ubuntu 系統提供安裝 Node.js 和 pnpm 的步驟，並指導用戶如何啟動本地開發及正式環境伺服器，以便私有資料不需上傳到網絡平台。"
@@ -26,16 +28,16 @@ draft: false
 -   Node.js: 22.16
 -   pnpm: 10.12.1
 
-本文為 2025 年實測版本，Node 22 已進入維護期。
+上面是 2025 年實測時的版本。Node 22 已進入維護期（2027 年 4 月 30 日結束支援），Node 26 在 2026 年 10 月 28 日轉為 LTS，新裝建議直接用 26。pnpm 用下面的安裝腳本會裝到當下的最新版，不必指定版本。
 
 ## 安裝必要套件
 
 -   Node.js 套件
 
-建議使用 NodeSource 提供的安裝腳本，確保安裝最新版本 Node.js。
+建議使用 NodeSource 提供的安裝腳本，安裝目前的 LTS 版本 Node.js 26。
 
 ```bash
-curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - 
+curl -fsSL https://deb.nodesource.com/setup_26.x | sudo bash - 
 sudo apt-get install -y nodejs
 ```
 
