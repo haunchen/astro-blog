@@ -1,15 +1,17 @@
 ---
 title: "Gemini 4 Argon 發布：分數很驚豔，但它不是每一項都贏"
 date: 2026-10-01
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "新增一節對照 11 月推出的 Carbon、Hydrogen、Neon，補思考等級說明"
   - date: 2026-11-14
     note: "價格表補上 Batch／Flex 與 Priority 層級，並加上 Vertex 長輸出逾時仍計費的新規則"
   - date: 2026-10-17
     note: "Pro 已能在 agy 使用 Argon，補上長文整理、code review、跨檔案重構實測"
   - date: 2026-10-14
     note: "補上 10 月 13 日開放付費用戶後各方案的可用範圍，以及介紹期價格的截止日"
-description: "Gemini 4 Argon 9 月 30 日發布、10 月 13 日開放付費用戶，DeepSWE 77.9% 第一、輸出上限 1M token，終端機操作類 benchmark 仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字與開放範圍，並實測長文整理、code review、跨檔案重構。"
+description: "Gemini 4 Argon 9 月 30 日發布、10 月 13 日開放付費用戶，DeepSWE 77.9% 第一、輸出上限 1M token，終端機操作仍輸 Opus 5.5 與 GPT-6 Astra。整理官方數字、實測三項任務，並對照 11 月推出的 Carbon、Hydrogen、Neon。"
 category: "tech-news"
 tags: ["Gemini", "LLM", "AI"]
 cover: "./images/cover.webp"
@@ -148,6 +150,8 @@ Fairwind 這一輪只跑了兩週。
 | AI Studio | 不行 | 可以 | 依 Ars Technica 的整理 |
 | Gemini API | — | — | 付費層級就能用，跟訂閱方案無關；免費層不行 |
 
+這張表是 10 月 13 日開放當時的狀態。11 月 18 日 Neon 上線後，Gemini App 的模型選單改成 Hydrogen、Neon、Carbon（據 [9to5Google](https://9to5google.com/2026/11/18/gemini-4-neon-announcement/)），後續變化見〈11 月多了 Carbon、Hydrogen、Neon，Argon 還要用嗎？〉。
+
 Google AI Plus 和免費用戶目前都還用不到，Google 也沒說之後會不會開。Pro 進 Antigravity 這件事 Google 沒有另外公告，我是在 agy 更新到 1.4.0 後發現模型清單多了 Argon。另外推送是分批的，Android Police 的作者是 Pro 訂閱者，寫稿當下 App 裡也還沒出現。
 
 第三方工具已經先接上了：Cursor 宣布可以選 Argon，價格照 API 的 $2／$10 計，它自家的 CursorBench 在預設 effort 下是 52.8%。
@@ -207,13 +211,36 @@ Flash 是直接拿到補好決策的版本，所以「看出規格寫錯」這�
 
 順帶一個坑：Flash 前兩次一個檔都沒改。原因是我的 agy 設定有一支 hook 會提示模型優先用某個 MCP，Flash 照做，headless 模式下 MCP 權限被自動拒絕，整輪什麼都沒產出，exit code 卻是 0。Argon 不理那句提示，所以沒事。如果你也在 agy 設定裡掛了 MCP 提示，用 headless 跑之前要留意。
 
+## 11 月多了 Carbon、Hydrogen、Neon，Argon 還要用嗎？
+
+Argon 開放之後一個多月，Google 又推了三個 Gemini 4 模型。官方給的分工是：Carbon 處理最難、最長的任務，Hydrogen 負責日常的快速執行，Neon 介於兩者之間。Carbon 開放時，官方仍說 Argon 是多數軟體工程與知識工作的首選；Carbon 會花比 Argon 更多 token 去探索。
+
+| 模型 | 開放 | API 價（輸入／輸出，美元／百萬 token） | 思考等級（預設） | Pro 在 agy 能不能用 |
+|------|------|------|------|------|
+| Argon | 10 月 13 日 | $2／$10，12 月 1 日起 $4／$20 | low／medium／high（medium） | 可以 |
+| Carbon | 10 月 28 日先給資安防禦單位，11 月 10 日開放 | $2／$10，12 月 1 日起 $4／$20 | low／medium／high（medium） | 不行，Ultra 才有 |
+| Hydrogen | 11 月 12 日 | $1.50／$7.50，1M context 同價；API 有免費層 | low／medium／high／xhigh（high） | 可以（非試用的付費 Pro） |
+| Neon | 11 月 18 日 | $3／$15 | low／medium／high／xhigh（high） | 可以，而且是新對話的預設模型 |
+
+價格依 [Google AI Studio 價格頁](https://aistudio.google.com/docs/pricing)，agy 的可用範圍依 [Antigravity 模型說明](https://antigravity.google/docs/models)。
+
+幾個容易看錯的地方：
+
+- 思考等級：Argon 與 Carbon 只有三級，預設 medium。設成 `MINIMAL`，或沿用舊的 `thinking_budget` 參數，請求會直接回 400（見 [Firebase AI Logic 文件](https://firebase.google.com/docs/ai-logic/thinking)）。前面 code review 那張表，Argon medium 抓得比 high 多，所以不要預設「等級越高越好」。
+- 分數要對等級：Artificial Analysis 的 Intelligence Index，Hydrogen 預設 high 是 51、Argon high 是 50，看起來 Hydrogen 贏，但 Argon 在自己的預設 medium 只有 48，Hydrogen 開 xhigh 是 54。Neon 開 xhigh 是 61。
+- 價格要分兩段看：11 月 30 日前，Neon 每 token 比 Argon 貴 50%；12 月 1 日 Argon 漲價後，反過來是 Neon 便宜 25%。但 Neon 預設 high、Argon 預設 medium，每個任務吃的 token 不一樣，單價便宜不等於整個任務便宜。官方說的「每個任務成本低 32%」是 Neon 和 Carbon 比，不是和 Argon 比。
+- agy 的 Orchestrator：由規劃模型拆工作、Hydrogen 實作。Pro 能用的是 Orchestrator (Argon) 和 Orchestrator (Neon)，Orchestrator (Carbon) 只開放給 Ultra。
+
+我的判斷：只有 Pro 的話，Carbon 本來就用不到。日常的快速任務可以先試 Hydrogen，便宜而且 API 有免費層。Argon 和 Neon 之間，我還沒有用同一組題目對照過，前面三項實測只代表 Argon。
+
 ## 你現在可以做什麼
 
 - 有付費 Gemini API 帳號的話，現在就能接，介紹價到 11 月 30 日
 - 預估長期成本時用 12 月起的 $4／$20 來算，不要用 $2／$10
 - 不急著拿結果的工作改走 Batch 或 Flex，12 月漲價後的單價是 $2／$10，等於現在 Standard 的介紹價
 - 走 Vertex AI 的話，2026 年 11 月 13 日起輸出超過 32K token 的請求，就算因為用戶端或伺服器逾時而失敗，可取回的 token 照樣計費（[Vertex 價格頁](https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing)）。Argon 一次能吐到 1M token，長輸出最好用串流接，或拆成幾個小任務，不要讓一個請求跑到逾時
-- 只有 Pro 的話，Gemini App 和 agy 都叫得到。長文件整理在 24 萬 token 內品質跟 Opus 差不多，超過就會被 agy 壓縮掉細節
+- 只有 Pro 的話，agy 叫得到 Argon、Neon、Hydrogen，新對話預設是 Neon，要用 Argon 得手動切。長文件整理在 24 萬 token 內品質跟 Opus 差不多，超過就會被 agy 壓縮掉細節
+- 不需要深推理的工作，可以先試 Hydrogen：$1.50／$7.50，API 還有免費層
 - 規格寫得清楚的重構、遷移，可以交給它一次規劃產出；要它挑 bug 的 code review，先別換
 - 如果你主要是用 coding agent 在終端機裡工作，不用急著換，Terminal-bench 的差距擺在那裡
 
@@ -232,6 +259,14 @@ Gemini 4 Argon 的分數確實驚豔，長文推理和法律、金融這類知�
 - [Generative AI pricing（Google Cloud Vertex 價格頁）](https://cloud.google.com/gemini-enterprise-agent-platform/generative-ai/pricing)
 - [Gemini 4 Argon: Benchmarks, Pricing, and Access（DataCamp）](https://www.datacamp.com/blog/gemini-4-argon)
 - [Google DeepMind Unveils Gemini 4 Argon with 1M Output Tokens（MarkTechPost）](https://www.marktechpost.com/2026/09/30/google-deepmind-unveils-gemini-4-argon-with-1m-output-tokens-for-coding-knowledge-work-and-cyber-defense/)
+- [Gemini 4 Carbon is now available（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-carbon-now-available/)
+- [Introducing Gemini 4 Hydrogen（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-hydrogen/)
+- [Introducing Gemini 4 Neon（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-neon/)
+- [Gemini API 價格（Google AI Studio）](https://aistudio.google.com/docs/pricing)
+- [Thinking（Google AI Studio 文件）](https://aistudio.google.com/docs/thinking)：各等級的用途與預設值
+- [Models（Google Antigravity 文件）](https://antigravity.google/docs/models)：各方案可用模型與 Orchestrator
+- [Gemini 4 Argon（Artificial Analysis）](https://artificialanalysis.ai/models/gemini-4-argon)、[Gemini 4 Neon（Artificial Analysis）](https://artificialanalysis.ai/models/gemini-4-neon)
+- [Gemini 4 Neon announcement（9to5Google）](https://9to5google.com/2026/11/18/gemini-4-neon-announcement/)
 - [Gemini 4 Argon in Google Antigravity（Google Antigravity 官方部落格）](https://antigravity.google/blog/gemini-4-argon-in-google-antigravity/)
 - [Sundar Pichai 的開放公告（X）](https://x.com/sundarpichai/status/2110038898009407584)
 - [Gemini 4 Argon is here（Android Police）](https://www.androidpolice.com/gemini-4-argon-available-pro-ultra-subscribers/)
