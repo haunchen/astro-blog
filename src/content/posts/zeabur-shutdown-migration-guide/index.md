@@ -1,8 +1,10 @@
 ---
 title: "Zeabur 結束營運搬家：我用 Claude Code 把 8 個服務搬出 Zeabur 的實際流程"
 date: 2026-10-17
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "補第三方費用改向供應商申請減免、官方遷移指南已上線、n8n 金鑰外洩數字"
   - date: 2026-11-14
     note: "補上官方 10 月 22 日公布的遷移建議期限、退款申請截止與資料刪除時程"
 description: "Zeabur 宣布 2026 年底結束營運，共享叢集 12 月 1 日就暫停。這篇用我 7 月實際搬走 8 個服務的流程，講盤點、依服務類型選落點、資料庫與 n8n 備份、DNS 零空窗切換、批次驗收與網域轉出，以及哪些步驟可以交給 Claude Code，哪些一定要自己按。"
@@ -158,6 +160,8 @@ n8n export:credentials --all --output=credentials.json
 
 這裡有個矛盾要處理：這把加密金鑰本身也在 Zeabur 的環境變數裡，照事件的處理原則應該視為已外洩。比較乾淨的做法是在新環境用新的加密金鑰，credentials 逐一重新填入，順便完成輪替。workflow 不多的話這樣做最安全；很多的話，至少先用舊金鑰搬過去讓服務不中斷，再排時間把 credentials 全部換新。
 
+這不是假設。Zeabur 的 10 月事件報告查了共享叢集上使用 PostgreSQL 的 n8n，檢查的 607 個裡有 602 個把加密金鑰寫在環境變數，所以 n8n 裡存的第三方憑證等同明文外洩。官方給的處置是更換加密金鑰，並重建 n8n 裡所有第三方憑證。舊金鑰只能當搬家當下的過渡，搬完就要換。
+
 ### 驗證
 
 不要看到備份檔就當作完成。還原到新環境之後，挑幾張重要的表比對筆數，打開應用程式實際跑一次主要功能。檔案存在和資料完整是兩回事。
@@ -233,16 +237,16 @@ Zeabur 已經開放自助轉出網域。各家註冊商的流程大同小異：
 
 刪除服務和取消訂閱這兩步，Zeabur 的 MCP 當時沒有提供對應的工具，只能自己進控制台按。這兩個都是不可逆的動作，由人來按也比較放心。
 
-Zeabur 這次還有兩件事要申請，信裡寫明是**兩張不同的單**：
+Zeabur 10 月 22 日的官方說明列了兩張單：
 
 - 帳戶餘額退款
-- 資安事件的損失賠償
+- 10 月資安事件的損失申請
 
-都走 Zeabur Support，申請時寫清楚是哪一項。兩張單都在 11 月 30 日截止。
+都走 Zeabur Support，11 月 30 日截止。但 10 月 28 日的[後續說明](https://zeabur.com/zh-TW/blogs/october-2026-security-incident-follow-up)改口了：Zeabur「無法支付 10 月資安事件所衍生的第三方服務費用」，改成協助你向第三方供應商申請減免或退款。實際要做的是拿官方事故報告去跟 OpenAI、AWS 這類供應商申訴，供應商要更多證明時，再開工單請 Zeabur 提供。帳戶餘額退款不受影響，照常申請。
 
 ## 交給 AI 搬家，要注意什麼
 
-Zeabur 在停止營運的信裡說，會提供給 Claude Code、Codex 這類 coding agent 用的遷移指南與 Skills。我自己的經驗是，這條路確實省時間，但有幾件事要先想好。
+Zeabur 10 月 20 日上線了給 Claude Code、Codex 這類 coding agent 讀的[遷移指南](https://zeabur.com/zh-TW/blogs/migrate-from-zeabur)，10 月 23 日又出了〈[離開 Zeabur 前的最後檢查](https://zeabur.com/blogs/leaving-zeabur-checklist)〉，讓 agent 先唯讀盤點還在計費的項目、還沒匯出的資料和還指向 Zeabur 的設定。兩份都明講：不要把 Zeabur API token、伺服器密碼或私鑰貼進對話。我自己的經驗是，這條路確實省時間，但有幾件事要先想好。
 
 **先只給讀的權限。** 第一個階段只讓它盤點。盤點結果看過、確認它理解的架構跟你知道的一致，才進入會改東西的階段。
 
@@ -280,6 +284,10 @@ Zeabur 在停止營運的信裡說，會提供給 Claude Code、Codex 這類 cod
 
 - [從 Zeabur 兩次資安事件學到的事：一把金鑰能走多遠？](/zeabur-incident-permission-blast-radius/)：搬家前的資安處理清單
 - [Migration, Refunds, and Security Claims（Zeabur 官方部落格，2026-10-22）](https://zeabur.com/blogs/migration-refunds-and-security-claims)：遷移建議期限、退款與資安損失申請、資料刪除時程
+- [十月資安事件後續處理說明（Zeabur 官方部落格，2026-10-28）](https://zeabur.com/zh-TW/blogs/october-2026-security-incident-follow-up)：第三方費用改為協助向供應商申請減免
+- [2026 年十月資安事件（Zeabur 官方部落格，2026-10-19）](https://zeabur.com/zh-TW/blogs/october-2026-security-incident)：n8n 加密金鑰外洩的數字出自這裡
+- [搬出 Zeabur：把這份指南交給你的 Coding Agent（Zeabur 官方部落格，2026-10-20）](https://zeabur.com/zh-TW/blogs/migrate-from-zeabur)
+- [離開 Zeabur 前的最後檢查（Zeabur 官方部落格，2026-10-23）](https://zeabur.com/blogs/leaving-zeabur-checklist)
 - [Zeabur 停止營運通知信全文（LINUX DO 論壇轉貼）](https://linux.do/t/topic/3035894)：10 月 17 日通知信原文
 - [Zeabur Status — Incident 1091243](https://status.zeabur.com/incident/1091243)：10 月事件公告
 - [n8n CLI commands](https://docs.n8n.io/hosting/cli-commands/)：workflow 與 credentials 匯出匯入
