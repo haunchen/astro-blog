@@ -1,8 +1,10 @@
 ---
 title: "如何使用 Certbot 建立免費的 SSL 網域憑證"
 date: 2025-05-28
-updated: 2026-10-23
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "補 Let's Encrypt 多點驗證上線後，地區封鎖造成續期失敗的排查"
   - date: 2026-10-23
     note: "修正自動續期寫法與 symlink 路徑，補上 Let's Encrypt 憑證效期縮短"
 description: "Ubuntu 22.04＋Nginx 用虛擬環境安裝 Certbot，向 Let's Encrypt 申請免費 SSL 憑證。涵蓋 certonly 取得憑證、正確的 /etc/crontab 自動續期與 renew --dry-run 驗證，以及 2027 年改發 64 天憑證前要檢查的設定。"
@@ -108,6 +110,20 @@ sudo certbot renew --dry-run
 
 看到 `Congratulations, all simulated renewals succeeded` 就代表設定沒問題。
 
+### dry-run 失敗？先檢查有沒有擋到海外連線
+
+Let's Encrypt 驗證網域時，不是只從一個地方連過來。2026 年 11 月 10 日起，正式環境會從主要機房加上 6 個遠端驗證點發出請求，一次驗證共 7 個請求，主要機房與多數遠端驗證點都要拿到正確回應才算通過（staging 環境 10 月 27 日先上）。這些驗證點分散在不同國家，Let's Encrypt 不公開 IP，而且隨時會換。
+
+所以下面這幾種設定，都可能讓申請或續期失敗：
+
+-   用防火牆或 Cloudflare WAF 這類規則擋掉台灣以外的連線
+-   port 80 只開放給特定 IP
+-   網域的權威 DNS 沒有對全世界開放
+
+用 `--nginx` 申請的話，`http://<your.domain>/.well-known/acme-challenge/` 這個路徑要能從世界各地連到。
+
+還有一個容易誤判的地方：驗證過的授權會被重複使用，最長 30 天（2027 年起縮短，見下一節）。剛加上地區封鎖時，下一次續期可能因為沿用舊授權而照樣成功，等授權過期才突然失敗。所以改完防火牆，不要只看「上次續期有成功」就放心。
+
 > 舊版本文教的 `crontab -e` 加那行寫法不會續期（使用者 crontab 沒有 `root` 欄、有 systemd 時條件也會跳過），照做過的請用 `sudo crontab -l` 檢查並刪掉，改用上面的寫法。
 
 另外，pip 安裝的 Certbot 不會跟著系統更新，官方建議每個月手動升級一次：
@@ -138,6 +154,10 @@ Let's Encrypt 也建議改用支援 ARI（ACME Renewal Information）的客戶�
 參考連結：
 
 [Let's Encrypt 官方網站](https://letsencrypt.org/)
+
+[Let's Encrypt：新增兩個遠端驗證點（2026-10-15 公告）](https://community.letsencrypt.org/t/lets-encrypt-is-adding-two-additional-remote-perspectives-for-domain-validation/252166)
+
+[Let's Encrypt：多點驗證與地區封鎖 FAQ](https://community.letsencrypt.org/t/multi-perspective-validation-geoblocking-faq/218158)
 
 [Certbot 官方文件](https://certbot.eff.org/)
 
