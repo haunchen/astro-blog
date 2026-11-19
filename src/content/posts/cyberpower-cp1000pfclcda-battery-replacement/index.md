@@ -1,8 +1,10 @@
 ---
 title: "CyberPower CP1000PFCLCDa 電池更換教學 - 拆前面板抽屜式換電池"
 date: 2026-09-17
-updated: 2026-10-22
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "補 CP1500PFCLCDa 的原廠電池、尺寸重量差異與官方換電池影片"
   - date: 2026-10-22
     note: "補其他 CyberPower 型號的電池差異與對照表連結"
 description: "公司 Server 用的 CyberPower CP1000PFCLCDa 正弦波 UPS 開始頻繁嗶叫，用三年該換電池了。這台要先拆底部螺絲、掀開前面板才能抽出抽屜式電池槽，比 APC 多一道工。本文附實拍步驟，並說明換完怎麼用 LCD 確認狀態、副廠 YUASA REW45-12 的規格比對。"
@@ -26,6 +28,20 @@ cover: "./images/cover.webp"
 CyberPower 和科風那台用的原廠電池剛好是同一款 LEOCH DJW12-9.0，所以替換電池我也買了一樣的 YUASA REW45-12，一次買兩顆。
 
 如果你的是其他 CyberPower 型號，像 CP1000AVRLCDa 或 CP1500PFCLCDa，用的電池不一定一樣，1500VA 的機型是兩顆一組。各型號的官方電池包整理在〈[UPS 電池怎麼選](/ups-battery-buying-guide/)〉的對照表。
+
+### 我的是 CP1500PFCLCDa，可以照這篇換嗎？
+
+拆法應該差不多，差在電池和重量：
+
+| 項目 | CP1000PFCLCDa | CP1500PFCLCDa |
+|------|------|------|
+| 原廠電池包 | RBP0007 | RB1290X2（12V 9AH，兩顆一組） |
+| 尺寸（寬×高×深） | 3.9 × 9.7 × 10.2 吋（100 × 246 × 260 mm） | 3.9 × 11 × 14 吋（100 × 280 × 355 mm） |
+| 重量 | 15.2 磅（6.9 kg） | 24.9 磅（11.3 kg） |
+
+電池包型號、尺寸與重量來自 CyberPower 台灣官網的 [CP1000PFCLCDa](https://www.cyberpower.com/tw/zh/product/sku/cp1000pfclcda) 與 [CP1500PFCLCDa](https://www.cyberpower.com/tw/zh/product/sku/cp1500pfclcda) 規格頁，RB1290X2 的電池容量來自 [CyberPower 美國官網](https://www.cyberpowersystems.com/product/ups/replacement-batteries/rb1290x2/)。
+
+1500VA 這台是兩顆電池串在一起，我會建議兩顆同批一起換，不要新舊混用。CP1500PFCLCDa 我自己沒拆過，CyberPower 官方有一支 [1,350–1,500VA 直立式機種的換電池影片](https://www.youtube.com/watch?v=wYAQZohN0CY)，動手前可以先看一遍。
 
 ## CyberPower CP1000PFCLCDa 電池更換步驟
 
