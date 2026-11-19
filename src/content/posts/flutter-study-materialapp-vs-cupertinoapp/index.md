@@ -1,6 +1,10 @@
 ---
 title: "【 Flutter 學習筆記 】 MaterialApp vs CupertinoApp"
 date: 2025-06-23
+updated: 2026-11-19
+changelog:
+  - date: 2026-11-19
+    note: "補 Flutter 3.50 改從 material_ui／cupertino_ui 匯入，修正定義段錯字"
 description: MaterialApp 和 CupertinoApp 是 Flutter 的根 Widget，分別遵循 Google Material Design 與 Apple iOS Human Interface Guidelines。整理兩者的定義、核心作用與常用屬性，並用比較表格說明該怎麼選。
 category: "flutter"
 tags: ["Flutter"]
@@ -12,7 +16,7 @@ draft: false
 
 ### 定義
 
-`CupertinoApp` Flutter 應用程式的根部Widget，他提供一整套 Google Material Design 設計規範的基礎架構和行為。可以把它想像成一個「Material Design 應用程式的預建框架和說明書」。
+`MaterialApp` 是 Flutter 應用程式的根部 Widget，它提供一整套 Google Material Design 設計規範的基礎架構和行為。可以把它想像成一個「Material Design 應用程式的預建框架和說明書」。
 
 ### 核心作用
 
@@ -20,7 +24,7 @@ draft: false
 
 -   整合 Material Design 元件：它是使用所有 `Material` 前綴的 Widget (如：`Scaffold`, `AppBar`, `ElevatedButton`, `Card` 等) 的必要元件，確保這些子元件可以正確地顯示 Material Design 樣式和行為。
 
--   提供應用程式級別服務：內建陸行管理、主題數據傳遞等應用程式層級的服務。
+-   提供應用程式級別服務：內建路由管理、主題數據傳遞等應用程式層級的服務。
 
 ### 常用屬性
 
@@ -28,11 +32,11 @@ draft: false
 
 -   `home` (Widget)：應用程式啟動時顯示的第一個頁面 Widget。通常是一個Scaffold。
 
--   `theme` (ThemeData)：應用程式德視覺主題，這裡可以定義整個應用程式的整體顏色、字體、文字樣式、按鈕樣式、卡片陰影等，這些設定將自動應用到應用程式中的所有 Material Widget。
+-   `theme` (ThemeData)：應用程式的視覺主題，這裡可以定義整個應用程式的整體顏色、字體、文字樣式、按鈕樣式、卡片陰影等，這些設定將自動應用到應用程式中的所有 Material Widget。
 
--   `routes` (Map<String, WidgetBuilder>)：用於定義命行路由，允許你透過名稱導航到不同的頁面，不是直接傳遞 Widget 實例。
+-   `routes` (Map<String, WidgetBuilder>)：用於定義命名路由，允許你透過名稱導航到不同的頁面，不是直接傳遞 Widget 實例。
 
--   `onGenerateRoute` (RouteFactory)：一個用於動態生成的路由函式，當 `route` 中找不到匹配的命名路由時會被呼叫。
+-   `onGenerateRoute` (RouteFactory)：一個用於動態生成的路由函式，當 `routes` 中找不到匹配的命名路由時會被呼叫。
 
 -   `navigatorKey` (GlobalKey<NavigatorState>)：允許在沒有 `BuildContext` 的情況下執行導航操作。
 
@@ -58,7 +62,7 @@ draft: false
 
 -   `title` (String)： 應用程式在 iOS 多工管理器（應用程式切換器）中顯示的標題。
 
--   `home` (Widget)： 應用程式啟動時顯示的第一個頁面 Widget。通常會是一個 `Scaffold` 內部包裹著 `Cupertino` 元件。
+-   `home` (Widget)： 應用程式啟動時顯示的第一個頁面 Widget。通常會是一個 `CupertinoPageScaffold`，內部包裹著 `Cupertino` 元件。
 
 -   `theme` (CupertinoThemeData)： 應用程式的視覺主題。你可以設定應用程式的 iOS 主色調、文字顏色、字體等，這些設定會應用到應用程式中的所有 Cupertino Widget。
 
@@ -77,7 +81,7 @@ draft: false
 | **特性** | MaterialApp | CupertinoApp |
 | --- | --- | --- |
 | **風格** | Material Design 風格 | iOS Human Interface Guidelines 風格 |
-| **設計哲學** | Google Material Design (物理隱喻、大膽、現在、跨平台) | **Apple iOS Human Interface Guidelines** (簡潔、流暢、半透明、原生 iOS) |
+| **設計哲學** | Google Material Design (物理隱喻、大膽、現代、跨平台) | **Apple iOS Human Interface Guidelines** (簡潔、流暢、半透明、原生 iOS) |
 | **平台傾向** | Android (但通常用於跨平台) | iOS |
 | **外觀風格** | 預設像 **Android App**，高度可客製化 | 預設像 **原生 iOS App**，較少客製化選項 |
 | **主要 UI 元件** | `Scaffold`, `AppBar`, `ElevatedButton`, `Card`, `SnackBar`, `TextField` 等 | `CupertinoNavigationBar`, `CupertinoButton`, `CupertinoSlider`, `CupertinoAlertDialog` 等 |
@@ -87,8 +91,43 @@ draft: false
 | **偵錯橫幅** | 有 (`debugShowCheckedModeBanner`) | 有 (`debugShowCheckedModeBanner`) |
 | **國際化支援** | 有 (`localizationsDelegates`, `supportedLocales`) | 有 (`localizationsDelegates`, `supportedLocales`) |
 
+## Flutter 3.50 之後：建議改從 material_ui／cupertino_ui 匯入
+
+Flutter 把 Material 與 Cupertino 拆成獨立套件 `material_ui` 和 `cupertino_ui`。框架內的 `package:flutter/material.dart` 與 `package:flutter/cupertino.dart` 從 3.44 起不再加新功能，3.47 開始可以改用獨立套件，到 2026 年 11 月釋出的 3.50 正式標為 deprecated。舊的 import 還能編譯，只是會出現棄用警告；3.50 的 `flutter create` 新專案範本已經改成匯入 `material_ui`。
+
+`MaterialApp`、`CupertinoApp` 本身的用法不變，改的是匯入來源：
+
+```dart
+// 舊寫法（3.50 起 deprecated）
+import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+
+// 新寫法
+import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+```
+
+既有專案可以用官方的自動遷移：
+
+```bash
+dart fix --apply --code=migrate_design_widgets
+```
+
+如果它沒有自動把套件加進 `pubspec.yaml`，再執行 `flutter pub add material_ui` 或 `flutter pub add cupertino_ui`。
+
+多語系的寫法也跟著簡化。遷移後 `GlobalMaterialLocalizations.delegates` 直接從 `material_ui` 匯入，裡面已經包含 Cupertino 與 Widgets 的 delegate，不必再另外 import `flutter_localizations`：
+
+```dart
+MaterialApp(
+  localizationsDelegates: GlobalMaterialLocalizations.delegates,
+  // ...
+);
+```
+
+如果你用的第三方套件還沒遷移，官方提供 `MaterialUiCompatibilityBridge` 當過渡，詳見 [Flutter 官方的遷移說明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)。
+
 ## 小結
 
-兩者都是 `WidgetApps` 的具體實現，兩個核心區別在於遵循的設計系統。`MaterialApp` 專注於遵循 Google 的 Material Design，而 `CupertinoApp` 則專注於 Apple 的 iOS Human Interface Guidelines。
+兩者都是 `WidgetsApp` 的具體實現，兩個核心區別在於遵循的設計系統。`MaterialApp` 專注於遵循 Google 的 Material Design，而 `CupertinoApp` 則專注於 Apple 的 iOS Human Interface Guidelines。
 
 如果你剛開始學 Flutter，建議同步搞清楚 [StatefulWidget 與 StatelessWidget 的差異](/flutter-study-writing-statefulwidget-vs-statelesswidget/)，這是另一個核心概念，配合 `MaterialApp` 的狀態管理理解效果更好。確定好應用框架之後，就可以進一步嘗試串接後端服務，像是 [用 Firebase 實作 Google 登入](/flutter-firebase-google-authentication-tutorial/)就是個很好的練手起點。
