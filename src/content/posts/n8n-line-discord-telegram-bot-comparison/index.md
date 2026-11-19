@@ -1,8 +1,10 @@
 ---
 title: "n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較與實戰建議"
 date: 2026-01-15
-updated: 2026-11-14
+updated: 2026-11-19
 changelog:
+  - date: 2026-11-19
+    note: "註明 Discord 取得頻道清單只列 Bot 有檢視權限的頻道"
   - date: 2026-11-14
     note: "更正三平台收訊息方式與 Discord 速率限制，LINE 普及率改用尼爾森調查"
   - date: 2026-10-23
@@ -132,7 +134,7 @@ Discord 是 n8n 官方支援的節點，功能完整且持續維護。不過設�
 官方節點提供的功能：
 
 -   Send Message：發送訊息到頻道
--   Get Channel / Get All Channels：取得頻道資訊
+-   Get Channel / Get All Channels：取得頻道資訊（2026 年 11 月 16 日起，只會列出 Bot 有檢視權限的頻道）
 -   Get All Members：取得成員列表
 -   Add Reaction：新增表情符號反應
 -   Embed 訊息：發送豐富格式訊息
