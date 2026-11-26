@@ -28,11 +28,9 @@ const DESCRIPTION_MIN = 120;
  * `工具與應用` 5 篇對 `tools` 2 篇、`架站與部署` 6 篇對 `devops` 1 篇、
  * `Raspberry Pi` 3 篇對 `raspberry-pi` 1 篇——兩種寫法都得認。
  *
- * `硬體維護` → `hardware` 是 2026-08-19 新增的分類（設計文件 D8），
- * 對應 UPS 系列 4 篇；連動改動在 content.config.ts、site-meta.ts 兩處與 subset-fonts.mjs。
+ * `硬體維護` → `hardware` 的設計見設計文件 D8，對應 UPS 系列 4 篇。
  *
- * `科技新聞` → `tech-news` 是 2026-10-01 新增的分類，第一篇是 Gemini 4 Argon 發布文；
- * 連動改動同上四處。
+ * 加分類時，content.config.ts、site-meta.ts 兩處與 subset-fonts.mjs 要一起改。
  */
 const CATEGORY_MAP = new Map([
   ['n8n', 'n8n'],

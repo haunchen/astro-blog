@@ -27,11 +27,11 @@ test('mapCategory：大小寫與前後空白不影響比對', () => {
   assert.equal(mapCategory('RASPBERRY PI'), 'raspberry-pi');
 });
 
-test('mapCategory：硬體維護對應到 2026-08-19 新增的 hardware', () => {
+test('mapCategory：硬體維護對應到 hardware', () => {
   assert.equal(mapCategory('硬體維護'), 'hardware');
 });
 
-test('mapCategory：科技新聞對應到 2026-10-01 新增的 tech-news', () => {
+test('mapCategory：科技新聞與 tech-news 都對應到 tech-news', () => {
   assert.equal(mapCategory('科技新聞'), 'tech-news');
   assert.equal(mapCategory('tech-news'), 'tech-news');
 });
@@ -140,7 +140,7 @@ test('transformPost：ready 轉成 draft: false', () => {
 });
 
 // vault 的 updated 是「最後一次動這則筆記」，repo 的 updated 是「已上線的文章被改過」。
-// 兩者同名不同義，原本被原樣搬過來——UPS 系列兩篇因此帶著寫作歷程上站（2026-09-18 修）。
+// 兩者同名不同義，原本被原樣搬過來——UPS 系列兩篇因此帶著寫作歷程上站。
 // 這三條把分界線釘住：只有落地即發布的稿子才輸出 updated。
 test('transformPost：落地成草稿時不輸出 updated（寫作歷程不是修訂紀錄）', () => {
   const r = transformPost(validData({ content_status: 'draft' }), '正文');
