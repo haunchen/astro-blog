@@ -8,6 +8,7 @@
  */
 
 import { toYamlFrontmatter } from './md-export.mjs';
+import { checkPostStructure } from './article-blocks.mjs';
 
 /** 與 src/content.config.ts 的 zod schema 同值。超過是讓 build 失敗，不是警告。 */
 const TITLE_MAX = 60;
@@ -223,6 +224,9 @@ export function parsePublishAt(raw, today) {
   return { date, error: null };
 }
 
+/** sync-from-vault 靠這個前綴認出「因結構檢查被擋」的文章，決定結束碼。 */
+export const STRUCTURE_ISSUE_PREFIX = '結構檢查';
+
 /**
  * 一篇 vault tutorial 轉成 repo 文章的完整判定與轉換。
  *
@@ -302,6 +306,12 @@ export function transformPost(data, body, options = {}) {
   const images = collectImageRefs(body);
   const missingAlt = images.filter((img) => !img.alt.trim()).length;
   if (missingAlt > 0) warnings.push(`${missingAlt} 張圖沒有 alt 文字，建議落地後補`);
+
+  // 區塊標題與常見問題的寫法（docs/specs/article-blocks.md R8）。放在這裡而不是落地之後，
+  // 是因為落地只新增不覆蓋：寫錯的稿一旦進了 repo，就得在 repo 端再改一次。
+  for (const v of checkPostStructure(body)) {
+    issues.push(`${STRUCTURE_ISSUE_PREFIX} ${v.rule}「${v.heading}」：${v.message}`);
+  }
 
   if (issues.length > 0) return { slug, status: 'blocked', issues, warnings };
 
