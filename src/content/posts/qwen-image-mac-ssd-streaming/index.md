@@ -1,12 +1,10 @@
 ---
 title: "24GB Mac mini 從 SSD 串流跑 Qwen Image 2.1：實測對照 RTX 3060 與 3050"
-date: 2026-11-23
+date: 2026-11-26
 description: "用 h3-image-mlx 在 24GB Mac mini 上跑 Qwen Image 2.1 Turbo，權重從 SSD 逐區塊讀，記憶體峰值不到 2GB，一張 1024×1280 約 3 分鐘。附 RTX 3060、3050 對照、硬碟速度實測、會不會傷 SSD，以及 MiniMax H3 的強弱。"
 category: "tools"
 tags: ["AI", "on-device-ai"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-11-26
 ---
 ## 前言：只為了生圖，值得買一張顯卡嗎
 
