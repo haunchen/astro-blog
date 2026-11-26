@@ -28,6 +28,7 @@ npm run build         # 正式建置 → dist/
 npm run preview       # 預覽 build 產物（astro preview，不執行 Pages Functions）
 npm run preview:pages # 預覽 build 產物 + Pages Functions（wrangler pages dev），驗內容協商用這支
 npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出 + DNS-AID 解析／評估）
+npm run check:posts   # 文章結構檢查：區塊標題與常見問題寫法（規則見 docs/specs/article-blocks.md）
 npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
@@ -92,7 +93,7 @@ docs/
   plans/             日期成對的設計與實作計畫
   data/              SEO 基準快照
 .github/workflows/    seo-pr.yml（PR 稽核）、seo-daily.yml（正式站日檢）
-.githooks/pre-commit  文章 frontmatter 快速檢查（commit 時擋）
+.githooks/pre-commit  文章 frontmatter 與區塊結構快速檢查（commit 時擋）
 ```
 
 ## 程式碼慣例

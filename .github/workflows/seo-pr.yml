@@ -42,6 +42,11 @@ jobs:
       - name: 單元測試（WP 遷移工具鏈）
         run: npm test
 
+      # 掃全部文章而不只是這個 PR 動到的：pre-commit 只看 staged 的檔，可以被 --no-verify 跳過，
+      # publish-scheduled 的自動 commit 也不經過 hook。位置與 npm test 同理，fail fast。
+      - name: 文章結構檢查（區塊標題與常見問題寫法）
+        run: npm run check:posts
+
       # functions/ 的型別檢查。根 tsconfig 刻意沒開 checkJs——全域開會噴 361 個錯，
       # 其中只有 7 個在 functions/，其餘散在 astro.config.mjs 與 scripts/**。所以邊緣
       # 中介層的型別檢查是靠 functions/tsconfig.json 範圍化撐著，而範圍化的設定沒有

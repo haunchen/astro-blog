@@ -78,5 +78,18 @@ if (failed) {
   process.exit(1);
 }
 ' -- "${FILES[@]}"
+FRONTMATTER_STATUS=$?
 
-exit $?
+# 區塊標題與常見問題的寫法（docs/specs/article-blocks.md R8）。兩道檢查都跑完才結束，
+# 一次 commit 就能看到所有要修的地方，不必修一項才看到下一項。
+node scripts/check-post-structure.mjs --staged "${FILES[@]}"
+STRUCTURE_STATUS=$?
+if [ $STRUCTURE_STATUS -ne 0 ]; then
+  echo "" >&2
+  echo "[pre-commit] 文章結構檢查未通過，commit 已擋下。" >&2
+fi
+
+if [ $FRONTMATTER_STATUS -ne 0 ] || [ $STRUCTURE_STATUS -ne 0 ]; then
+  exit 1
+fi
+exit 0
