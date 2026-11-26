@@ -24,7 +24,9 @@ Context: `CONTEXT.md`
 - 常見問題區塊每題是原生 `<details>`，預設收合、各題獨立（不加 `name` 屬性、不加 `open` 屬性），不寫任何 JavaScript，不加過場動畫
 - 品牌色半透明宣告一律連續兩行：先 `rgba(251, 146, 60, 0.1)`、後 `color-mix(in srgb, var(--color-brand-orange) 10%, transparent)`（design-system R1、R2）
 - 不宣告任何 `:focus`／`:focus-visible` 樣式，焦點外框由 `global.css` 既有的 `:focus-visible` 供應（design-system R4）
-- 修改既有文章只動格式與結構：不改任何論述文字，不加 `changelog`，不動 frontmatter 的 `updated`、`date`、`draft`、`publishAt`
+- 修改既有文章只動格式與結構：不改任何論述文字，不加 `changelog`，不動 frontmatter 的 `updated`、`date`、`draft`、`publishAt`。唯一新增的文字是 Task 5 在 samsung-wallet 那篇加的 `## 結語` 標題
+- `style-preview.html` 是獨立的預覽頁，變數名與寫法自成一套（品牌色半透明只寫單行 rgba）；改它時沿用該檔既有寫法，上面的兩行規則不適用於它
+- 這次改名的標題沒有任何站內連結指向它們的錨點（已查過 `src`、`public`），不需要補轉址或改連結
 - 文章檔一律用 Edit 工具修改；唯一例外是 Task 6 的一次性腳本
 - 不新增 npm 相依
 - 測試用 `node:test` 與 `node:assert/strict`，名稱寫成「對象：條件與預期結果」，測試本體不用迴圈與條件
@@ -720,7 +722,7 @@ Interfaces:
 - Consumes: Task 2 產出的 class 名稱 `faq-list`、`faq-item`、`faq-answer`、`prose-block`
 - Produces: 無
 
-Done when: `npm run build` 成功後，`grep -c 'faq-item' dist/_astro/*.css` 輸出大於 0；`grep -o 'padding:0 24px 64px' dist/_astro/*.css | wc -l` 輸出 `2`；`grep -c 'list-style:disc' dist/_astro/*.css` 輸出大於 0。
+Done when: `npm run build` 成功後，`grep -c 'faq-item' dist/_astro/*.css` 輸出大於 0；`grep -o 'padding:0 24px 64px' dist/_astro/*.css | wc -l` 輸出 `2`；`grep -o '\.prose ul{list-style:disc' dist/_astro/*.css | wc -l` 輸出 `1`。
 
 範圍：只寫樣式。瀏覽器實看在 Task 9。
 
@@ -1010,8 +1012,8 @@ Expected: 大於 0 的數字
 Run: `grep -o 'padding:0 24px 64px' dist/_astro/*.css | wc -l`
 Expected: `2`
 
-Run: `grep -c 'list-style:disc' dist/_astro/*.css`
-Expected: 大於 0 的數字
+Run: `grep -o '\.prose ul{list-style:disc' dist/_astro/*.css | wc -l`
+Expected: `1`。不能只 grep `list-style:disc`：`about.astro` 的 `.about-list` 本來就有這個宣告，改之前就會命中。輸出是 `0` 時先跑 `grep -o '\.prose ul[^}]*}' dist/_astro/*.css` 看 minify 後的實際寫法再判斷
 
 Step 5: Commit
 
@@ -1068,7 +1070,7 @@ Run:
 node scripts/check-post-structure.mjs src/content/posts/n8n-discord-bot-setup-tutorial/index.md src/content/posts/n8n-telegram-bot-notification-tutorial/index.md src/content/posts/n8n-wordpress-api-integration-guide/index.md src/content/posts/cloudflare-cache-rules-wordpress/index.md src/content/posts/nextjs-geoip-memory-optimization/index.md 2>&1 | grep -c ' E3'
 ```
 
-Expected: `0`（仍會列出 E2 與 E6，那是 Task 6 的範圍）
+Expected: `0`（仍會列出 E1、E2 與 E6，那是 Task 6 的範圍）
 
 Run: `git diff --stat`
 Expected: 5 個檔案，`8 insertions(+), 8 deletions(-)`
@@ -1097,7 +1099,7 @@ Interfaces:
 - Consumes: CLI `node scripts/check-post-structure.mjs [檔案...]`（Task 1）
 - Produces: 無
 
-Done when: 對 instagram、samsung 兩個檔案執行 `node scripts/check-post-structure.mjs` 輸出 `結構檢查：2 篇，0 條違規`；對 zeabur-nginx 執行輸出恰好 6 條 `E2`、沒有 `E4`；對 data-table 與 line-discord-telegram 執行輸出裡沒有 `E6`。
+Done when: 對 instagram、samsung 兩個檔案執行 `node scripts/check-post-structure.mjs` 輸出 `結構檢查：2 篇，0 條違規`；對 zeabur-nginx 執行輸出恰好 6 條 `E2` 與 1 條 `E1`、沒有 `E4`；對 data-table 與 line-discord-telegram 執行輸出裡沒有 `E6`。
 
 範圍：只做下列五篇列出的修改。答案與連結的文字不動。
 
@@ -1256,7 +1258,7 @@ node scripts/check-post-structure.mjs src/content/posts/n8n-instagram-access-tok
 Expected: `結構檢查：2 篇，0 條違規`
 
 Run: `node scripts/check-post-structure.mjs src/content/posts/zeabur-nginx-subdomain-to-subdirectory/index.md`
-Expected: 6 行 `E2「常見問題」`，沒有 `E4`，最後一行 `結構檢查：1 篇，6 條違規`
+Expected: 6 行 `E2「常見問題」` 加 1 行 `E1「常見問題」`（粗體題目還沒轉成 h3，所以區塊內暫時沒有 h3，Task 6 會消掉），沒有 `E4`，最後一行 `結構檢查：1 篇，7 條違規`
 
 Run:
 
@@ -1889,6 +1891,8 @@ Run: `npm run preview`，開 `http://localhost:4321/n8n-canva-oauth-setup/`，�
 6. 捲到頁尾，上一篇／下一篇與 footer 之間有明顯留白；把視窗縮到 400px 寬再看一次，留白仍在
 
 再開 `http://localhost:4321/kicad-mcp-autoroute/`，點側邊目錄中常見問題底下的任一題，確認頁面捲到該題的題目列。
+
+最後開 `http://localhost:4321/privacy-policy/`（它也用 `.prose`），確認列表有符號、版面沒有因為列表樣式而跑掉。
 
 任何一項不成立就回報是哪一項、實際看到什麼，不要自行調整樣式數值以外的東西。
 
