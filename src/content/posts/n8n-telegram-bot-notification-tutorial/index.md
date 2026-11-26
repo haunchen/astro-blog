@@ -412,7 +412,7 @@ Telegram Bot API 有速率限制（見 [Bot FAQ](https://core.telegram.org/bots/
 
 這個錯誤表示 Chat ID 不存在或格式錯誤。請確認 Chat ID 數字完全正確、群組 ID 為負數、你已與 Bot 開啟對話、Bot 已加入目標群組。
 
-### 總結與下一步
+## 總結與下一步
 
 恭喜你完成 n8n x Telegram Bot 的憑證設定！現在你已經可以：
 
@@ -421,7 +421,7 @@ Telegram Bot API 有速率限制（見 [Bot FAQ](https://core.telegram.org/bots/
 -   ✅ 發送文字、圖片、檔案等不同類型的訊息
 -   ✅ 設定工作流程執行通知
 
-### 建議的學習路徑
+## 建議的學習路徑
 
 1.  **先從簡單開始**：試著用 n8n 發送測試訊息，熟悉 Telegram 節點的操作
 2.  **實作通知流程**：為重要的工作流程加入 Telegram 通知

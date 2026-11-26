@@ -355,7 +355,7 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 
 你可以在發布文章的工作流後面串接 Telegram、Discord、Twitter/X 或 Facebook 等節點，自動將文章連結分享到對應的平台。
 
-### 總結與下一步
+## 總結與下一步
 
 恭喜你完成 n8n x WordPress 的憑證設定！現在你已經可以：
 
@@ -364,7 +364,7 @@ WordPress REST API 預設的端點格式為：`https://你的網域/wp-json/wp/v
 -   ✅ 更新現有文章的內容和設定
 -   ✅ 上傳圖片到 WordPress 媒體庫
 
-### 建議的學習路徑
+## 建議的學習路徑
 
 1.  **先從簡單開始**：試著用 n8n 取得文章列表，熟悉 WordPress 節點的操作
 2.  **實作備份流程**：定期備份文章資訊到 Google Sheet

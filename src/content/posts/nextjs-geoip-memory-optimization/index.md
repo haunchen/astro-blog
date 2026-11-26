@@ -259,7 +259,7 @@ ENABLE_GEOIP_LOOKUP=false
 
 有 CDN headers 的平台用多層降級策略，無 CDN 支援或需要城市資訊則用 fast-geoip。
 
-### 記憶體優化總結與下一步行動
+## 記憶體優化總結與下一步行動
 
 這次的 Node.js 記憶體優化經驗帶來幾個重要的學習：
 
