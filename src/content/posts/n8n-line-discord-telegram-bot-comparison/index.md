@@ -339,27 +339,27 @@ n8n 可以輕鬆實現多平台同步通知，讓不同受眾在自己習慣的�
 
 ## 常見問題 FAQ
 
-**Q1：三個平台可以同時使用嗎？**
+### 三個平台可以同時使用嗎？
 
 可以，n8n 支援同時串接多個平台，根據情境發送到不同通道。
 
-**Q2：LINE 免費額度用完怎麼辦？**
+### LINE 免費額度用完怎麼辦？
 
 升級付費方案，或改用 Reply Message 回覆訊息（不計入額度）。要注意中用量不能加購，每月超過 3,000 則就只能升級到高用量（月費 1,400 元）。
 
-**Q3：Discord 的 OAuth 設定一直失敗怎麼辦？**
+### Discord 的 OAuth 設定一直失敗怎麼辦？
 
 確認 n8n 的 OAuth Redirect URL 已正確填入 Discord Developer Portal，無多餘空格或斜線。
 
-**Q4：Telegram Bot 可以發送訊息給沒有先跟 Bot 對話的人嗎？**
+### Telegram Bot 可以發送訊息給沒有先跟 Bot 對話的人嗎？
 
 不行，用戶必須先點擊 Start 與 Bot 開始對話，這是 Telegram 的隱私機制。
 
-**Q5：哪個平台的訊息送達速度最快？**
+### 哪個平台的訊息送達速度最快？
 
 三者都在 1-2 秒內送達，Telegram 通常最快，Discord 偶有 Rate Limit 延遲。
 
-**Q6：可以用 Bot 做雙向互動嗎？**
+### 可以用 Bot 做雙向互動嗎？
 
 都支援。Telegram 最簡單（Trigger 直接支援），LINE 需設定 Webhook，Discord 較複雜。
 

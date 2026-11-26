@@ -252,7 +252,7 @@ Gemini 4 Argon 的分數確實驚豔，長文推理和法律、金融這類知�
 
 所以要不要用它，看你平常怎麼用 AI 寫 code：一次丟大量資料請它規劃產出的，值得試；整天讓 agent 在終端機裡跑的，現在手上的工具先用著就好。
 
-## 參考資料
+## 參考資料與延伸閱讀
 
 - [Gemini 4 Argon: our next era of frontier intelligence（Google 官方公告）](https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/)
 - [Gemini Developer API pricing（Google 官方價格頁）](https://ai.google.dev/gemini-api/docs/pricing)

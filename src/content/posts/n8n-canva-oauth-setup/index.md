@@ -377,11 +377,11 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 
 ## 常見問題 FAQ
 
-**Q1：為什麼 Canva 要求必須開啟 MFA？**
+### 為什麼 Canva 要求必須開啟 MFA？
 
 這是 Canva 的安全政策要求。因為 Canva Integrations 可以透過 API 存取和修改你的設計稿，如果沒有 MFA 保護，帳號被盜用時可能會造成資料外洩或遭到惡意修改。開啟 MFA 可以確保只有你本人能夠授權 API 存取。
 
-**Q2：如果手機遺失或無法使用 Google Authenticator 怎麼辦？**
+### 如果手機遺失或無法使用 Google Authenticator 怎麼辦？
 
 備份救援代碼的原因：  
 \- 使用之前備份的救援代碼登入 Canva  
@@ -391,7 +391,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
   
 如果救援代碼也遺失，需要聯絡 Canva 客服協助恢復帳號存取權限。
 
-**Q3：如果忘記記錄 Secret 怎麼辦？**
+### 如果忘記記錄 Secret 怎麼辦？
 
 不用擔心，你可以重新產生新的 secret：  
 1\. 回到 Canva Developers 的 integration 設定頁面  
@@ -399,7 +399,7 @@ https://www.canva.com/api/oauth/authorize?code_challenge_method=s256&response_ty
 3\. 舊的 secret 會立即失效  
 4\. 記得同步更新 n8n 憑證設定中的 Client Secret
 
-**Q4：Scope 該如何選擇？**
+### Scope 該如何選擇？
 
 Scope 應該根據你的實際需求選擇：  
 \- 只需要讀取設計稿**資訊**：選擇 `design:meta:read`  
@@ -408,25 +408,25 @@ Scope 應該根據你的實際需求選擇：
   
 原則：選擇最小必要權限，提高安全性。
 
-**Q5：授權失敗該如何處理？**
+### 授權失敗該如何處理？
 
 常見原因和解決方法：  
 1\. **重定向網址設定錯誤**：檢查 Canva 和 n8n 兩邊的重定向網址是否完全一致；注意不要多加或少加斜線 `/`  
 2\. **Client ID 或 Secret 複製錯誤**：重新複製貼上，確保沒有多餘的空白字元  
 3\. **Scope 格式錯誤**：確認 scope 之間用空白字元分隔不是 `%20`
 
-**Q6：能否在多個 n8n 專案使用同一組憑證？**
+### 能否在多個 n8n 專案使用同一組憑證？
 
 可以，但需要注意：  
 \- 同一個 n8n 實例內的不同工作流可以共用憑證  
 \- 不同的 n8n 實例需要分別設定憑證  
 \- **建議為不同用途建立不同的 Canva integration，方便管理和追蹤使用情況**
 
-**Q7：Canva 免費帳號可以使用 API 嗎？**
+### Canva 免費帳號可以使用 API 嗎？
 
 可以！Canva 免費帳號一樣能建立 integration 和使用 API。但需注意**某些進階功能可能需要付費方案才能使用**
 
-**Q8：為什麼我的 API 請求回傳空陣列？**
+### 為什麼我的 API 請求回傳空陣列？
 
 可能原因：  
 \- 搜尋條件過於嚴格，沒有符合的設計稿  
@@ -555,7 +555,7 @@ Scope 應該根據你的實際需求選擇：
 
 你想要看到哪些 n8n x Canva 自動化應用？歡迎在留言區告訴我！
 
-## 參考資料
+## 參考資料與延伸閱讀
 
 ### 官方文件
 

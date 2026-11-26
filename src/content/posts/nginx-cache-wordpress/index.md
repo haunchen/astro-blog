@@ -369,26 +369,26 @@ chmod -R 755 /var/cache/nginx
 
 ## 常見問題 FAQ
 
-**Q1：Nginx Cache 和 Cloudflare Cache 會衝突嗎？**
+### Nginx Cache 和 Cloudflare Cache 會衝突嗎？
 
 不會。它們是互補的關係。Cloudflare 處理全球分發，Nginx 處理 Cloudflare 沒快取時的請求。
 
-**Q2：快取時間應該設多長？**
+### 快取時間應該設多長？
 
 建議 Nginx Cache 設定 10-30 分鐘即可，因為前面有 Cloudflare。如果沒有 CDN，可以設定 1-4 小時。
 
-**Q3：Docker 環境下快取目錄會消失？**
+### Docker 環境下快取目錄會消失？
 
 記得把快取目錄掛載為 Volume，避免容器重啟後快取消失。如果你還沒有容器化部署的經驗，可以參考 [Ubuntu 上容器化 Node.js 教學](/nodejs-docker-ubuntu-containerization-tutorial/)。
 
-**Q4：為什麼一直看到 MISS？**
+### 為什麼一直看到 MISS？
 
 可能原因：  
 1\. 快取目錄沒有寫入權限  
 2\. 後端回傳了 `Cache-Control: no-cache`  
 3\. URL 有查詢字串（每個查詢字串都是不同的快取 key）
 
-**Q5：Sitemap 要不要快取？**
+### Sitemap 要不要快取？
 
 建議不要，讓搜尋引擎能爬到最新的 Sitemap。可以單獨設定 `expires 0`。
 

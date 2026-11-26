@@ -243,19 +243,19 @@ ENABLE_GEOIP_LOOKUP=false
 
 ## Node.js 記憶體優化常見問題 FAQ
 
-**Q1: 如何檢測 Node.js 應用的記憶體使用量？**
+### 如何檢測 Node.js 應用的記憶體使用量？
 
 透過部署平台的監控面板查看，或本地使用 node --inspect 配合 Chrome DevTools 分析。
 
-**Q2: 我是否需要關閉 geoip-lite？**
+### 我是否需要關閉 geoip-lite？
 
 部署在 Zeabur、Cloudflare、Vercel 建議關閉，因為平台已提供 CDN headers。傳統 VPS 需要城市資訊則保持開啟。
 
-**Q3: 在 Vercel / Cloudflare 上該怎麼設定？**
+### 在 Vercel / Cloudflare 上該怎麼設定？
 
 修改 getGeoFromHeaders 函式讀取對應 header 即可。Cloudflare 用 CF-IPCountry，Vercel 用 x-vercel-ip-country。
 
-**Q4: fast-geoip 和多層降級策略該選哪個？**
+### fast-geoip 和多層降級策略該選哪個？
 
 有 CDN headers 的平台用多層降級策略，無 CDN 支援或需要城市資訊則用 fast-geoip。
 
@@ -278,7 +278,7 @@ ENABLE_GEOIP_LOOKUP=false
 
 如果你有任何問題或想分享自己的記憶體優化經驗，歡迎在下方留言討論！
 
-## 延伸閱讀
+## 參考資料與延伸閱讀
 
 -   [Cloudflare Cache Rules 完整教學：WordPress 網站效能優化實戰指南](/cloudflare-cache-rules-wordpress/)
 -   [Zeabur Nginx 反向代理教學：從子網域到子目錄的完整實戰](/zeabur-nginx-subdomain-to-subdirectory/)
