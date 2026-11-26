@@ -361,34 +361,32 @@ chmod -R 755 /var/cache/nginx
 
 1.  大部分請求會被 Cloudflare 攔截，到不了 Nginx 這是好事！代表 Cloudflare 在幫你擋流量。Nginx Cache 主要是處理 CF 沒快取的請求。
 2.  兩個快取狀態 Header 不同
-
--   `cf-cache-status`：Cloudflare 的快取狀態
--   `X-Cache-Status`：Nginx 的快取狀態
-
-1.  快取時間的設定策略 Cloudflare 快取時間可以設長一點（例如 4 小時），Nginx 可以設短一點（例如 10 分鐘），因為 Nginx 只是備援。
+    -   `cf-cache-status`：Cloudflare 的快取狀態
+    -   `X-Cache-Status`：Nginx 的快取狀態
+3.  快取時間的設定策略 Cloudflare 快取時間可以設長一點（例如 4 小時），Nginx 可以設短一點（例如 10 分鐘），因為 Nginx 只是備援。
 
 ## 常見問題 FAQ
 
-**Q1：Nginx Cache 和 Cloudflare Cache 會衝突嗎？**
+### Nginx Cache 和 Cloudflare Cache 會衝突嗎？
 
 不會。它們是互補的關係。Cloudflare 處理全球分發，Nginx 處理 Cloudflare 沒快取時的請求。
 
-**Q2：快取時間應該設多長？**
+### 快取時間應該設多長？
 
 建議 Nginx Cache 設定 10-30 分鐘即可，因為前面有 Cloudflare。如果沒有 CDN，可以設定 1-4 小時。
 
-**Q3：Docker 環境下快取目錄會消失？**
+### Docker 環境下快取目錄會消失？
 
 記得把快取目錄掛載為 Volume，避免容器重啟後快取消失。如果你還沒有容器化部署的經驗，可以參考 [Ubuntu 上容器化 Node.js 教學](/nodejs-docker-ubuntu-containerization-tutorial/)。
 
-**Q4：為什麼一直看到 MISS？**
+### 為什麼一直看到 MISS？
 
 可能原因：  
 1\. 快取目錄沒有寫入權限  
 2\. 後端回傳了 `Cache-Control: no-cache`  
 3\. URL 有查詢字串（每個查詢字串都是不同的快取 key）
 
-**Q5：Sitemap 要不要快取？**
+### Sitemap 要不要快取？
 
 建議不要，讓搜尋引擎能爬到最新的 Sitemap。可以單獨設定 `expires 0`。
 

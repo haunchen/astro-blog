@@ -330,13 +330,14 @@ const crumbs = [
     background: var(--color-bg-tertiary);
   }
 
-  /* Two-column layout */
+  /* Two-column layout。底部留白跟著 .list-page 的上下留白走（桌面 64px、768px 以下 40px，
+     見下方 media query），否則上一篇／下一篇會貼著 footer。 */
   .layout-with-aside {
     display: flex;
     gap: 48px;
     max-width: var(--width-max);
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 24px 64px;
   }
 
   .layout-main {
@@ -527,9 +528,10 @@ const crumbs = [
       display: none;
     }
 
+    /* 這裡重設 padding，底部留白要跟著再寫一次 */
     .layout-with-aside {
       display: block;
-      padding: 0 24px;
+      padding: 0 24px 64px;
     }
   }
 
@@ -546,6 +548,10 @@ const crumbs = [
 
     .article-nav {
       flex-direction: column;
+    }
+
+    .layout-with-aside {
+      padding-bottom: 40px;
     }
   }
 </style>

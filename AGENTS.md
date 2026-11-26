@@ -27,7 +27,15 @@ npm run dev          # 開發伺服器（會先跑字型裁切，見下方）
 npm run build         # 正式建置 → dist/
 npm run preview       # 預覽 build 產物（astro preview，不執行 Pages Functions）
 npm run preview:pages # 預覽 build 產物 + Pages Functions（wrangler pages dev），驗內容協商用這支
-npm test              # scripts/lib/ 的單元測試（WordPress 匯入工具鏈 + markdown 匯出 + DNS-AID 解析／評估）
+npm test              # scripts/lib/ 的單元測試：WordPress 匯入工具鏈、markdown 匯出（含更新紀錄
+                      # 引言區塊）、DNS-AID 解析／評估、頁面→markdown 轉換（page-md.mjs）、
+                      # 路徑映射（md-path.mjs）、OG 圖渲染與雜湊（og-image.mjs）、
+                      # 排程發布判定與 frontmatter 改寫（publish-scheduled.mjs）、
+                      # vault→repo 轉換與 --publish-at 日期驗證（vault-post.mjs）、
+                      # IndexNow 送出判定與網址換算（indexnow.mjs）、文章路徑→id 推導（post-id.mjs）、
+                      # 區塊標題辨識與結構檢查（article-blocks.mjs）、
+                      # 風琴與框的 HTML 改寫（rehype-article-blocks.mjs）
+npm run check:posts   # 文章結構檢查：區塊標題與常見問題寫法（規則見 docs/specs/article-blocks.md）
 npm run verify:seo    # build 後的靜態 SEO 驗證（需先 build）
 npm run fonts         # 手動重跑字型裁切（scripts/build-font-css.mjs）
 npx astro check       # TypeScript / Astro 型別檢查
@@ -77,7 +85,9 @@ scripts/             build-font-css.mjs（網頁字型裁切）、subset-fonts.m
                      （OG 圖字型，用 satori）、verify-*.mjs（build 後與正式站驗證，
                      含 verify-dns-aid.mjs 驗 zone 上的 DNS-AID 記錄）
   lib/               migrate-wp、markdown 匯出、DNS-AID 解析／評估、頁面路徑↔md
-                     路徑映射（md-path.mjs）的純函式，npm test 的對象
+                     路徑映射（md-path.mjs）、OG 圖、排程發布、vault 轉換、IndexNow、
+                     文章區塊（article-blocks.mjs、rehype-article-blocks.mjs）等純函式，
+                     npm test 的對象（範圍見上方「常用指令」）
 functions/
   _middleware.js     Accept 內容協商（Cloudflare Pages Functions，本 repo 唯一的
                      runtime 層；復用 scripts/lib/md-path.mjs 算頁面的 md 路徑）
@@ -92,7 +102,7 @@ docs/
   plans/             日期成對的設計與實作計畫
   data/              SEO 基準快照
 .github/workflows/    seo-pr.yml（PR 稽核）、seo-daily.yml（正式站日檢）
-.githooks/pre-commit  文章 frontmatter 快速檢查（commit 時擋）
+.githooks/pre-commit  文章 frontmatter 與區塊結構快速檢查（commit 時擋）
 ```
 
 ## 程式碼慣例

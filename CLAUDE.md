@@ -18,14 +18,16 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 212 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 283 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export incl. changelog blockquote + DNS-AID parsing/evaluation +
                     # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
                     # publish-scheduled.mjs 排程發布判定/frontmatter 改寫 +
                     # vault-post.mjs vault→repo 轉換與 --publish-at 日期驗證 +
                     # indexnow.mjs 該送的判定/網址換算/sitemap lastmod 解析/payload 組裝 +
-                    # post-id.mjs 文章路徑→id 推導，astro.config.mjs 與 indexnow.mjs 共用)
+                    # post-id.mjs 文章路徑→id 推導，astro.config.mjs 與 indexnow.mjs 共用 +
+                    # article-blocks.mjs 區塊標題辨識與結構檢查 +
+                    # rehype-article-blocks.mjs 風琴與框的 HTML 改寫)
 ```
 
 The glob in the `test` script is double-quoted on purpose so **Node** expands it, not the shell —
@@ -170,7 +172,7 @@ some header and AI-crawler rules — `public/robots.txt` and `public/_headers` a
 enforcement, and the two lists do not sync. Verify with `verify:headers` / `verify:robots` against the
 live site rather than reading the files.
 
-**CI:** `.github/workflows/seo-pr.yml` runs `npm test` + `check:functions` + build + `verify:seo` +
+**CI:** `.github/workflows/seo-pr.yml` runs `npm test` + `check:posts` + `check:functions` + build + `verify:seo` +
 Lighthouse + `verify:agent-ua` (the last against a `wrangler pages dev` instance started in the
 job, since agent UA detection lives in Pages Functions, which `astro preview` doesn't execute)
 on every PR;
@@ -180,7 +182,8 @@ scheduled posts from draft and push the commit.
 支腳本（Actions 用 `GITHUB_TOKEN` push 的 commit 不會觸發 `on: push`）。Google 端刻意不做主動
 提交——它沒有給一般文章的官方路徑，理由見 `docs/specs/index-submission.md` D1。
 `.githooks/pre-commit` (enabled by `npm install`
-via the `prepare` script) validates frontmatter on staged posts only — seconds-fast, no build.
+via the `prepare` script) validates frontmatter and article-block structure on staged posts only —
+seconds-fast, no build.
 
 **Docs:** `docs/specs/` (feature specs), `docs/plans/` (dated design + implementation pairs),
 `docs/data/` (SEO baselines), `docs/deployment.md`, `docs/SEO_GUIDE.md`, `docs/SEO_TODO.md`.
@@ -204,6 +207,42 @@ Dark e-ink aesthetic defined in `src/styles/global.css` via CSS custom propertie
 - Tailwind v4 configured via Vite plugin (not PostCSS), imported in global.css with `@import "tailwindcss"`
 - Canonical host is **non-www** (`site: 'https://frankchen.tw'`). Never emit www URLs in content,
   sitemaps, or internal links.
+
+## Article blocks
+
+Three h2 titles switch the layout of the section under them. Recognition is by the h2's plain text
+only — h3 and below never count. Spec: `docs/specs/article-blocks.md`; vocabulary: `CONTEXT.md`.
+
+| h2 text | Block | Rendered as |
+|---------|-------|-------------|
+| contains 「常見問題」 | 常見問題區塊 | accordion — each `###` is one question, collapsed by default |
+| starts with 「故障排除」 | 故障排除區塊 | the whole section in one box |
+| equals 「參考資料與延伸閱讀」 | 文末連結區塊 | the whole section in one box |
+
+A title matching both 「常見問題」 and 「故障排除」 is a 常見問題區塊. Anything before the first `###`
+in a 常見問題區塊 is the intro and stays outside the accordion.
+
+Writing rules, enforced by `checkPostStructure()` in `scripts/lib/article-blocks.mjs`:
+questions are `### 問題？`, never `**Q1：…**`; a 常見問題區塊 must not hold a closing section
+(總結／結語／下一步) as an h3 — make it an h2; aliases are rejected (常見問答, a bare FAQ,
+疑難排解, and 參考資料／延伸閱讀／相關文章 on their own); one 常見問題區塊 and one 文末連結區塊
+per post at most.
+
+The check counts two forms as an h2: ATX headings (`## …`, up to three leading spaces) and
+single-line setext headings (an unindented line after a blank line, underlined with dashes); a
+multi-line paragraph underlined with dashes is not recognized, and nothing inside a fenced code
+block is checked.
+
+The check runs in three places off the same function: `transformPost()` (so `sync-from-vault`
+refuses to land a violating draft and `--apply` exits non-zero), `.githooks/pre-commit` (staged
+posts), and `npm run check:posts` in CI (all posts).
+
+`classifyBlockHeading()` is the single source for "which block is this h2" —
+`scripts/lib/rehype-article-blocks.mjs` and the check both call it. Add a second copy of that logic
+and the check will start passing posts the page doesn't actually style.
+
+The wrapping happens in rehype, so the `.md` variants (built from `post.body`) never see it, and
+the RSS feed's `sanitizeHtml` whitelist strips `details`/`summary`/`div` while keeping their content.
 
 ## Updating a published post
 

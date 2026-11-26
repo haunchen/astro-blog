@@ -375,27 +375,27 @@ n8n 2.31.0 起，新拉進工作流的 Notion 節點是第 3 版，改用 Notion
 
 ## 常見問題 FAQ
 
-**Q1: 為什麼我的 n8n 無法讀取 Notion Database？**
+### 為什麼我的 n8n 無法讀取 Notion Database？
 
 最常見的原因是「沒有授權頁面給 Integration」。請確認你已經在 Notion Database 的「連結」設定中連結了你的 Integration、Integration Secret 正確無誤，以及 Database ID 正確（從 URL 複製的 32 個字元）。如果用的是 n8n 2.31.0 起的新版 Notion 節點，新增或查詢記錄時要填的是 Data Source ID，不是 Database URL 裡那串，建議直接用 From list 選。
 
-**Q2: 如何處理 Notion 的 Relation 欄位？**
+### 如何處理 Notion 的 Relation 欄位？
 
 Relation 欄位會返回關聯記錄的 ID 陣列。處理方式是先取得包含 Relation 的記錄，接著提取 Relation 欄位中的 ID，最後使用這些 ID 再次查詢關聯的 Database 來取得詳細資訊。
 
-**Q3: Notion API 有呼叫次數限制嗎？**
+### Notion API 有呼叫次數限制嗎？
 
 是的，Notion API 有速率限制（Rate Limit），每個 Integration 每秒最多 3 個請求，超過限制會收到 429 錯誤。建議在 n8n 工作流中加入「延遲」節點，避免頻繁呼叫。
 
-**Q4: 如何在 n8n 中建立包含多個屬性的 Notion 記錄？**
+### 如何在 n8n 中建立包含多個屬性的 Notion 記錄？
 
 使用「Create Database Page」操作時，在「Properties」欄位中點擊「Add Field」，依序新增你要設定的屬性（標題、狀態、日期等）。每個屬性需要符合其類型的格式，例如日期要用 ISO 8601 格式。
 
-**Q5: Notion Block 的內容如何轉換成 HTML？**
+### Notion Block 的內容如何轉換成 HTML？
 
 這是比較進階的應用。基本流程是使用「Get Blocks」取得 Page 的所有 Block，接著用「Code」節點判斷 Block 類型（paragraph、heading\_1、image 等），根據類型轉換成對應的 HTML 標籤，最後將所有 HTML 合併成完整內容。詳細的轉換邏輯，請參考「Notion 轉 WordPress」文章的範例。
 
-**Q6: 可以用 n8n 刪除 Notion 記錄嗎？**
+### 可以用 n8n 刪除 Notion 記錄嗎？
 
 Notion API 目前不支援直接刪除 Page 或 Database 記錄。變通方法是在 Database 中加入「狀態」或「已刪除」欄位，使用「Update」操作將記錄標記為「已刪除」，之後定期手動清理或使用 Notion 的篩選功能隱藏這些記錄。
 

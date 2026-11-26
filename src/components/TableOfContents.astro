@@ -34,21 +34,33 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
     const tocLinks = document.querySelectorAll('.toc-list a');
     if (tocLinks.length === 0) return;
 
+    const headings = Array.from(document.querySelectorAll('.prose h2, .prose h3'));
+    // Headings packed closer than the detection band (e.g. collapsed FAQ
+    // questions) enter it together, and a callback's entries arrive in no
+    // useful order. Track which headings are inside the band and always
+    // highlight the topmost one, so the jump target wins over its neighbour.
+    const inBand = new Set<Element>();
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const id = entry.target.id;
-            tocLinks.forEach((link) => {
-              link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-            });
-          }
+          if (entry.isIntersecting) inBand.add(entry.target);
+          else inBand.delete(entry.target);
         }
+
+        // An empty band keeps the last highlight rather than clearing it.
+        const top = headings.find((heading) => inBand.has(heading));
+        if (!top) return;
+        tocLinks.forEach((link) => {
+          link.classList.toggle('active', link.getAttribute('href') === `#${top.id}`);
+        });
       },
-      { rootMargin: '0px 0px -80% 0px' }
+      // The top inset keeps headings hidden under the sticky header out of
+      // the band. It sits just inside the 64px scroll-padding-top in
+      // global.css, so a heading that an anchor jump lands on still counts.
+      { rootMargin: '-60px 0px -80% 0px' }
     );
 
-    const headings = document.querySelectorAll('.prose h2, .prose h3');
     headings.forEach((heading) => observer.observe(heading));
     tocObserver = observer;
   }

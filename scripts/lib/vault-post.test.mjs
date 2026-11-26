@@ -27,11 +27,11 @@ test('mapCategory：大小寫與前後空白不影響比對', () => {
   assert.equal(mapCategory('RASPBERRY PI'), 'raspberry-pi');
 });
 
-test('mapCategory：硬體維護對應到 2026-08-19 新增的 hardware', () => {
+test('mapCategory：硬體維護對應到 hardware', () => {
   assert.equal(mapCategory('硬體維護'), 'hardware');
 });
 
-test('mapCategory：科技新聞對應到 2026-10-01 新增的 tech-news', () => {
+test('mapCategory：科技新聞與 tech-news 都對應到 tech-news', () => {
   assert.equal(mapCategory('科技新聞'), 'tech-news');
   assert.equal(mapCategory('tech-news'), 'tech-news');
 });
@@ -140,7 +140,7 @@ test('transformPost：ready 轉成 draft: false', () => {
 });
 
 // vault 的 updated 是「最後一次動這則筆記」，repo 的 updated 是「已上線的文章被改過」。
-// 兩者同名不同義，原本被原樣搬過來——UPS 系列兩篇因此帶著寫作歷程上站（2026-09-18 修）。
+// 兩者同名不同義，原本被原樣搬過來——UPS 系列兩篇因此帶著寫作歷程上站。
 // 這三條把分界線釘住：只有落地即發布的稿子才輸出 updated。
 test('transformPost：落地成草稿時不輸出 updated（寫作歷程不是修訂紀錄）', () => {
   const r = transformPost(validData({ content_status: 'draft' }), '正文');
@@ -313,4 +313,26 @@ test('renderPostFile：publishAt 序列化成裸日期，schema 的 z.coerce.dat
   );
   assert.ok(out.includes('publishAt: 2026-09-01'));
   assert.ok(!out.includes('publishAt: "2026-09-01"'));
+});
+
+test('transformPost：常見問題區塊的題目寫成粗體段落判為 blocked', () => {
+  const body = '## 常見問題\n\n### 第一題？\n\n答案\n\n**Q2：第二題？**\n\n答案';
+  const r = transformPost(validData(), body);
+  assert.equal(r.status, 'blocked');
+  assert.deepEqual(r.issues, ['結構檢查 E2「常見問題」：題目要寫成「### 題目」，不寫整段粗體']);
+});
+
+test('transformPost：區塊寫法合規的正文照常轉出', () => {
+  const body = '## 常見問題\n\n### 第一題？\n\n答案\n\n## 參考資料與延伸閱讀\n\n- [來源](https://example.com)';
+  const r = transformPost(validData(), body);
+  assert.equal(r.status, 'ok');
+});
+
+test('transformPost：結構違規與欄位缺漏一次報完', () => {
+  const r = transformPost(validData({ cover_image: '' }), '## 延伸閱讀\n\n- [文章](/post/)');
+  assert.equal(r.status, 'blocked');
+  assert.deepEqual(r.issues, [
+    '缺 cover_image（schema 的 cover 為必填）',
+    '結構檢查 E6「延伸閱讀」：文末連結的標題只能是「參考資料與延伸閱讀」',
+  ]);
 });

@@ -24,7 +24,12 @@ import os from 'node:os';
 import path from 'node:path';
 import sharp from 'sharp';
 import { toTaipeiDay } from './lib/publish-scheduled.mjs';
-import { transformPost, renderPostFile, parsePublishAt } from './lib/vault-post.mjs';
+import {
+  transformPost,
+  renderPostFile,
+  parsePublishAt,
+  STRUCTURE_ISSUE_PREFIX,
+} from './lib/vault-post.mjs';
 
 const POSTS_DIR = 'src/content/posts';
 
@@ -262,6 +267,18 @@ async function main() {
   }
 
   console.log(`略過：repo 已有 ${skippedExisting} 篇、已發布或狀態不適用 ${skippedOther} 篇`);
+
+  // 缺封面、缺欄位的草稿在 vault 裡是常態，不該讓每次 --apply 都回非零；
+  // 結構違規不一樣——那是寫完的稿寫錯了格式，要讓呼叫端（blog:publish）當下就知道。
+  const structureBlocked = blocked.filter(({ result }) =>
+    result.issues.some((issue) => issue.startsWith(STRUCTURE_ISSUE_PREFIX)),
+  );
+  if (args.apply && structureBlocked.length > 0) {
+    console.error(
+      `\n結構檢查未通過 ${structureBlocked.length} 篇，這幾篇不會落地。回 vault 原稿修正後再跑。`,
+    );
+    process.exitCode = 1;
+  }
 
   if (!args.apply) {
     console.log('\ndry-run 結束，未寫入任何檔案。要落地請加 --apply');

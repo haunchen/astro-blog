@@ -267,7 +267,7 @@ ComfyUI 把整個模型載進記憶體，官方 H3 測試峰值 31GB；h3-image-
 
 不會。Mac 和 NVIDIA 顯卡同 seed 構圖不同；兩張 NVIDIA 顯卡之間倒是幾乎一樣。
 
-## 參考資料
+## 參考資料與延伸閱讀
 
 - [Anionex/h3-image-mlx（GitHub）](https://github.com/Anionex/h3-image-mlx)
 - [ddalcu/Qwen-Image-2.1-Turbo-MLX-Serve-8bit（Hugging Face）](https://huggingface.co/ddalcu/Qwen-Image-2.1-Turbo-MLX-Serve-8bit)

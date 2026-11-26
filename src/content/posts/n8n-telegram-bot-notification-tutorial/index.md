@@ -388,31 +388,31 @@ Draft 適合 AI 邊生成邊顯示的回覆，但有兩個限制要先知道：�
 
 ## 常見問題 FAQ
 
-**Q1: 為什麼我的 Bot 無法發送訊息給我？**
+### 為什麼我的 Bot 無法發送訊息給我？
 
 最常見的原因是你還沒有與 Bot 開啟對話。請先到 Telegram 找到你的 Bot，點擊「Start」按鈕建立對話，同時確認 Chat ID 和 Bot Token 輸入正確無誤。
 
-**Q2: 如何在訊息中加入變數或動態內容？**
+### 如何在訊息中加入變數或動態內容？
 
 在 n8n 的 Telegram 節點中，可以使用 Expression 語法插入動態內容，例如 `{{ $json.status }}` 取得前一個節點的資料，或 `{{ $now }}` 插入當前時間。
 
-**Q3: Telegram Bot 有訊息數量限制嗎？**
+### Telegram Bot 有訊息數量限制嗎？
 
 Telegram Bot API 有速率限制（見 [Bot FAQ](https://core.telegram.org/bots/faq)）：同一個聊天室避免每秒超過 1 則，同一個群組每分鐘不超過 20 則，群發到多個聊天室時整體約每秒 30 則。一般自動化通知碰不到這些限制，批次發送時建議加入延遲節點。
 
-**Q4: 如何讓 Bot 加入群組並發送訊息？**
+### 如何讓 Bot 加入群組並發送訊息？
 
 將 Bot 加入 Telegram 群組後，取得群組的 Chat ID（通常是負數），在 n8n 的 Telegram 節點填入該 Chat ID 即可發送訊息到群組。
 
-**Q5: 可以讓用戶透過 Telegram 觸發 n8n 工作流程嗎？**
+### 可以讓用戶透過 Telegram 觸發 n8n 工作流程嗎？
 
 可以，需要使用 Webhook 功能。在 n8n 建立 Webhook 節點作為觸發器，並在 Telegram Bot 設定對應的 Webhook URL，用戶發送訊息時就會觸發工作流程。
 
-**Q6: 發送訊息時出現「Bad Request: chat not found」錯誤怎麼辦？**
+### 發送訊息時出現「Bad Request: chat not found」錯誤怎麼辦？
 
 這個錯誤表示 Chat ID 不存在或格式錯誤。請確認 Chat ID 數字完全正確、群組 ID 為負數、你已與 Bot 開啟對話、Bot 已加入目標群組。
 
-### 總結與下一步
+## 總結與下一步
 
 恭喜你完成 n8n x Telegram Bot 的憑證設定！現在你已經可以：
 
@@ -421,14 +421,14 @@ Telegram Bot API 有速率限制（見 [Bot FAQ](https://core.telegram.org/bots/
 -   ✅ 發送文字、圖片、檔案等不同類型的訊息
 -   ✅ 設定工作流程執行通知
 
-### 建議的學習路徑
+## 建議的學習路徑
 
 1.  **先從簡單開始**：試著用 n8n 發送測試訊息，熟悉 Telegram 節點的操作
 2.  **實作通知流程**：為重要的工作流程加入 Telegram 通知
 3.  **探索格式化**：嘗試使用 Markdown 或 HTML 美化訊息
 4.  **挑戰進階功能**：學習按鈕、指令、雙向互動等功能
 
-## 參考資料及延伸閱讀
+## 參考資料與延伸閱讀
 
 ### 參考資料
 

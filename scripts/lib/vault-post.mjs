@@ -8,6 +8,7 @@
  */
 
 import { toYamlFrontmatter } from './md-export.mjs';
+import { checkPostStructure } from './article-blocks.mjs';
 
 /** 與 src/content.config.ts 的 zod schema 同值。超過是讓 build 失敗，不是警告。 */
 const TITLE_MAX = 60;
@@ -27,11 +28,9 @@ const DESCRIPTION_MIN = 120;
  * `工具與應用` 5 篇對 `tools` 2 篇、`架站與部署` 6 篇對 `devops` 1 篇、
  * `Raspberry Pi` 3 篇對 `raspberry-pi` 1 篇——兩種寫法都得認。
  *
- * `硬體維護` → `hardware` 是 2026-08-19 新增的分類（設計文件 D8），
- * 對應 UPS 系列 4 篇；連動改動在 content.config.ts、site-meta.ts 兩處與 subset-fonts.mjs。
+ * `硬體維護` → `hardware` 的設計見設計文件 D8，對應 UPS 系列 4 篇。
  *
- * `科技新聞` → `tech-news` 是 2026-10-01 新增的分類，第一篇是 Gemini 4 Argon 發布文；
- * 連動改動同上四處。
+ * 加分類時，content.config.ts、site-meta.ts 兩處與 subset-fonts.mjs 要一起改。
  */
 const CATEGORY_MAP = new Map([
   ['n8n', 'n8n'],
@@ -223,6 +222,9 @@ export function parsePublishAt(raw, today) {
   return { date, error: null };
 }
 
+/** sync-from-vault 靠這個前綴認出「因結構檢查被擋」的文章，決定結束碼。 */
+export const STRUCTURE_ISSUE_PREFIX = '結構檢查';
+
 /**
  * 一篇 vault tutorial 轉成 repo 文章的完整判定與轉換。
  *
@@ -302,6 +304,12 @@ export function transformPost(data, body, options = {}) {
   const images = collectImageRefs(body);
   const missingAlt = images.filter((img) => !img.alt.trim()).length;
   if (missingAlt > 0) warnings.push(`${missingAlt} 張圖沒有 alt 文字，建議落地後補`);
+
+  // 區塊標題與常見問題的寫法（docs/specs/article-blocks.md R8）。放在這裡而不是落地之後，
+  // 是因為落地只新增不覆蓋：寫錯的稿一旦進了 repo，就得在 repo 端再改一次。
+  for (const v of checkPostStructure(body)) {
+    issues.push(`${STRUCTURE_ISSUE_PREFIX} ${v.rule}「${v.heading}」：${v.message}`);
+  }
 
   if (issues.length > 0) return { slug, status: 'blocked', issues, warnings };
 

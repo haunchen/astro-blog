@@ -244,15 +244,13 @@ n8n 需要三組金鑰才能操作 Discord Bot，讓我們依序取得。
 現在我們已經取得所有必要的金鑰，回到 n8n 的 Discord 憑證設定頁面完成設定。
 
 1.  填入三個欄位：
-
--   **Client ID**：貼上剛剛複製的 Client ID
--   **Client Secret**：貼上剛剛複製的 Client Secret
--   **Bot Token**：貼上剛剛複製的 Bot Token
-
-1.  點擊「Connect my account」按鈕
-2.  系統會開啟 Discord 授權頁面，選擇你的伺服器並點擊「授權」
-3.  完成授權後，系統會自動跳回 n8n，看到「Connected」或綠色勾勾表示連接成功
-4.  點擊右上角的「Save」儲存憑證
+    -   **Client ID**：貼上剛剛複製的 Client ID
+    -   **Client Secret**：貼上剛剛複製的 Client Secret
+    -   **Bot Token**：貼上剛剛複製的 Bot Token
+2.  點擊「Connect my account」按鈕
+3.  系統會開啟 Discord 授權頁面，選擇你的伺服器並點擊「授權」
+4.  完成授權後，系統會自動跳回 n8n，看到「Connected」或綠色勾勾表示連接成功
+5.  點擊右上角的「Save」儲存憑證
 
 授權成功後，此頁的連線狀態會由原本的未連線狀態，變為顯示綠色的「Connected」，即代表 n8n 已與你的 Discord 應用程式完成串接。
 
@@ -392,31 +390,31 @@ Webhook 的限制：
 
 ## Discord Bot 常見問題
 
-**Q1: Bot 無法發送訊息到頻道怎麼辦？**
+### Bot 無法發送訊息到頻道怎麼辦？
 
 通常是權限問題。請確認 Bot 已加入伺服器、擁有發送訊息權限、頻道允許發言，以及頻道 ID 正確。
 
-**Q2: Channel 選「From list」找不到我的頻道？**
+### Channel 選「From list」找不到我的頻道？
 
 n8n 是用 Bot Token 呼叫 Discord 的 `GET /guilds/{id}/channels` 取得頻道清單。2026 年 11 月 16 日起，Bot 沒有「檢視頻道」權限的頻道不會出現在回傳結果裡，最常見的是私人頻道。改用 By ID 填頻道 ID 也一樣發不出去，要先照〈2.4〉的說明把 Bot 加進該頻道的權限。
 
-**Q3: 如何讓 Bot 在多個伺服器運作？**
+### 如何讓 Bot 在多個伺服器運作？
 
 使用 Generated URL 為每個伺服器執行授權流程，並在 n8n 中使用對應的頻道 ID 即可。
 
-**Q4: OAuth 授權失敗怎麼辦？**
+### OAuth 授權失敗怎麼辦？
 
 常見原因包括 Redirect URL 設定錯誤、憑證複製錯誤、權限不正確等。建議重新檢查設定並重新產生金鑰。
 
-**Q5: 如何讓 Bot 回應用戶的訊息？**
+### 如何讓 Bot 回應用戶的訊息？
 
 n8n 沒有官方的 Discord Trigger，官方節點只能發訊息。要收訊息得另外安裝社群節點，例如 [n8n-nodes-discord-trigger](https://github.com/katerlol/n8n-discord-trigger)，它讓 Bot 經由 Discord Gateway 連線收訊息，不走 Webhook，也不需要公開網址。要注意這個節點不在 n8n 的已驗證清單裡，n8n 3.0 起 `N8N_UNVERIFIED_PACKAGES_ENABLED` 預設為 false，未驗證的社群節點不會載入，要自己開啟（見 [n8n 3.0 breaking changes](https://docs.n8n.io/changelog/v30-breaking-changes)）。三個平台收訊息的方式差異，我整理在 [n8n 通知機器人怎麼選？LINE、Discord、Telegram 完整比較](/n8n-line-discord-telegram-bot-comparison/)。
 
-**Q6: Discord Bot 有速率限制嗎？**
+### Discord Bot 有速率限制嗎？
 
 有。Discord 官方只公布全域每秒 50 次請求，對單一頻道發訊息這類個別路由的上限不公布，實際以 API 回應的 `X-RateLimit-*` 標頭為準（見[官方文件](https://docs.discord.com/developers/topics/rate-limits)）。超過會收到 429 錯誤，批次發送時建議在工作流中加入延遲節點。
 
-### 總結與下一步
+## 總結與下一步
 
 恭喜你完成 n8n x Discord Bot 的憑證設定！現在你已經可以：
 
@@ -425,14 +423,14 @@ n8n 沒有官方的 Discord Trigger，官方節點只能發訊息。要收訊息
 -   設定 Bot 的權限和 OAuth 授權
 -   實現工作流程通知和社群管理自動化
 
-### 建議的學習路徑
+## 建議的學習路徑
 
 1.  **先從簡單開始**：試著用 n8n 發送測試訊息，熟悉 Discord 節點
 2.  **實作通知流程**：為重要的工作流程加入 Discord 通知
 3.  **探索 Embed 訊息**：嘗試建立美觀的嵌入式訊息
 4.  **挑戰進階功能**：學習 Reaction、Slash Commands、雙向互動
 
-## 延伸閱讀
+## 參考資料與延伸閱讀
 
 想了解更多 n8n 自動化應用嗎？推薦你閱讀以下文章：
 

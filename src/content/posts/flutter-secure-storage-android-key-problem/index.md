@@ -213,7 +213,7 @@ void main() async {
 
 對於 Flutter 開發者，我強烈建議在使用 flutter\_secure\_storage 時，不要把 `resetOnError` 關掉（v10 起它預設就是 `true`），並且把加密資料排除在 Android 備份之外。前者讓 App 不會卡死，後者才是從源頭避免問題。
 
-**參考資源：**
+## 參考資料與延伸閱讀
 
 -   [Flutter Secure Storage 官方文檔](https://pub.dev/packages/flutter_secure_storage)
 -   [Flutter Secure Storage CHANGELOG](https://pub.dev/packages/flutter_secure_storage/changelog)

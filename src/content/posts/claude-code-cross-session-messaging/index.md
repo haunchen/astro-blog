@@ -452,6 +452,6 @@ v2.1.236 起，`SendMessage` 多了 `notify_when_idle`：可以請同一台機�
 
 ---
 
-## 參考資料
+## 參考資料與延伸閱讀
 - [Anthropic - Message your other Claude Code sessions](https://code.claude.com/docs/en/cross-session-messaging)
 - [Claude Code Issue 84945](https://github.com/anthropics/claude-code/issues/84945)

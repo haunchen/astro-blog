@@ -223,19 +223,19 @@ draft: false
 
 ## 常見問題與故障排除
 
--   我的 Instagram 帳號不是專業帳號怎麼辦？
+### 我的 Instagram 帳號不是專業帳號怎麼辦？
 
 前往「設定」，找到「帳號」→「切換為專業帳號」，詳細請參考[官網步驟](https://www.facebook.com/business/help/347556992775908?id=419087378825961)。
 
--   為什麼我的 Access Token 會失效？
+### 為什麼我的 Access Token 會失效？
 
 Access Token 分為`短期`及`長期`，短期的 1 小時內就會過期，要再重新申請；而長期的可以使用 60 天，60 天後需要再重新申請。
 
--   n8n 憑證測試失敗怎麼辦？
+### n8n 憑證測試失敗怎麼辦？
 
 請重新檢查設定步驟是否有錯誤，若還是有遇到問題，**可以到 Threads 、 Instagram 或 Mail 找我，我幫你檢查問題**。
 
--   Facebook Graph API 無法下載圖片怎麼辦？
+### Facebook Graph API 無法下載圖片怎麼辦？
 
 請先確認 Meta 伺服器是不是可以訪問你提供的圖片 URL，可以透過官方提供的[測試工具](https://developers.facebook.com/tools/debug/)測試看看。
 
@@ -252,11 +252,11 @@ Allow: /wp-content/uploads/
 
 加入完後，需等待 Meta 的爬蟲機器人重新刷新 `robots.txt` 紀錄，才能再次嘗試讓 Meta 伺服器下載圖片。
 
--   如何發佈多張圖片或影片？
+### 如何發佈多張圖片或影片？
 
 發布影片與發布圖片的步驟相同，但如果要一次發佈多張的話，需要**先分別將照片或影片在 Meta 伺服器上建立容器**，取得所有的容器 ID 後，**再把所有的容器 ID 用另外一個新的容器包起來**，詳細步驟請參考[官網資料](https://developers.facebook.com/docs/instagram-platform/content-publishing#create-a-carousel-container)。
 
--   如何排程發佈？
+### 如何排程發佈？
 
 把 Trigger 節點改完「**Schedule Trigger**」節點，設定好時間，就可以達成排程發布文章了。
 
@@ -264,7 +264,7 @@ Allow: /wp-content/uploads/
 
 以上就是從取得 Instagram Access Token 到排程發文的全過程，透過 n8n 結合其他的服務，讓你不再忘記要設定排程發文。可以持續整合 AI 、Google Sheet、RSS Feed 等資源，提升你的發文效率。
 
-**參考資料：**
+## 參考資料與延伸閱讀
 
 -   [How to Post to Instagram with n8n (Updated 2025)](https://www.youtube.com/watch?v=AGSyWdjN5A4)
 -   [Meta 官方文件：Instagram 商家登入 — 取得與重新整理長期存取權杖](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login)

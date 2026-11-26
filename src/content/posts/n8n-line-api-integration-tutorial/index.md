@@ -341,23 +341,23 @@ Trigger 節點收到的物件包含哪些資訊？
 
 在串接 n8n line 的過程中，可能會遇到一些常見問題，以下整理了解決方案。
 
-**Q1：Webhook 無反應，Trigger 節點沒有收到訊息**
+### Webhook 無反應，Trigger 節點沒有收到訊息
 
 請檢查 Line Developers 的「Use webhook」是否開啟，確認 URL 複製正確並點擊「Verify」測試連線。若使用 Test URL 需手動執行節點，Production URL 則需啟動工作流。另外，確認 n8n 伺服器可被外部存取，不能使用 localhost。
 
-**Q2：憑證驗證失敗（401 或 403 錯誤）**
+### 憑證驗證失敗（401 或 403 錯誤）
 
 401 錯誤通常是 Channel Access Token 錯誤或過期，請重新複製 token 並更新 n8n 憑證。403 錯誤則檢查 Channel Secret 是否完整複製，以及 Messaging API 是否已啟用。
 
-**Q3：訊息沒收到或收到兩則訊息**
+### 訊息沒收到或收到兩則訊息
 
 收到兩則訊息請關閉「回應設定」中的自動回應功能。沒收到訊息則檢查 Reply Token 是否過期(60 秒限制)、是否重複使用(只能用一次)，或訊息格式設定是否正確。
 
-**Q4：Reply Token 過期或已使用錯誤**
+### Reply Token 過期或已使用錯誤
 
 Reply Token 有效期限只有 60 秒且只能使用一次。建議優化工作流減少處理時間，或先用 Reply Message 回應「處理中」，完成後再用 Push Message 推送結果。
 
-**Q5：Push Message 額度用完**
+### Push Message 額度用完
 
 Line 免費方案每月只有 200 則 Push Message 額度。建議優先使用 Reply Message（不計額度），或將多則訊息整合成一則發送。若需求超過額度，可考慮升級付費方案：2026 年 11 月起中用量月費 1,000 元（3,000 則，不能加購）、高用量 1,400 元（6,000 則，可加購），完整級距見上方 2.3 節的表格。
 

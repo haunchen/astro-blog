@@ -103,15 +103,15 @@ n8n 會根據 CSV 檔案中第一行資料的內容來自動判斷欄位的資�
 
 根據我的測試經驗，整理出以下常見問題：
 
-**Q1：匯入後資料型態不正確怎麼辦？**
+### 匯入後資料型態不正確怎麼辦？
 
 檢查 CSV 第一行資料的格式是否正確觸發對應的資料型態。
 
-**Q2：匯入失敗但沒有明確錯誤訊息？**
+### 匯入失敗但沒有明確錯誤訊息？
 
 優先檢查是否有刪除 `id`、`createdAt`、`updatedAt` 這三個系統欄位。
 
-**Q3：可以匯入空的 CSV 只建立欄位結構嗎？**
+### 可以匯入空的 CSV 只建立欄位結構嗎？
 
 可以，但至少需要一行資料來讓系統辨識欄位型態，匯入後再手動刪除該行即可。
 
@@ -121,13 +121,10 @@ Data Table 的 CSV 匯出匯入功能雖然看似是個小更新，但對於經�
 
 如果你在使用上有任何問題，歡迎到 [Threads](https://www.threads.com/@frankchen.tw) 或是 [IG](https://www.instagram.com/frankchen.tw/) 私訊我討論。
 
-## 參考資源
+## 參考資料與延伸閱讀
 
 -   [n8n 官方文件](https://docs.n8n.io/)
 -   [n8n Community](https://community.n8n.io/)
-
-## 延伸閱讀
-
 -   [【n8n 模板分享】探店心願助手：Line Bot 一鍵整理社群美食店家](/n8n-template-store-wish-list/)
 -   [【n8n 模板分享】Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)
 -   [n8n 整合 Line 完整教學：Line Bot 設定、憑證設定、節點介紹](/n8n-line-api-integration-tutorial/)

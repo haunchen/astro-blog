@@ -2,7 +2,7 @@
 domain: design-system
 status: active
 created: 2026-07-06
-last_modified: 2026-08-22
+last_modified: 2026-11-26
 ---
 
 # Design System
@@ -26,6 +26,14 @@ last_modified: 2026-08-22
 ### R4: 鍵盤焦點指示由 global.css 的單一 `:focus-visible` 規則供應
 - **Level**: MUST
 - **Description**: 全站的鍵盤焦點外框只由 `src/styles/global.css` 的裸選擇器 `:focus-visible` 定義（`2px solid var(--color-brand-orange)` + `outline-offset: 2px`），元件的 scoped CSS 不得各自宣告焦點樣式。唯一豁免是 `#main-content`——skip-link 的落點，`:focus` 與 `:focus-visible` 兩邊都寫 `outline: none`，不把整塊 `<main>` 圈起來。任何位置都不得寫 `:focus { outline: none }` 去清瀏覽器預設外框：不支援 `:focus-visible` 的瀏覽器會因此完全失去焦點指示。
+
+### R5: 正文列表顯示符號與數字
+- **Level**: MUST
+- **Description**: `.prose` 內的無號列表顯示項目符號（第一層實心圓、第二層空心圓），有號列表顯示數字。符號與數字的顏色比正文淡一階。適用所有使用 `.prose` 的頁面。
+
+### R6: 文章頁內容與 footer 之間保留留白
+- **Level**: MUST
+- **Description**: 文章頁最後一個內容元素（上一篇／下一篇導覽）與 footer 之間保留與文章列表頁上下留白相同的間距，桌面與手機寬度皆然。
 
 ## Scenarios
 
@@ -74,3 +82,5 @@ last_modified: 2026-08-22
 - **Decision**: 不寫 `:focus { outline: none }`，也不對 `:focus-visible` 以外的狀態做任何焦點宣告
 - **Rationale**: 常見寫法是先 reset 掉全部預設外框再自訂，但那樣不支援 `:focus-visible` 的瀏覽器會退化成「完全沒有焦點指示」，比預設外框不好看嚴重得多。現代瀏覽器本來就只在 `:focus-visible` 命中時才畫預設外框，這條規則直接覆蓋它，沒有需要先清掉的重疊
 - **Date**: 2026-08-22
+
+## Pending Changes

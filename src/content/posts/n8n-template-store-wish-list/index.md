@@ -88,7 +88,7 @@ Facebook、Instagram 等社交平台時常看到創作者分享的美食、遊�
 
 如果你執行上有問題，可以透過[聯絡我](/contact-frank/)頁面的 Email 或 Threads 私訊我～
 
-## 延伸閱讀
+## 參考資料與延伸閱讀
 
 -   【 n8n 模板分享 】[Notion Page 轉 Wordpress Article](/n8n-notion-wordpress-publish-automation/)
 -   【 n8n 模板分享 】[Line Bot × Canva 封面圖一鍵上傳 WordPress 系統](/n8n-template-line-bot-upload-system/)

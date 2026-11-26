@@ -399,7 +399,7 @@ for start, score in search("國民所得從五十美元成長到快三萬美元"
 
 五個坑裡面，我覺得最該記住的是共通點：音訊的 30 秒、影片的 32 幀、fp16 的 NaN、高解析度截圖在 MPS 上算歪，全部都不報錯。用之前，自己量一次 processor 實際產出了什麼。
 
-## 參考資料
+## 參考資料與延伸閱讀
 
 - [Hugging Face：google/embeddinggemma-2 模型卡](https://huggingface.co/google/embeddinggemma-2)
 - [Google Developers Blog：EmbeddingGemma 2 開發者指南](https://developers.googleblog.com/embeddinggemma-2-the-developer-guide/)

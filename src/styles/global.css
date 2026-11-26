@@ -55,6 +55,11 @@
   --height-header: 50px;
 }
 
+/* sticky 導覽列會蓋住錨點目標：從目錄或錨點跳到標題時，留出導覽列的高度再多一點。 */
+html {
+  scroll-padding-top: 64px;
+}
+
 /* ========================================
    B — E-ink Effects
    ======================================== */
@@ -183,8 +188,121 @@ body::after {
   margin-bottom: 16px;
 }
 
+/* Tailwind preflight 把 ol、ul 的 list-style 清成 none，這裡要自己加回來。 */
+.prose ul {
+  list-style: disc;
+}
+
+.prose ul ul {
+  list-style: circle;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
 .prose li {
   margin-bottom: 4px;
+}
+
+.prose li::marker {
+  color: var(--color-text-muted);
+}
+
+/* 文章區塊（docs/specs/article-blocks.md）：h2 留在框外，框住的是標題底下的內容。
+   刻意不用左側橘色粗線——那是 blockquote 與更新紀錄的樣子。 */
+.prose .prose-block,
+.prose .faq-list {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  margin: 16px 0;
+}
+
+.prose .prose-block {
+  padding: 20px 24px;
+}
+
+.prose .prose-block > :first-child {
+  margin-top: 0;
+}
+
+.prose .prose-block > :last-child {
+  margin-bottom: 0;
+}
+
+/* 表頭原本就是 bg-secondary，放進同色的框裡會消失，換成深一階。 */
+.prose .prose-block th {
+  background: var(--color-bg-tertiary);
+}
+
+.prose .faq-item + .faq-item {
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+.prose .faq-item > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.prose .faq-item > summary::-webkit-details-marker {
+  display: none;
+}
+
+.prose .faq-item > summary::after {
+  content: '+';
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.prose .faq-item[open] > summary::after {
+  content: '−';
+}
+
+.prose .faq-item > summary:hover {
+  background-color: rgba(251, 146, 60, 0.1);
+  background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+}
+
+.prose .faq-item:first-child > summary {
+  border-top-left-radius: var(--radius-md);
+  border-top-right-radius: var(--radius-md);
+}
+
+.prose .faq-item:last-child:not([open]) > summary {
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+/* 框裡的題目用 22px 太重，一列會被撐成兩三行。 */
+.prose .faq-item > summary h3 {
+  font-size: 18px;
+  line-height: 28px;
+  margin: 0;
+}
+
+/* 答案帶底色：題目列收合與展開長得一樣，只靠 +／− 分不出哪幾題開著。 */
+.prose .faq-answer {
+  padding: 16px 20px;
+  background-color: rgba(251, 146, 60, 0.1);
+  background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+}
+
+.prose .faq-item:last-child > .faq-answer {
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.prose .faq-answer > :last-child {
+  margin-bottom: 0;
 }
 
 .prose blockquote {

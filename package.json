@@ -9,6 +9,7 @@
     "preview:pages": "wrangler pages dev dist --port 8788 --compatibility-date=2026-06-26",
     "test": "node --test \"scripts/lib/*.test.mjs\"",
     "check:functions": "tsc --noEmit -p functions/tsconfig.json",
+    "check:posts": "node scripts/check-post-structure.mjs",
     "astro": "astro",
     "subset-fonts": "node scripts/subset-fonts.mjs",
     "fonts": "node scripts/build-font-css.mjs",
