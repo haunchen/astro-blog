@@ -380,14 +380,11 @@ n8n 可以輕鬆實現多平台同步通知，讓不同受眾在自己習慣的�
 
 如果你還是猶豫不決，建議從 Telegram 開始。設定最簡單、完全免費，可以快速體驗 n8n 自動化通知的威力。等到通知變多、需要分類管理時，再考慮搬到 Discord。如果你的受眾是台灣一般民眾，那就直接選 LINE，雖然設定繁雜一點，但觸及率是其他平台比不上的。
 
-## 延伸閱讀
-
--   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
-
 如果這篇文章對你有幫助，歡迎分享給更多需要的人！
 
-## 參考資料
+## 參考資料與延伸閱讀
 
+-   [n8n x WordPress 整合指南：API 設定、媒體上傳、自動發文全攻略](/n8n-wordpress-api-integration-guide/)
 -   [LINE Developers 官方文件](https://developers.line.biz/)
 -   [Discord Developer Portal](https://discord.com/developers/docs)
 -   [Telegram Bot API](https://core.telegram.org/bots/api)
