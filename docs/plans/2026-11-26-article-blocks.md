@@ -1898,9 +1898,12 @@ Run: `npm run preview`，開 `http://localhost:4321/n8n-canva-oauth-setup/`，�
 
 Implements: `article-blocks.md` #R9
 
-Files:
-- Modify: `C:/Users/Frank/obsidian-vault/.claude/plugins/blog/skills/write/SKILL.md`（`## 格式規範` 與 `## 文章結構`）
-- Modify: `C:/Users/Frank/obsidian-vault/.claude/plugins/blog/skills/publish/SKILL.md`（`## 硬約束` 與「落地（第 5 步）」的第 4 步）
+Files: 無
+
+本 task 不動 repo 內的檔案，修改的是 repo 外的兩個檔（絕對路徑）：
+
+- `C:/Users/Frank/obsidian-vault/.claude/plugins/blog/skills/write/SKILL.md`（`## 格式規範` 與 `## 文章結構`），下文簡稱 `write/SKILL.md`
+- `C:/Users/Frank/obsidian-vault/.claude/plugins/blog/skills/publish/SKILL.md`（`## 硬約束` 與「落地（第 5 步）」的第 4 步），下文簡稱 `publish/SKILL.md`
 
 Interfaces:
 - Consumes: Task 7 定案的錯誤訊息用詞（`結構檢查`）
