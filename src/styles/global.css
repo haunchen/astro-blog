@@ -267,9 +267,16 @@ body::after {
   content: '−';
 }
 
-.prose .faq-item > summary:hover {
+.prose .faq-item > summary:hover,
+.prose .faq-item[open] > summary {
   background-color: rgba(251, 146, 60, 0.1);
   background-color: color-mix(in srgb, var(--color-brand-orange) 10%, transparent);
+}
+
+/* 展開的題目要一眼認得出來：收合時各列長得一樣，只靠 +／− 分不出哪幾題開著。 */
+.prose .faq-item[open] > summary h3,
+.prose .faq-item[open] > summary::after {
+  color: var(--color-brand-orange);
 }
 
 .prose .faq-item:first-child > summary {
@@ -290,7 +297,7 @@ body::after {
 }
 
 .prose .faq-answer {
-  padding: 0 20px 16px;
+  padding: 16px 20px;
 }
 
 .prose .faq-answer > :last-child {

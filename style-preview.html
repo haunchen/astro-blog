@@ -885,7 +885,10 @@
       font-size: 20px; line-height: 1; color: var(--text-muted);
     }
     .prose .faq-item[open] > summary::after { content: '−'; }
-    .prose .faq-item > summary:hover { background-color: rgba(251, 146, 60, 0.1); }
+    .prose .faq-item > summary:hover,
+    .prose .faq-item[open] > summary { background-color: rgba(251, 146, 60, 0.1); }
+    .prose .faq-item[open] > summary h3,
+    .prose .faq-item[open] > summary::after { color: var(--brand-orange); }
     .prose .faq-item:first-child > summary {
       border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md);
     }
@@ -893,7 +896,7 @@
       border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md);
     }
     .prose .faq-item > summary h3 { font-size: 18px; line-height: 28px; margin: 0; }
-    .prose .faq-answer { padding: 0 20px 16px; }
+    .prose .faq-answer { padding: 16px 20px; }
     .prose .faq-answer > :last-child { margin-bottom: 0; }
 
     .prose blockquote {
