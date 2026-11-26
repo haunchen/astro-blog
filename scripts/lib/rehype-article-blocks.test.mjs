@@ -7,6 +7,24 @@ const el = (tagName, ...children) => ({ type: 'element', tagName, properties: {}
 const heading = (tagName, value) => el(tagName, text(value));
 const para = (value) => el('p', text(value));
 
+/** GFM 註腳區：remark-gfm + remark-rehype 在根層尾端產生的節點，形狀照實測。 */
+const footnotes = () => ({
+  type: 'element',
+  tagName: 'section',
+  properties: { dataFootnotes: true, className: ['footnotes'] },
+  children: [
+    {
+      type: 'element',
+      tagName: 'h2',
+      properties: { className: ['sr-only'], id: 'footnote-label' },
+      children: [text('Footnotes')],
+    },
+    text('\n'),
+    el('ol', el('li', para('註腳內容'))),
+    text('\n'),
+  ],
+});
+
 /** 跑 plugin 並回傳根節點的 children。 */
 function transform(...children) {
   const tree = { type: 'root', children };
@@ -83,4 +101,65 @@ test('rehypeArticleBlocks：一般章節不變', () => {
 test('rehypeArticleBlocks：h2 的文字包在行內元素裡也認得出區塊', () => {
   const out = transform(el('h2', el('strong', text('常見問題'))), heading('h3', '第一題？'), para('答案'));
   assert.deepEqual(out.map(shape), ['h2', 'div.faq-list']);
+});
+
+test('rehypeArticleBlocks：文末連結區塊之後的註腳區留在 prose-block 外', () => {
+  const out = transform(heading('h2', '參考資料與延伸閱讀'), el('ul', el('li', text('來源'))), footnotes());
+  assert.deepEqual(out.map(shape), ['h2', 'div.prose-block', 'section.footnotes']);
+});
+
+test('rehypeArticleBlocks：常見問題區塊之後的註腳區不進最後一題的 faq-answer', () => {
+  const out = transform(heading('h2', '常見問題'), heading('h3', '第一題？'), para('答案'), footnotes());
+  assert.deepEqual(out.map(shape), ['h2', 'div.faq-list', 'section.footnotes']);
+});
+
+test('rehypeArticleBlocks：故障排除區塊的 h2 後面只有換行文字節點時不產生 prose-block', () => {
+  const out = transform(heading('h2', '故障排除'), text('\n'));
+  assert.deepEqual(out.map(shape), ['h2', 'text']);
+});
+
+test('rehypeArticleBlocks：常見問題區塊內夾在節點之間的換行文字節點不影響題目數', () => {
+  const out = transform(
+    heading('h2', '常見問題'),
+    text('\n'),
+    heading('h3', '第一題？'),
+    text('\n'),
+    para('答案一'),
+    text('\n'),
+    heading('h3', '第二題？'),
+    text('\n'),
+    para('答案二'),
+  );
+  assert.deepEqual(out[2].children.map(shape), ['details.faq-item', 'details.faq-item']);
+});
+
+test('rehypeArticleBlocks：每題的 details 只帶 class，不帶 open 與 name', () => {
+  const out = transform(heading('h2', '常見問題'), heading('h3', '第一題？'), para('答案'));
+  const details = out[1].children[0];
+  assert.deepEqual(details.properties, { className: ['faq-item'] });
+});
+
+test('rehypeArticleBlocks：同一篇的故障排除、常見問題、文末連結區塊各自包裝', () => {
+  const out = transform(
+    heading('h2', '故障排除：連線'),
+    heading('h3', '連不上'),
+    para('處置'),
+    heading('h2', '實作步驟'),
+    para('內文'),
+    heading('h2', '常見問題'),
+    heading('h3', '第一題？'),
+    para('答案'),
+    heading('h2', '參考資料與延伸閱讀'),
+    el('ul', el('li', text('來源'))),
+  );
+  assert.deepEqual(out.map(shape), [
+    'h2',
+    'div.prose-block',
+    'h2',
+    'p',
+    'h2',
+    'div.faq-list',
+    'h2',
+    'div.prose-block',
+  ]);
 });

@@ -14,6 +14,16 @@ function textOf(node) {
 
 const isElement = (node, tagName) => node.type === 'element' && node.tagName === tagName;
 
+/**
+ * GFM 註腳區（remark-rehype 產生的 <section data-footnotes class="footnotes">）掛在根層尾端，
+ * 不屬於文章最後一節；它的 h2 在 section 裡面，不會在根層替那一節收尾。
+ * 不把它當邊界，最後一節若是區塊，註腳區就會被包進框或收進最後一題的答案。
+ */
+const isFootnotesSection = (node) => isElement(node, 'section') && node.properties?.dataFootnotes === true;
+
+/** 一節止於下一個根層 h2 或註腳區。 */
+const endsSection = (node) => isElement(node, 'h2') || isFootnotesSection(node);
+
 const element = (tagName, className, children) => ({
   type: 'element',
   tagName,
@@ -74,7 +84,7 @@ export function rehypeArticleBlocks() {
       }
 
       let end = i + 1;
-      while (end < children.length && !isElement(children[end], 'h2')) end += 1;
+      while (end < children.length && !endsSection(children[end])) end += 1;
       const body = children.slice(i + 1, end);
       const kind = classifyBlockHeading(textOf(node));
 
