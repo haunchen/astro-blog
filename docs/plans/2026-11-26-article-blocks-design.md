@@ -136,7 +136,13 @@ Domain：`article-blocks`（新）、`design-system`（delta）
 全部是格式與結構調整，不改論述，不加 changelog、不動 `updated`。改標題會改變該節的錨點，
 實作時要 grep 站內是否有連到舊錨點的連結。
 
-### 常見問題區塊（24 節）
+### 常見問題區塊（25 節）
+
+標題改名並把清單項目改成 `###`（1）：
+samsung-wallet-nfc-access-card-function-unlocked-supported-devices-and-complete-setup-guide。
+`## 「NFC 門禁卡」功能問題？` 改成 `## 「NFC 門禁卡」常見問題`；六個清單項目從冒號切開，前半補問號、
+拿掉句中粗體後當 `###` 題目，後半當答案，答案內容不動
+
 
 已是 `###` 寫法、不用動（5）：embeddinggemma-2-chinese-retrieval-mac、hinet-github-slow-cloudflare-warp、
 kicad-mcp-autoroute、obs-recording-file-too-large、qwen-image-mac-ssd-streaming
