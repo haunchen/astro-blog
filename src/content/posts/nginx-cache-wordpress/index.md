@@ -361,11 +361,9 @@ chmod -R 755 /var/cache/nginx
 
 1.  大部分請求會被 Cloudflare 攔截，到不了 Nginx 這是好事！代表 Cloudflare 在幫你擋流量。Nginx Cache 主要是處理 CF 沒快取的請求。
 2.  兩個快取狀態 Header 不同
-
--   `cf-cache-status`：Cloudflare 的快取狀態
--   `X-Cache-Status`：Nginx 的快取狀態
-
-1.  快取時間的設定策略 Cloudflare 快取時間可以設長一點（例如 4 小時），Nginx 可以設短一點（例如 10 分鐘），因為 Nginx 只是備援。
+    -   `cf-cache-status`：Cloudflare 的快取狀態
+    -   `X-Cache-Status`：Nginx 的快取狀態
+3.  快取時間的設定策略 Cloudflare 快取時間可以設長一點（例如 4 小時），Nginx 可以設短一點（例如 10 分鐘），因為 Nginx 只是備援。
 
 ## 常見問題 FAQ
 
