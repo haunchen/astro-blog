@@ -262,3 +262,25 @@ test('checkPostStructure：引用區塊下一行的 --- 不當成標題', () => 
 test('checkPostStructure：數字清單項目下一行的 --- 不當成標題', () => {
   assert.deepEqual(checkPostStructure(['1. 常見問答', '---'].join('\n')), []);
 });
+
+test('checkPostStructure：連結參照定義下一行的 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['[常見問答]: /x', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：註腳定義下一行的 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['正文[^1]', '', '[^1]: 常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：常見問題區塊內的連結參照定義接 --- 不結束區塊', () => {
+  assert.deepEqual(
+    rules(['## 常見問題', '', '### 題？', '', '[x]: /url', '---', '', '**Q2**'].join('\n')),
+    ['E2'],
+  );
+});
+
+test('checkPostStructure：以 | 開頭的單行段落接 --- 是標題', () => {
+  assert.deepEqual(
+    checkPostStructure(['| 常見問答 |', '---'].join('\n')).map((v) => [v.rule, v.line]),
+    [['E4', 1]],
+  );
+});

@@ -59,7 +59,8 @@ function closesFence(line, fence) {
  *   但要回頭找段落起點，還得分辨清單延續、引用區塊延續這類不算段落的行，這種寫法不處理。
  * - 標題行必須頂格。前置 1–3 個空白的行在清單項目後面是項目內容，項目內容接頂格的 --- 是分隔線。
  * - 以 `<` 開頭的行可能是 HTML 區塊，HTML 區塊接 --- 也是分隔線。
- * - 以 `>`、`|` 開頭的行（引用區塊、表格列）、清單項目、ATX 標題、分隔線本身都不是段落文字。
+ * - 以 `[…]:` 開頭的行是連結參照定義或註腳定義（`[^n]:`），不是段落文字，下一行的 --- 是分隔線。
+ * - 以 `>` 開頭的行（引用區塊）、清單項目、ATX 標題、分隔線本身都不是段落文字。
  */
 function isSetextH2(lines, index) {
   const line = lines[index];
@@ -73,7 +74,8 @@ function isSetextH2(lines, index) {
     !ATX_ANY.test(line) &&
     !THEMATIC_BREAK.test(line) &&
     !LIST_ITEM.test(line) &&
-    !/^[<>|]/.test(line)
+    !/^[<>]/.test(line) &&
+    !/^\[[^\]]*\]:/.test(line)
   );
 }
 
