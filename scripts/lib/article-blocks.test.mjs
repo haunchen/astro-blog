@@ -139,7 +139,7 @@ test('checkPostStructure：~~~ 圍欄內的 h2 不列入檢查', () => {
   assert.deepEqual(checkPostStructure(['~~~', '## 常見問答', '~~~'].join('\n')), []);
 });
 
-test('checkPostStructure：圍欄內帶語言標記的三反引號行不會關閉圍欄', () => {
+test('checkPostStructure：圍欄內帶語言名稱的三反引號行不會關閉圍欄', () => {
   assert.deepEqual(checkPostStructure(['```', '```js', '## 常見問答', '```'].join('\n')), []);
 });
 
@@ -221,4 +221,44 @@ test('checkPostStructure：違規依行號由小到大排列', () => {
       message: '題目要寫成「### 題目」，不寫整段粗體',
     },
   ]);
+});
+
+test('checkPostStructure：~~~ 圍欄內的三反引號行不會關閉圍欄', () => {
+  assert.deepEqual(checkPostStructure(['~~~', '```', '## 常見問答', '~~~'].join('\n')), []);
+});
+
+test('checkPostStructure：前置四個空白的三反引號行不開啟圍欄', () => {
+  assert.deepEqual(rules(['    ```', '## 常見問答'].join('\n')), ['E4']);
+});
+
+test('checkPostStructure：前置四個空白的三反引號行不會關閉圍欄', () => {
+  assert.deepEqual(checkPostStructure(['```', '    ```', '## 常見問答', '```'].join('\n')), []);
+});
+
+test('checkPostStructure：常見問題區塊內前置三個空白的 h3 算一題', () => {
+  assert.deepEqual(checkPostStructure(['## 常見問題', '', '   ### 第一題？', '', '答案'].join('\n')), []);
+});
+
+test('checkPostStructure：h3 的下一行 --- 不把 h3 當成 h2', () => {
+  assert.deepEqual(checkPostStructure(['## 常見問題', '', '### 第一題？', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：前置四個空白的行下一行接 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['    常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：清單項目內縮排的段落下一行接頂格 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['- 項目', '', '  常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：HTML 區塊開頭的行下一行接 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['<div>常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：引用區塊下一行的 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['> 常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：數字清單項目下一行的 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['1. 常見問答', '---'].join('\n')), []);
 });

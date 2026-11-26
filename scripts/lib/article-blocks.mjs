@@ -54,9 +54,12 @@ function closesFence(line, fence) {
 /**
  * 第 index 行是不是底線式 h2 的標題行。
  *
- * 只認單行段落：標題行的上一行必須是空白行或檔頭。多行段落接底線在 CommonMark 也是 h2，
- * 但要回頭找段落起點，還得分辨清單延續、引言延續這類不算段落的行，判錯就會把分隔線前的
- * 內容當成標題、誤報違規；這種寫法不處理，寧可漏檢也不誤報。
+ * 判定刻意比 CommonMark 窄，寧可漏檢也不把分隔線前的內容誤當標題、誤報違規：
+ * - 只認單行段落：標題行的上一行必須是空白行或檔頭。多行段落接底線在 CommonMark 也是 h2，
+ *   但要回頭找段落起點，還得分辨清單延續、引用區塊延續這類不算段落的行，這種寫法不處理。
+ * - 標題行必須頂格。前置 1–3 個空白的行在清單項目後面是項目內容，項目內容接頂格的 --- 是分隔線。
+ * - 以 `<` 開頭的行可能是 HTML 區塊，HTML 區塊接 --- 也是分隔線。
+ * - 以 `>`、`|` 開頭的行（引用區塊、表格列）、清單項目、ATX 標題、分隔線本身都不是段落文字。
  */
 function isSetextH2(lines, index) {
   const line = lines[index];
@@ -66,12 +69,11 @@ function isSetextH2(lines, index) {
     next !== undefined &&
     SETEXT_H2_UNDERLINE.test(next) &&
     BLANK.test(prev) &&
-    !BLANK.test(line) &&
-    /^ {0,3}\S/.test(line) &&
+    /^\S/.test(line) &&
     !ATX_ANY.test(line) &&
     !THEMATIC_BREAK.test(line) &&
     !LIST_ITEM.test(line) &&
-    !/^ {0,3}[>|]/.test(line)
+    !/^[<>|]/.test(line)
   );
 }
 
