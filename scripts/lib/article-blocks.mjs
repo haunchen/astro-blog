@@ -33,15 +33,57 @@ export function headingText(raw) {
     .trim();
 }
 
+// 標題與圍欄的判定照 CommonMark，結構檢查才會和頁面版型（從 HTML 認 h2）看到同一批 h2。
+// 反引號圍欄的 info string 不得含反引號，否則那一行是行內程式碼。
+const FENCE_OPEN = /^ {0,3}(?:(`{3,})[^`]*|(~{3,}).*)$/;
+const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
+const ATX_H2 = /^ {0,3}##\s+(.+)$/;
+const ATX_H3 = /^ {0,3}###\s+(.+)$/;
+const ATX_ANY = /^ {0,3}#{1,6}(?:\s|$)/;
+const SETEXT_H2_UNDERLINE = /^ {0,3}-+\s*$/;
+const THEMATIC_BREAK = /^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
+const LIST_ITEM = /^ {0,3}(?:[-*+]|\d{1,9}[.)])(?:\s|$)/;
+const BLANK = /^\s*$/;
+
+/** 關閉圍欄：同字元、長度不小於開頭、後面只有空白。 */
+function closesFence(line, fence) {
+  const m = line.match(FENCE_CLOSE);
+  return m !== null && m[1][0] === fence.char && m[1].length >= fence.length;
+}
+
 /**
- * 檢查一篇文章的 markdown 正文，回傳違規清單（空陣列＝合規）。
+ * 第 index 行是不是底線式 h2 的標題行。
+ *
+ * 只認單行段落：標題行的上一行必須是空白行或檔頭。多行段落接底線在 CommonMark 也是 h2，
+ * 但要回頭找段落起點，還得分辨清單延續、引言延續這類不算段落的行，判錯就會把分隔線前的
+ * 內容當成標題、誤報違規；這種寫法不處理，寧可漏檢也不誤報。
+ */
+function isSetextH2(lines, index) {
+  const line = lines[index];
+  const next = lines[index + 1];
+  const prev = index === 0 ? '' : lines[index - 1];
+  return (
+    next !== undefined &&
+    SETEXT_H2_UNDERLINE.test(next) &&
+    BLANK.test(prev) &&
+    !BLANK.test(line) &&
+    /^ {0,3}\S/.test(line) &&
+    !ATX_ANY.test(line) &&
+    !THEMATIC_BREAK.test(line) &&
+    !LIST_ITEM.test(line) &&
+    !/^ {0,3}[>|]/.test(line)
+  );
+}
+
+/**
+ * 檢查一篇文章的 markdown 正文，回傳違規清單（空陣列＝合規），依行號由小到大排列。
  * @param {string} markdown 不含 frontmatter 的正文
  * @returns {Array<{rule: string, line: number, heading: string, message: string}>}
  */
 export function checkPostStructure(markdown) {
   const lines = markdown.split(/\r?\n/);
   const violations = [];
-  let fence = null;
+  let fence = null; // 目前所在的圍欄：{ char, length }
   let faq = null; // 目前所在的常見問題區塊：{ line, heading, h3Count }
   let faqCount = 0;
   let linksCount = 0;
@@ -58,76 +100,89 @@ export function checkPostStructure(markdown) {
     faq = null;
   };
 
-  lines.forEach((line, index) => {
-    const lineNo = index + 1;
-    const fenceMatch = line.match(/^\s*(```+|~~~+)/);
-    if (fenceMatch) {
-      const marker = fenceMatch[1][0];
-      if (fence === null) fence = marker;
-      else if (fence === marker) fence = null;
-      return;
-    }
-    if (fence !== null) return;
+  const onH2 = (heading, lineNo) => {
+    closeFaq();
+    const kind = classifyBlockHeading(heading);
 
-    const h2 = line.match(/^##\s+(.+)$/);
-    if (h2) {
-      closeFaq();
-      const heading = headingText(h2[1]);
-      const kind = classifyBlockHeading(heading);
-
-      if (kind === 'faq') {
-        faqCount += 1;
-        if (faqCount > 1) {
-          violations.push({
-            rule: 'E5',
-            line: lineNo,
-            heading,
-            message: '一篇文章只能有一個常見問題區塊',
-          });
-        }
-        faq = { line: lineNo, heading, h3Count: 0 };
-        return;
-      }
-
-      if (kind === 'links') {
-        linksCount += 1;
-        if (linksCount > 1) {
-          violations.push({
-            rule: 'E6',
-            line: lineNo,
-            heading,
-            message: `「${LINKS_HEADING}」只能出現一次`,
-          });
-        }
-        return;
-      }
-
-      if (
-        heading.includes('常見問答') ||
-        /FAQ/i.test(heading) ||
-        /Q\s*[&＆]\s*A/i.test(heading) ||
-        TROUBLESHOOTING_ALIAS_PREFIXES.some((p) => heading.startsWith(p))
-      ) {
+    if (kind === 'faq') {
+      faqCount += 1;
+      if (faqCount > 1) {
         violations.push({
-          rule: 'E4',
+          rule: 'E5',
           line: lineNo,
           heading,
-          message: '區塊標題用了別名：問答用「常見問題」，排錯章節以「故障排除」開頭',
+          message: '一篇文章只能有一個常見問題區塊',
         });
-      } else if (LINKS_ALIAS_PREFIXES.some((p) => heading.startsWith(p))) {
+      }
+      faq = { line: lineNo, heading, h3Count: 0 };
+      return;
+    }
+
+    if (kind === 'links') {
+      linksCount += 1;
+      if (linksCount > 1) {
         violations.push({
           rule: 'E6',
           line: lineNo,
           heading,
-          message: `文末連結的標題只能是「${LINKS_HEADING}」`,
+          message: `「${LINKS_HEADING}」只能出現一次`,
         });
       }
       return;
     }
 
-    if (!faq) return;
+    if (
+      heading.includes('常見問答') ||
+      /FAQ/i.test(heading) ||
+      /Q\s*[&＆]\s*A/i.test(heading) ||
+      TROUBLESHOOTING_ALIAS_PREFIXES.some((p) => heading.startsWith(p))
+    ) {
+      violations.push({
+        rule: 'E4',
+        line: lineNo,
+        heading,
+        message: '區塊標題用了別名：問答用「常見問題」，排錯章節以「故障排除」開頭',
+      });
+    } else if (LINKS_ALIAS_PREFIXES.some((p) => heading.startsWith(p))) {
+      violations.push({
+        rule: 'E6',
+        line: lineNo,
+        heading,
+        message: `文末連結的標題只能是「${LINKS_HEADING}」`,
+      });
+    }
+  };
 
-    const h3 = line.match(/^###\s+(.+)$/);
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const lineNo = index + 1;
+
+    if (fence !== null) {
+      if (closesFence(line, fence)) fence = null;
+      continue;
+    }
+    const fenceOpen = line.match(FENCE_OPEN);
+    if (fenceOpen) {
+      const marker = fenceOpen[1] ?? fenceOpen[2];
+      fence = { char: marker[0], length: marker.length };
+      continue;
+    }
+
+    const h2 = line.match(ATX_H2);
+    if (h2) {
+      onH2(headingText(h2[1]), lineNo);
+      continue;
+    }
+    // 底線式 h2 在標題行就往下看一行判定，標題行不會先被當成一般行檢查；底線那行一併跳過。
+    if (isSetextH2(lines, index)) {
+      onH2(headingText(line), lineNo);
+      index += 1;
+      continue;
+    }
+
+    if (!faq) continue;
+
+    const h3 = line.match(ATX_H3);
     if (h3) {
       faq.h3Count += 1;
       const text = headingText(h3[1]);
@@ -139,7 +194,7 @@ export function checkPostStructure(markdown) {
           message: `「${text}」不是題目，應升成 h2 移出常見問題區塊`,
         });
       }
-      return;
+      continue;
     }
 
     if (/^\*\*[^*]+\*\*\s*$/.test(line)) {
@@ -150,8 +205,9 @@ export function checkPostStructure(markdown) {
         message: '題目要寫成「### 題目」，不寫整段粗體',
       });
     }
-  });
+  }
 
   closeFaq();
-  return violations;
+  // E1 在區塊結束時才推入，排在節內的 E2、E3 之後；sort 是穩定排序，同一行的違規維持推入順序。
+  return violations.sort((a, b) => a.line - b.line);
 }

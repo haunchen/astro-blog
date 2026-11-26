@@ -129,3 +129,96 @@ test('checkPostStructure：故障排除區塊內的整段粗體不算違規', ()
 test('checkPostStructure：h3 層級寫「常見問題」不構成常見問題區塊', () => {
   assert.deepEqual(checkPostStructure('## 原因分析\n\n### 常見問題：為什麼會這樣？\n\n**粗體段落**'), []);
 });
+
+test('checkPostStructure：四反引號圍欄內的三反引號行不會關閉圍欄', () => {
+  const markdown = ['## 常見問題', '', '````markdown', '```js', '## 常見問答', '```', '**Q1**', '````', '', '### 題目？'].join('\n');
+  assert.deepEqual(checkPostStructure(markdown), []);
+});
+
+test('checkPostStructure：~~~ 圍欄內的 h2 不列入檢查', () => {
+  assert.deepEqual(checkPostStructure(['~~~', '## 常見問答', '~~~'].join('\n')), []);
+});
+
+test('checkPostStructure：圍欄內帶語言標記的三反引號行不會關閉圍欄', () => {
+  assert.deepEqual(checkPostStructure(['```', '```js', '## 常見問答', '```'].join('\n')), []);
+});
+
+test('checkPostStructure：行首三反引號的行內程式碼不開啟圍欄', () => {
+  assert.deepEqual(rules(['```js``` 是行內程式碼', '', '## 常見問答'].join('\n')), ['E4']);
+});
+
+test('checkPostStructure：前置三個空白的「常見問答」h2 回報 E4', () => {
+  assert.deepEqual(rules('   ## 常見問答\n\n### 第一題？\n\n答案'), ['E4']);
+});
+
+test('checkPostStructure：底線式的「常見問答」h2 回報 E4，行號指向標題行', () => {
+  const markdown = ['內文', '', '常見問答', '---', '', '### 第一題？', '', '答案'].join('\n');
+  assert.deepEqual(checkPostStructure(markdown), [
+    {
+      rule: 'E4',
+      line: 3,
+      heading: '常見問答',
+      message: '區塊標題用了別名：問答用「常見問題」，排錯章節以「故障排除」開頭',
+    },
+  ]);
+});
+
+test('checkPostStructure：空白行之後的 --- 是分隔線，不把前面的內容當標題', () => {
+  assert.deepEqual(checkPostStructure(['常見問答', '', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：清單項目下一行的 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['- 常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：清單項目延續行的下一行 --- 不當成標題', () => {
+  assert.deepEqual(checkPostStructure(['- 項目', '常見問答', '---'].join('\n')), []);
+});
+
+test('checkPostStructure：連續兩行分隔線不把第一行當標題', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '---', '---', '', '**Q2：第二題？**'].join('\n');
+  assert.deepEqual(rules(markdown), ['E2']);
+});
+
+test('checkPostStructure：常見問題區塊內以整段粗體寫的底線式 h2 不回報 E2', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '**下一節**', '---'].join('\n');
+  assert.deepEqual(checkPostStructure(markdown), []);
+});
+
+test('checkPostStructure：底線式 h2 結束沒有 h3 的常見問題區塊並回報 E1', () => {
+  const markdown = ['## 常見問題', '', '- 第一題？', '', '下一節', '---', '', '### 小節'].join('\n');
+  assert.deepEqual(rules(markdown), ['E1']);
+});
+
+test('checkPostStructure：常見問題區塊之後的底線式 h2 是第二個常見問題區塊時回報 E5', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '進階常見問題', '---', '', '### 第二題？'].join('\n');
+  assert.deepEqual(rules(markdown), ['E5']);
+});
+
+test('checkPostStructure：沒有 h3 的常見問題區塊後面接別的 h2 仍回報 E1', () => {
+  const markdown = ['## 常見問題', '', '- 第一題？', '', '## 下一節', '', '### 小節', '', '內文'].join('\n');
+  assert.deepEqual(rules(markdown), ['E1']);
+});
+
+test('checkPostStructure：常見問題區塊之後那一節的整段粗體不回報 E2', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '## 下一節', '', '**粗體段落**'].join('\n');
+  assert.deepEqual(checkPostStructure(markdown), []);
+});
+
+test('checkPostStructure：違規依行號由小到大排列', () => {
+  const markdown = ['## 常見問題', '', '**Q1：第一題？**', '', '答案'].join('\n');
+  assert.deepEqual(checkPostStructure(markdown), [
+    {
+      rule: 'E1',
+      line: 1,
+      heading: '常見問題',
+      message: '常見問題區塊內沒有任何「### 題目」',
+    },
+    {
+      rule: 'E2',
+      line: 3,
+      heading: '常見問題',
+      message: '題目要寫成「### 題目」，不寫整段粗體',
+    },
+  ]);
+});
