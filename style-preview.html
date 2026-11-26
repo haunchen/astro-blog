@@ -859,7 +859,34 @@
     .prose strong { font-weight: 700; }
     .prose em { font-style: italic; }
     .prose ul, .prose ol { padding-left: 24px; margin-bottom: 16px; }
+    .prose ul { list-style: disc; }
+    .prose ul ul { list-style: circle; }
+    .prose ol { list-style: decimal; }
     .prose li { margin-bottom: 4px; }
+    .prose li::marker { color: var(--text-muted); }
+
+    .prose .prose-block, .prose .faq-list {
+      background: var(--bg-secondary); border: 1px solid var(--border-default);
+      border-radius: var(--radius-md); margin: 16px 0;
+    }
+    .prose .prose-block { padding: 20px 24px; }
+    .prose .prose-block > :first-child { margin-top: 0; }
+    .prose .prose-block > :last-child { margin-bottom: 0; }
+    .prose .faq-item + .faq-item { border-top: 1px solid var(--border-subtle); }
+    .prose .faq-item > summary {
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 16px 20px; cursor: pointer; list-style: none;
+    }
+    .prose .faq-item > summary::-webkit-details-marker { display: none; }
+    .prose .faq-item > summary::after {
+      content: '+'; flex-shrink: 0; font-family: var(--font-mono);
+      font-size: 20px; line-height: 1; color: var(--text-muted);
+    }
+    .prose .faq-item[open] > summary::after { content: '−'; }
+    .prose .faq-item > summary:hover { background-color: rgba(251, 146, 60, 0.1); }
+    .prose .faq-item > summary h3 { font-size: 18px; line-height: 28px; margin: 0; }
+    .prose .faq-answer { padding: 0 20px 16px; }
+    .prose .faq-answer > :last-child { margin-bottom: 0; }
 
     .prose blockquote {
       border-left: 2px solid var(--brand-orange);
@@ -1489,10 +1516,39 @@ export interface SkillDefinition {
           <li>Error boundary 的設計很關鍵</li>
         </ul>
 
+        <h2>故障排除：Webhook 沒有反應</h2>
+        <div class="prose-block">
+          <p>先確認 Trigger 節點處於啟用狀態，再檢查下列項目：</p>
+          <ol>
+            <li>Webhook URL 是否為 Production URL</li>
+            <li>反向代理是否放行 <code>POST</code></li>
+          </ol>
+        </div>
+
+        <h2>常見問題</h2>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary><h3>Pipeline 可以跨 workflow 共用嗎？</h3></summary>
+            <div class="faq-answer"><p>可以，把共用的 Skill 抽成 sub-workflow 再由各 Pipeline 呼叫。</p></div>
+          </details>
+          <details class="faq-item">
+            <summary><h3>單一 Skill 失敗會中斷整條 Pipeline 嗎？</h3></summary>
+            <div class="faq-answer"><p>預設會；在該 Skill 開啟 Continue On Fail 後由下游自行判斷。</p></div>
+          </details>
+        </div>
+
         <hr>
 
         <h2>總結</h2>
         <p>Pipeline 架構讓 n8n-skills 從「一堆獨立的 workflow」進化為「可組合的自動化平台」。完整原始碼已開源在 <a href="#">GitHub</a>。</p>
+
+        <h2>參考資料與延伸閱讀</h2>
+        <div class="prose-block">
+          <ul>
+            <li><a href="#">n8n 官方文件</a></li>
+            <li><a href="#">Notion 轉 WordPress 自動發布：n8n 工作流完整教學</a></li>
+          </ul>
+        </div>
 
         <div class="article-nav">
           <a href="#" class="article-nav-item"><div class="article-nav-label">&larr; 上一篇</div><div class="article-nav-title">Notion 轉 WordPress 自動發布：n8n 工作流完整教學</div></a>

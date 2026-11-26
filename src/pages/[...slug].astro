@@ -331,12 +331,13 @@ const crumbs = [
   }
 
   /* Two-column layout */
+  /* 底部 64px 與 .list-page 的上下留白同值，否則上一篇／下一篇會貼著 footer。 */
   .layout-with-aside {
     display: flex;
     gap: 48px;
     max-width: var(--width-max);
     margin: 0 auto;
-    padding: 0 24px;
+    padding: 0 24px 64px;
   }
 
   .layout-main {
@@ -529,7 +530,7 @@ const crumbs = [
 
     .layout-with-aside {
       display: block;
-      padding: 0 24px;
+      padding: 0 24px 64px;
     }
   }
 
