@@ -1,6 +1,6 @@
 ---
 domain: article-blocks
-status: draft
+status: active
 created: 2026-11-26
 last_modified: 2026-11-26
 ---
