@@ -264,7 +264,7 @@ Allow: /wp-content/uploads/
 
 以上就是從取得 Instagram Access Token 到排程發文的全過程，透過 n8n 結合其他的服務，讓你不再忘記要設定排程發文。可以持續整合 AI 、Google Sheet、RSS Feed 等資源，提升你的發文效率。
 
-**參考資料：**
+## 參考資料與延伸閱讀
 
 -   [How to Post to Instagram with n8n (Updated 2025)](https://www.youtube.com/watch?v=AGSyWdjN5A4)
 -   [Meta 官方文件：Instagram 商家登入 — 取得與重新整理長期存取權杖](https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login)
