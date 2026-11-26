@@ -55,7 +55,10 @@ const filtered = headings.filter((h) => h.depth >= 2 && h.depth <= 3);
           link.classList.toggle('active', link.getAttribute('href') === `#${top.id}`);
         });
       },
-      { rootMargin: '0px 0px -80% 0px' }
+      // The top inset keeps headings hidden under the sticky header out of
+      // the band. It sits just inside the 64px scroll-padding-top in
+      // global.css, so a heading that an anchor jump lands on still counts.
+      { rootMargin: '-60px 0px -80% 0px' }
     );
 
     headings.forEach((heading) => observer.observe(heading));
