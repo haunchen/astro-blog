@@ -7,6 +7,7 @@ import sitemap from '@astrojs/sitemap';
 import { globSync } from 'glob';
 import matter from 'gray-matter';
 import { rehypeTableCaption } from './scripts/lib/rehype-table-caption.mjs';
+import { rehypeArticleBlocks } from './scripts/lib/rehype-article-blocks.mjs';
 import { pagePathToMdPath } from './scripts/lib/md-path.mjs';
 import { buildPageMarkdown } from './scripts/lib/page-md.mjs';
 import { postIdFromPath } from './scripts/lib/post-id.mjs';
@@ -174,6 +175,6 @@ export default defineConfig({
         },
       ],
     },
-    rehypePlugins: [rehypeTableCaption],
+    rehypePlugins: [rehypeTableCaption, rehypeArticleBlocks],
   },
 });
