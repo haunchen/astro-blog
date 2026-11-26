@@ -331,5 +331,8 @@ test('transformPost：區塊寫法合規的正文照常轉出', () => {
 test('transformPost：結構違規與欄位缺漏一次報完', () => {
   const r = transformPost(validData({ cover_image: '' }), '## 延伸閱讀\n\n- [文章](/post/)');
   assert.equal(r.status, 'blocked');
-  assert.equal(r.issues.length, 2);
+  assert.deepEqual(r.issues, [
+    '缺 cover_image（schema 的 cover 為必填）',
+    '結構檢查 E6「延伸閱讀」：文末連結的標題只能是「參考資料與延伸閱讀」',
+  ]);
 });

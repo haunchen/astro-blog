@@ -289,7 +289,8 @@
        Reset & Base
        ======================================== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    /* sticky 導覽列會蓋住錨點目標，scroll-padding-top 留出它的高度 */
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-padding-top: 64px; }
     body {
       font-family: var(--font-serif);
       background: var(--bg-primary);
@@ -872,6 +873,7 @@
     .prose .prose-block { padding: 20px 24px; }
     .prose .prose-block > :first-child { margin-top: 0; }
     .prose .prose-block > :last-child { margin-bottom: 0; }
+    .prose .prose-block th { background: var(--bg-tertiary); }
     .prose .faq-item + .faq-item { border-top: 1px solid var(--border-subtle); }
     .prose .faq-item > summary {
       display: flex; align-items: center; justify-content: space-between; gap: 16px;
@@ -884,6 +886,12 @@
     }
     .prose .faq-item[open] > summary::after { content: '−'; }
     .prose .faq-item > summary:hover { background-color: rgba(251, 146, 60, 0.1); }
+    .prose .faq-item:first-child > summary {
+      border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md);
+    }
+    .prose .faq-item:last-child:not([open]) > summary {
+      border-bottom-left-radius: var(--radius-md); border-bottom-right-radius: var(--radius-md);
+    }
     .prose .faq-item > summary h3 { font-size: 18px; line-height: 28px; margin: 0; }
     .prose .faq-answer { padding: 0 20px 16px; }
     .prose .faq-answer > :last-child { margin-bottom: 0; }

@@ -44,6 +44,7 @@ const SETEXT_H2_UNDERLINE = /^ {0,3}-+\s*$/;
 const THEMATIC_BREAK = /^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
 const LIST_ITEM = /^ {0,3}(?:[-*+]|\d{1,9}[.)])(?:\s|$)/;
 const BLANK = /^\s*$/;
+const BOLD_LINE = /^(\*\*|__)(?:(?!\1).)+\1\s*$/;
 
 /** 關閉圍欄：同字元、長度不小於開頭、後面只有空白。 */
 function closesFence(line, fence) {
@@ -59,7 +60,8 @@ function closesFence(line, fence) {
  *   但要回頭找段落起點，還得分辨清單延續、引用區塊延續這類不算段落的行，這種寫法不處理。
  * - 標題行必須頂格。前置 1–3 個空白的行在清單項目後面是項目內容，項目內容接頂格的 --- 是分隔線。
  * - 以 `<` 開頭的行可能是 HTML 區塊，HTML 區塊接 --- 也是分隔線。
- * - 以 `[…]:` 開頭的行是連結參照定義或註腳定義（`[^n]:`），不是段落文字，下一行的 --- 是分隔線。
+ * - 以 `[…]:` 開頭的行可能是連結參照定義或註腳定義（`[^n]:`），那就不是段落文字，下一行的 --- 是分隔線。
+ *   `[x]:` 後面沒有網址時其實是段落、接 --- 會成為 h2，這種寫法同樣不認。
  * - 以 `>` 開頭的行（引用區塊）、清單項目、ATX 標題、分隔線本身都不是段落文字。
  */
 function isSetextH2(lines, index) {
@@ -82,7 +84,7 @@ function isSetextH2(lines, index) {
 /**
  * 檢查一篇文章的 markdown 正文，回傳違規清單（空陣列＝合規），依行號由小到大排列。
  * @param {string} markdown 不含 frontmatter 的正文
- * @returns {Array<{rule: string, line: number, heading: string, message: string}>}
+ * @returns {Array<{rule: 'E1'|'E2'|'E3'|'E4'|'E5'|'E6', line: number, heading: string, message: string}>}
  */
 export function checkPostStructure(markdown) {
   const lines = markdown.split(/\r?\n/);
@@ -201,7 +203,9 @@ export function checkPostStructure(markdown) {
       continue;
     }
 
-    if (/^\*\*[^*]+\*\*\s*$/.test(line)) {
+    // 整行粗體：`**` 或 `__` 包住整行，中間不再出現同一組記號。中間可以有單個 `*`（斜體），
+    // 但 `**甲** 與 **乙**` 是一行兩段粗體，不是題目。
+    if (BOLD_LINE.test(line)) {
       violations.push({
         rule: 'E2',
         line: lineNo,

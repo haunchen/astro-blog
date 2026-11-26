@@ -3,8 +3,8 @@
 # Git for Windows 內建 bash，Git Bash 環境下這條 shebang 可直接解析。
 #
 # pre-commit：只做秒級檢查，不能跑完整 build（太慢，會拖慢每次 commit）。
-# 只驗證這次要 commit 的文章 frontmatter 必要欄位，把漏標籤／描述長度不合
-# 擋在 commit 當下，而不是等 CI 或事後才發現。
+# 只驗證這次要 commit 的文章：frontmatter 必要欄位與文章區塊結構，把漏標籤／
+# 描述長度不合／區塊寫法不合約定擋在 commit 當下，而不是等 CI 或事後才發現。
 #
 # 啟用方式：npm install 會跑 package.json 的 "prepare" script
 # （git config core.hooksPath .githooks），不需要額外安裝 husky。

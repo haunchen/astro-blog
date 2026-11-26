@@ -86,6 +86,21 @@ test('checkPostStructure：常見問題區塊內整段粗體的段落回報 E2',
   ]);
 });
 
+test('checkPostStructure：常見問題區塊內以底線寫的整段粗體回報 E2', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '__Q2：第二題？__'].join('\n');
+  assert.deepEqual(rules(markdown), ['E2']);
+});
+
+test('checkPostStructure：常見問題區塊內含斜體的整段粗體回報 E2', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '**Q2：要用 *n8n* 嗎？**'].join('\n');
+  assert.deepEqual(rules(markdown), ['E2']);
+});
+
+test('checkPostStructure：常見問題區塊內一行兩段粗體不回報 E2', () => {
+  const markdown = ['## 常見問題', '', '### 第一題？', '', '**甲** 與 **乙**'].join('\n');
+  assert.deepEqual(rules(markdown), []);
+});
+
 test('checkPostStructure：常見問題區塊內的收尾型 h3 回報 E3', () => {
   const markdown = ['## 常見問題', '', '### 第一題？', '', '答案', '', '### 總結與下一步', '', '內文'].join('\n');
   assert.deepEqual(rules(markdown), ['E3']);

@@ -19,6 +19,11 @@ import { checkPostStructure } from './lib/article-blocks.mjs';
 const args = process.argv.slice(2);
 const staged = args.includes('--staged');
 const named = args.filter((a) => a !== '--staged');
+// --staged 只在 pre-commit 帶著檔名呼叫時有意義；沒帶檔名就退回掃全部文章，會對未追蹤的檔 git show 而崩潰。
+if (staged && named.length === 0) {
+  console.error('check-post-structure：--staged 需要指定要檢查的檔案');
+  process.exit(2);
+}
 const files = (named.length > 0 ? named : globSync('src/content/posts/**/*.md'))
   .map((f) => f.replace(/\\/g, '/'))
   .sort();

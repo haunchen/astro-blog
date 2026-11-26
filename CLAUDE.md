@@ -18,7 +18,7 @@ no `wrangler.toml` on purpose (a Pages config file would override the dashboard 
 truth for build and runtime settings, which is a bigger change than this one flag).
 
 ```bash
-npm test           # 280 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
+npm test           # 283 unit tests covering scripts/lib/ (WordPress migration toolchain + markdown
                     # export incl. changelog blockquote + DNS-AID parsing/evaluation +
                     # page-md.mjs page→markdown conversion +
                     # md-path.mjs path mapping + og-image.mjs OG rendering/hashing +
