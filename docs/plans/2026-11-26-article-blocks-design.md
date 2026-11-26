@@ -53,7 +53,10 @@ Domain：`article-blocks`（新）、`design-system`（delta）
 
 - 每題是原生 `<details>`，題目的 `<h3>` 留在 `<summary>` 內，不需要 JavaScript
 - 預設全部收合，各題獨立開關，可同時展開多題
-- 收合的內容照常被搜尋引擎索引；瀏覽器頁內搜尋命中答案時會自動展開
+- 收合的內容仍在 HTML 裡，搜尋引擎讀得到。頁內搜尋命中收合的答案時是否自動展開因瀏覽器而異
+  （Chromium 系有此行為，Safari 與 Firefox 待驗證），不當成保證
+- RSS（`rss.xml.ts`）用 `sanitizeHtml` 白名單過濾，`details`、`summary`、`div` 不在名單內，
+  標籤被剝掉、內容保留，feed 裡仍是平鋪的題目與答案
 - 題目仍列在側邊目錄（`TableOfContents` 掃 `.prose h2, .prose h3`），點了捲到題目列但不自動展開。
   自動展開需要 JavaScript，不做
 
@@ -97,7 +100,8 @@ Domain：`article-blocks`（新）、`design-system`（delta）
 - 鍵盤焦點：`<summary>` 吃全站的 `:focus-visible`，不另外宣告（design-system R4）
 - 列表：`.prose ul` 用 `disc`、第二層 `circle`；`.prose ol` 用 `decimal`；符號與數字顏色
   `--color-text-muted`
-- `.layout-with-aside` 底部留白 64px，與 `.list-page` 的上下留白同值，手機版同樣適用
+- `.layout-with-aside` 底部留白 64px，與 `.list-page` 的上下留白同值，手機版同樣適用。
+  `@media (max-width: 1024px)` 那條規則重新宣告了 `padding: 0 24px`，兩條都要改，否則窄螢幕會被蓋回 0
 - `style-preview.html` 補上三種區塊與列表符號
 
 ## 結構檢查
@@ -114,7 +118,7 @@ Domain：`article-blocks`（新）、`design-system`（delta）
 | E3 | 常見問題區塊內的 `###` 含「總結／結語／下一步／學習路徑／延伸閱讀」 |
 | E4 | h2 用了常見問題或故障排除的別名：`常見問答`、不含「常見問題」的 `FAQ`／`Q&A`、以 `疑難排解`／`問題排解` 開頭 |
 | E5 | 一篇有兩個以上常見問題區塊 |
-| E6 | h2 以「參考資料／參考資源／延伸閱讀」開頭但不等於 `參考資料與延伸閱讀`，或該標題出現兩次以上 |
+| E6 | h2 以「參考資料／參考資源／延伸閱讀／相關文章」開頭但不等於 `參考資料與延伸閱讀`，或該標題出現兩次以上 |
 
 執行點：
 
@@ -159,7 +163,10 @@ nextjs-geoip-memory-optimization（「記憶體優化總結與下一步行動」
   `## 故障排除：Nginx 反向代理設定注意事項`
 - n8n-canva-oauth-setup：`## 故障排除指南` 不用動
 
-### 文末連結區塊（23 篇）
+### 文末連結區塊（24 篇）
+
+`## 相關文章` 改名（1）：n8n-credentials-setup-complete-guide（節內的 h3 分組保留）
+
 
 不用動（7）：cloudflare-cache-rules-wordpress、n8n-line-api-integration-tutorial、
 n8n-notion-api-integration-tutorial、n8n-template-line-bot-upload-system、
