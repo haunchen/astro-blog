@@ -1,12 +1,10 @@
 ---
 title: "Skills over MCP 實作：讓 MCP server 自帶使用說明，subagent 也讀得到"
-date: 2026-11-26
+date: 2026-11-27
 description: "Skills over MCP 讓 MCP server 連使用說明一起發布。這篇用我自己的 Python MCP server 實作一次：SDK 要裝哪個版本、server 端怎麼註冊、Claude Code 在什麼條件下才讀得到，以及 subagent 少一個 Skill 工具就整個拿不到的坑。"
 category: "tools"
 tags: ["claude-code", "mcp"]
 cover: "./images/cover.webp"
-draft: true
-publishAt: 2026-11-27
 ---
 > 實測版本：Claude Code 2.1.332、python-sdk commit `9a754b0`（2026-11）
 
